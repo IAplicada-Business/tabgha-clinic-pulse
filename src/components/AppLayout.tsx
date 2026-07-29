@@ -5,7 +5,7 @@ const AssistantBubble = lazy(() =>
 import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import { useAuth } from "@/lib/auth";
 import { canSeeNavPermission } from "@/lib/permissions";
-import { isStaff, isSuperAdmin } from "@/lib/roles";
+import { isStaff, isSuperAdmin, primaryStaffRole, type StaffRole } from "@/lib/roles";
 import { cn } from "@/lib/utils";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -31,6 +31,7 @@ import {
   ShieldCheck,
   Package,
   Briefcase,
+  Megaphone,
 } from "lucide-react";
 
 type NavChild = {
@@ -72,109 +73,174 @@ type NavGroup = {
   items: NavItem[];
 };
 
-const ADMIN_NAV: NavGroup[] = [
-  {
-    group: "Visão",
-    items: [
-      {
-        to: "/admin/dashboard",
-        label: "Dashboard",
-        icon: LayoutDashboard,
-        perm: "admin.dashboard",
-        children: [
-          { to: "/admin/dashboard", label: "Tabgha", perm: "admin.dashboard" },
-          { to: "/admin/dashboard-clientes", label: "Clientes", perm: "admin.dashboard" },
-        ],
-      },
+const ADMIN_ITEMS = {
+  dashboard: {
+    to: "/admin/dashboard",
+    label: "Dashboard",
+    icon: LayoutDashboard,
+    perm: "admin.dashboard",
+    children: [
+      { to: "/admin/dashboard", label: "Tabgha", perm: "admin.dashboard" },
+      { to: "/admin/dashboard-clientes", label: "Clientes", perm: "admin.dashboard" },
+    ],
+  },
+  roi: {
+    to: "/admin/roi",
+    label: "Resultados & ROI",
+    icon: TrendingUp,
+    perm: "admin.roi",
+    children: [
+      { to: "/admin/roi", label: "Operação", perm: "admin.roi", search: { tab: "operacao" } },
+      { to: "/admin/roi", label: "Clientes", perm: "admin.roi", search: { tab: "clientes" } },
+      { to: "/admin/roi", label: "Campanhas", perm: "admin.roi", search: { tab: "campanhas" } },
       {
         to: "/admin/roi",
-        label: "ROI da operação",
-        icon: TrendingUp,
-        perm: "admin.roi",
-        children: [
-          { to: "/admin/roi", label: "Operação", perm: "admin.roi", search: { tab: "operacao" } },
-          {
-            to: "/admin/roi",
-            label: "Clientes",
-            perm: "admin.roi",
-            search: { tab: "clientes" },
-          },
-          {
-            to: "/admin/roi",
-            label: "Campanhas",
-            perm: "admin.roi",
-            search: { tab: "campanhas" },
-          },
-          {
-            to: "/admin/roi",
-            label: "Marketing pago",
-            perm: "admin.meta_ads",
-            search: { tab: "marketing" },
-          },
-        ],
+        label: "Marketing pago",
+        perm: "admin.meta_ads",
+        search: { tab: "marketing" },
       },
     ],
   },
-  {
-    group: "Carteira",
-    items: [
-      { to: "/admin/clientes", label: "Clientes", icon: Users, perm: "admin.clientes" },
-      {
-        to: "/admin/diagnosticos",
-        label: "Diagnósticos",
-        icon: Stethoscope,
-        perm: "admin.diagnosticos",
-      },
-    ],
+  clientes: {
+    to: "/admin/clientes",
+    label: "Carteira de clientes",
+    icon: Users,
+    perm: "admin.clientes",
   },
-  {
-    group: "Operação diária",
-    items: [
-      {
-        to: "/admin/atendimento",
-        label: "Atendimento",
-        icon: MessageSquare,
-        perm: "admin.atendimento",
-      },
-      {
-        to: "/admin/estrategia",
-        label: "Estratégia editorial",
-        icon: FileText,
-        perm: "admin.estrategia",
-      },
-      { to: "/admin/calendario", label: "Calendário", icon: Calendar, perm: "admin.operacao" },
-    ],
+  diagnosticos: {
+    to: "/admin/diagnosticos",
+    label: "Diagnóstico 7 Fontes",
+    icon: Stethoscope,
+    perm: "admin.diagnosticos",
   },
-  {
-    group: "Aquisição",
-    items: [
-      {
-        to: "/admin/automacoes-leads",
-        label: "Automações de leads",
-        icon: Zap,
-        perm: "admin.operacao",
-      },
-      { to: "/admin/leads", label: "Funil de leads", icon: Users, perm: "admin.operacao" },
-      {
-        to: "/admin/pipeline-comercial",
-        label: "Pipeline comercial",
-        icon: Briefcase,
-        perm: "admin.pipeline",
-      },
-      { to: "/admin/config-meta", label: "Conectar Meta BM", icon: Link2, perm: "admin.meta_ads" },
-    ],
+  atendimento: {
+    to: "/admin/atendimento",
+    label: "Atendimento",
+    icon: MessageSquare,
+    perm: "admin.atendimento",
   },
-  {
-    group: "Administração",
-    items: [
-      { to: "/admin/usuarios", label: "Usuários & acessos", icon: UserCog, perm: "admin.usuarios" },
-    ],
+  estrategia: {
+    to: "/admin/estrategia",
+    label: "Estratégia editorial",
+    icon: FileText,
+    perm: "admin.estrategia",
   },
-];
+  calendario: {
+    to: "/admin/calendario",
+    label: "Calendário editorial",
+    icon: Calendar,
+    perm: "admin.operacao",
+  },
+  automacoes: {
+    to: "/admin/automacoes-leads",
+    label: "Automações de pacientes",
+    icon: Zap,
+    perm: "admin.operacao",
+  },
+  funilPacientes: {
+    to: "/admin/leads",
+    label: "Funil de pacientes",
+    icon: UserCheck,
+    perm: "admin.operacao",
+  },
+  metaAds: {
+    to: "/admin/meta-ads",
+    label: "Meta Ads",
+    icon: Megaphone,
+    perm: "admin.meta_ads",
+  },
+  pipelineB2b: {
+    to: "/admin/pipeline-comercial",
+    label: "Pipeline Tabgha · B2B",
+    icon: Briefcase,
+    perm: "admin.pipeline",
+  },
+  usuarios: {
+    to: "/admin/usuarios",
+    label: "Usuários & acessos",
+    icon: UserCog,
+    perm: "admin.usuarios",
+  },
+  conexoesMeta: {
+    to: "/admin/config-meta",
+    label: "Conexões Meta",
+    icon: Link2,
+    perm: "admin.meta_ads",
+  },
+} satisfies Record<string, NavItem>;
+
+const ADMIN_NAV_BY_ROLE: Record<StaffRole, NavGroup[]> = {
+  admin: [
+    { group: "Visão geral", items: [ADMIN_ITEMS.dashboard, ADMIN_ITEMS.roi] },
+    { group: "Clientes", items: [ADMIN_ITEMS.clientes, ADMIN_ITEMS.diagnosticos] },
+    {
+      group: "Aquisição de pacientes",
+      items: [
+        ADMIN_ITEMS.atendimento,
+        ADMIN_ITEMS.funilPacientes,
+        ADMIN_ITEMS.automacoes,
+        ADMIN_ITEMS.metaAds,
+      ],
+    },
+    { group: "Conteúdo", items: [ADMIN_ITEMS.estrategia, ADMIN_ITEMS.calendario] },
+    { group: "Comercial Tabgha", items: [ADMIN_ITEMS.pipelineB2b] },
+    { group: "Administração", items: [ADMIN_ITEMS.usuarios, ADMIN_ITEMS.conexoesMeta] },
+  ],
+  gestor_estrategico: [
+    { group: "Visão estratégica", items: [ADMIN_ITEMS.dashboard, ADMIN_ITEMS.roi] },
+    { group: "Clientes", items: [ADMIN_ITEMS.clientes, ADMIN_ITEMS.diagnosticos] },
+    {
+      group: "Aquisição de pacientes",
+      items: [ADMIN_ITEMS.funilPacientes, ADMIN_ITEMS.automacoes, ADMIN_ITEMS.metaAds],
+    },
+    { group: "Conteúdo", items: [ADMIN_ITEMS.estrategia, ADMIN_ITEMS.calendario] },
+    { group: "Configurações", items: [ADMIN_ITEMS.conexoesMeta] },
+  ],
+  growth_manager: [
+    { group: "Visão", items: [ADMIN_ITEMS.dashboard, ADMIN_ITEMS.roi] },
+    {
+      group: "Aquisição de pacientes",
+      items: [ADMIN_ITEMS.funilPacientes, ADMIN_ITEMS.automacoes, ADMIN_ITEMS.metaAds],
+    },
+    { group: "Comercial Tabgha", items: [ADMIN_ITEMS.pipelineB2b] },
+    { group: "Carteira", items: [ADMIN_ITEMS.clientes] },
+    { group: "Planejamento", items: [ADMIN_ITEMS.calendario] },
+    { group: "Configurações", items: [ADMIN_ITEMS.conexoesMeta] },
+  ],
+  social_media: [
+    { group: "Conteúdo", items: [ADMIN_ITEMS.estrategia, ADMIN_ITEMS.calendario] },
+    { group: "Carteira", items: [ADMIN_ITEMS.clientes] },
+    {
+      group: "Distribuição & jornada",
+      items: [ADMIN_ITEMS.funilPacientes, ADMIN_ITEMS.automacoes],
+    },
+  ],
+  performance: [
+    { group: "Tráfego", items: [ADMIN_ITEMS.metaAds, ADMIN_ITEMS.roi] },
+    { group: "Analytics", items: [ADMIN_ITEMS.dashboard] },
+    { group: "Carteira", items: [ADMIN_ITEMS.clientes] },
+    { group: "Configurações", items: [ADMIN_ITEMS.conexoesMeta] },
+  ],
+  atendimento_cs: [
+    {
+      group: "Fila de pacientes",
+      items: [ADMIN_ITEMS.atendimento, ADMIN_ITEMS.funilPacientes],
+    },
+    { group: "Clientes", items: [ADMIN_ITEMS.clientes, ADMIN_ITEMS.diagnosticos] },
+    {
+      group: "Ferramentas",
+      items: [ADMIN_ITEMS.automacoes, ADMIN_ITEMS.calendario],
+    },
+  ],
+  financeiro: [
+    { group: "Financeiro", items: [ADMIN_ITEMS.roi, ADMIN_ITEMS.dashboard] },
+    { group: "Carteira", items: [ADMIN_ITEMS.clientes] },
+  ],
+};
 
 const CLIENTE_NAV: NavGroup[] = [
   {
-    group: "Visão",
+    group: "Visão geral",
     items: [
       {
         to: "/cliente/dashboard",
@@ -188,7 +254,12 @@ const CLIENTE_NAV: NavGroup[] = [
         icon: TrendingUp,
         perm: "cliente.roi",
         children: [
-          { to: "/cliente/roi", label: "Operação", perm: "cliente.roi", search: { tab: "operacao" } },
+          {
+            to: "/cliente/roi",
+            label: "Operação",
+            perm: "cliente.roi",
+            search: { tab: "operacao" },
+          },
           {
             to: "/cliente/roi",
             label: "Oportunidades",
@@ -209,10 +280,16 @@ const CLIENTE_NAV: NavGroup[] = [
           },
         ],
       },
+      {
+        to: "/cliente/diagnostico",
+        label: "Meu Diagnóstico 7F",
+        icon: Stethoscope,
+        perm: "cliente.diagnostico",
+      },
     ],
   },
   {
-    group: "Relacionamento",
+    group: "Pacientes",
     items: [
       {
         to: "/cliente/atendimento",
@@ -220,12 +297,12 @@ const CLIENTE_NAV: NavGroup[] = [
         icon: MessageSquare,
         perm: "cliente.atendimento",
       },
-      { to: "/cliente/leads", label: "Leads", icon: Users, perm: "cliente.leads" },
+      { to: "/cliente/leads", label: "Funil de pacientes", icon: UserCheck, perm: "cliente.leads" },
       { to: "/cliente/clientes", label: "Pacientes", icon: UserCheck, perm: "cliente.clientes" },
     ],
   },
   {
-    group: "Marketing",
+    group: "Marketing & conteúdo",
     items: [
       { to: "/cliente/conteudo", label: "Conteúdo", icon: FileText, perm: "cliente.conteudo" },
       { to: "/cliente/entregas", label: "Entregas", icon: Package, perm: "cliente.entregas" },
@@ -235,19 +312,17 @@ const CLIENTE_NAV: NavGroup[] = [
         icon: Calendar,
         perm: "cliente.calendario",
       },
+      {
+        to: "/cliente/meta-ads",
+        label: "Meta Ads",
+        icon: Megaphone,
+        perm: "cliente.meta_ads",
+      },
     ],
   },
   {
-    group: "Estratégia",
-    items: [
-      {
-        to: "/cliente/diagnostico",
-        label: "Diagnóstico",
-        icon: Stethoscope,
-        perm: "cliente.diagnostico",
-      },
-      { to: "/cliente/conexoes", label: "Conexões", icon: Link2, perm: "cliente.conexoes" },
-    ],
+    group: "Configurações",
+    items: [{ to: "/cliente/conexoes", label: "Conexões", icon: Link2, perm: "cliente.conexoes" }],
   },
 ];
 
@@ -505,10 +580,7 @@ function SidebarNav({
                         : "text-sidebar-foreground/35 hover:text-sidebar-foreground/60",
                   )}
                 >
-                  <span className="flex items-center gap-1.5">
-                    {isAdminGroup && <ShieldCheck className="h-3 w-3 opacity-60" />}
-                    {key}
-                  </span>
+                  <span>{key}</span>
                   <ChevronRight
                     className={cn(
                       "h-3 w-3 opacity-55 transition-transform duration-200",
@@ -837,8 +909,24 @@ export function AppLayout({ children }: { children: ReactNode }) {
   const isAdmin = isSuperAdmin(roles);
   const canSwitchAreas =
     isStaff(roles) && roles.includes("cliente") && Boolean(profile?.cliente_id);
+  const staffRole = primaryStaffRole(roles);
 
-  const allGroups = role === "admin" ? ADMIN_NAV : CLIENTE_NAV;
+  const roleGroups = role === "admin" ? ADMIN_NAV_BY_ROLE[staffRole ?? "admin"] : CLIENTE_NAV;
+  const configuredAdminPaths = new Set(
+    roleGroups.flatMap((group) => group.items.map((item) => item.to)),
+  );
+  const additionalAdminItems: NavItem[] =
+    role === "admin"
+      ? Object.values(ADMIN_ITEMS).filter(
+          (item) =>
+            !configuredAdminPaths.has(item.to) &&
+            canSeeNavPermission(profile?.permissoes, item.perm),
+        )
+      : [];
+  const allGroups =
+    additionalAdminItems.length > 0
+      ? [...roleGroups, { group: "Acessos adicionais", items: additionalAdminItems }]
+      : roleGroups;
 
   const groups: NavGroup[] = allGroups
     .map((g) => ({
