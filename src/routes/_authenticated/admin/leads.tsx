@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Loader2, UserPlus, Users } from "lucide-react";
 
 import { EmptyState } from "@/components/EmptyState";
@@ -29,14 +29,19 @@ function AdminLeadsPage() {
   const [showCreate, setShowCreate] = useState(false);
   const [focusLead, setFocusLead] = useState<Lead | null>(null);
 
+  // Pré-seleciona o primeiro cliente só na primeira carga (habilita "Novo lead").
+  // Depois disso "Todos os clientes" (cliente = "") precisa continuar valendo.
+  const autoPickedCliente = useRef(false);
+
   useEffect(() => {
-    if (!search.cliente && clientes[0]?.id) {
-      void navigate({
-        to: ".",
-        search: (prev: typeof search) => ({ ...prev, cliente: clientes[0].id }),
-        replace: true,
-      });
-    }
+    if (autoPickedCliente.current || clientes.length === 0) return;
+    autoPickedCliente.current = true;
+    if (search.cliente) return;
+    void navigate({
+      to: ".",
+      search: (prev: typeof search) => ({ ...prev, cliente: clientes[0].id }),
+      replace: true,
+    });
   }, [clientes, search.cliente, navigate]);
 
   const filters = useMemo(
