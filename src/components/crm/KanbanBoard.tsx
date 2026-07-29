@@ -40,30 +40,60 @@ import {
 } from "@/lib/pipeline";
 import { cn } from "@/lib/utils";
 
+/** Campos mínimos que o Kanban precisa — Lead e OportunidadeB2b satisfazem. */
+export type KanbanCard = {
+  id: string;
+  status: string;
+  nome: string | null;
+  telefone?: string | null;
+  canal?: string | null;
+  criado_em: string;
+  atualizado_em: string;
+  observacoes?: string | null;
+};
+
+type ColStyle = { header: string; col: string; badge: string };
+
 type KanbanBoardProps = {
-  leads: Lead[];
+  leads: KanbanCard[];
   isAdmin?: boolean;
   /** Abre o detalhe deste lead (ex.: logo após criar). */
-  focusLead?: Lead | null;
+  focusLead?: KanbanCard | null;
   onFocusLeadConsumed?: () => void;
+  /** Estágios do funil (default: pipeline de paciente). */
+  stages?: readonly string[];
+  statusLabels?: Record<string, string>;
+  colStyles?: Record<string, ColStyle>;
+  /** Se informado, substitui moverLeadStatus (ex.: pipeline B2B). */
+  onMoveStatus?: (id: string, novo: string, motivo?: string | null) => Promise<void>;
+  /** Query keys a invalidar após mover. */
+  invalidateKeys?: unknown[][];
+  /** Status que exige motivo (default: "perdido"; null desliga). */
+  requireMotivoOnStatus?: string | null;
+  /** Abrir LeadDetailDialog ao clicar (default true — funil paciente). */
+  enableLeadDetail?: boolean;
+  onCardOpen?: (card: KanbanCard) => void;
+  emptyColumnHint?: string;
+  movedToast?: string;
 };
 
 /** Resolve coluna do funil: drop na coluna (status) ou em cima de outro card (lead id). */
 function resolveDropStatus(
   overId: string | number | undefined | null,
-  leads: Lead[],
-): PipelineStatus | null {
+  leads: KanbanCard[],
+  stages: readonly string[],
+): string | null {
   if (overId == null) return null;
   const id = String(overId);
-  if ((PIPELINE as readonly string[]).includes(id)) return id as PipelineStatus;
+  if (stages.includes(id)) return id;
   const target = leads.find((l) => l.id === id);
-  if (target && (PIPELINE as readonly string[]).includes(target.status)) {
-    return target.status as PipelineStatus;
+  if (target && stages.includes(target.status)) {
+    return target.status;
   }
   return null;
 }
 
-function LeadCardContent({ lead }: { lead: Lead }) {
+function LeadCardContent({ lead }: { lead: KanbanCard }) {
   const timeAgo = formatDistanceToNow(new Date(lead.atualizado_em || lead.criado_em), {
     addSuffix: false,
     locale: ptBR,
@@ -94,7 +124,7 @@ function LeadCardContent({ lead }: { lead: Lead }) {
   );
 }
 
-function LeadCard({ lead, onOpen }: { lead: Lead; onOpen: () => void }) {
+function LeadCard({ lead, onOpen }: { lead: KanbanCard; onOpen: () => void }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: lead.id,
     data: { lead },
@@ -115,11 +145,10 @@ function LeadCard({ lead, onOpen }: { lead: Lead; onOpen: () => void }) {
         lead.status === "perdido" && "opacity-75",
       )}
     >
-      {/* Handle de arrastar — separado do clique que abre o detalhe */}
       <button
         type="button"
         className="flex shrink-0 cursor-grab items-center justify-center border-r border-border/70 px-1.5 text-muted-foreground hover:bg-secondary/60 active:cursor-grabbing"
-        aria-label={`Arrastar ${lead.nome ?? "lead"}`}
+        aria-label={`Arrastar ${lead.nome ?? "card"}`}
         {...listeners}
         {...attributes}
       >
@@ -141,13 +170,18 @@ function KanbanColumn({
   status,
   leads,
   onOpen,
+  label,
+  style,
+  emptyHint,
 }: {
-  status: PipelineStatus;
-  leads: Lead[];
-  onOpen: (lead: Lead) => void;
+  status: string;
+  leads: KanbanCard[];
+  onOpen: (lead: KanbanCard) => void;
+  label: string;
+  style: ColStyle;
+  emptyHint: string;
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: status });
-  const style = COL_STYLES[status];
 
   return (
     <div
@@ -160,7 +194,7 @@ function KanbanColumn({
     >
       <div className="mb-3 flex shrink-0 items-center justify-between border-b border-black/[0.06] pb-3">
         <h3 className={cn("text-[11.5px] font-bold uppercase tracking-[0.05em]", style.header)}>
-          {STATUS_LABELS[status]}
+          {label}
         </h3>
         <span className="rounded-full bg-white px-2.5 py-0.5 text-[11px] font-bold shadow-sm">
           {leads.length}
@@ -171,9 +205,7 @@ function KanbanColumn({
           <LeadCard key={lead.id} lead={lead} onOpen={() => onOpen(lead)} />
         ))}
         {leads.length === 0 ? (
-          <p className="m-auto text-center text-[11.5px] text-muted-foreground/50">
-            Arraste um lead aqui
-          </p>
+          <p className="m-auto text-center text-[11.5px] text-muted-foreground/50">{emptyHint}</p>
         ) : null}
       </div>
     </div>
@@ -288,11 +320,25 @@ export function FunilHeader({ leads }: { leads: Lead[] }) {
   );
 }
 
-export function KanbanBoard({ leads, focusLead, onFocusLeadConsumed }: KanbanBoardProps) {
+export function KanbanBoard({
+  leads,
+  focusLead,
+  onFocusLeadConsumed,
+  stages = PIPELINE,
+  statusLabels = STATUS_LABELS as Record<string, string>,
+  colStyles = COL_STYLES as Record<string, ColStyle>,
+  onMoveStatus,
+  invalidateKeys = [["leads-kanban"]],
+  requireMotivoOnStatus = "perdido",
+  enableLeadDetail = true,
+  onCardOpen,
+  emptyColumnHint = "Arraste um lead aqui",
+  movedToast = "Lead movido",
+}: KanbanBoardProps) {
   const qc = useQueryClient();
-  const [activeLead, setActiveLead] = useState<Lead | null>(null);
+  const [activeLead, setActiveLead] = useState<KanbanCard | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [fallbackLead, setFallbackLead] = useState<Lead | null>(null);
+  const [fallbackLead, setFallbackLead] = useState<KanbanCard | null>(null);
   const [pendingPerda, setPendingPerda] = useState<{
     leadId: string;
   } | null>(null);
@@ -318,14 +364,14 @@ export function KanbanBoard({ leads, focusLead, onFocusLeadConsumed }: KanbanBoa
   }, [leads, selectedId, fallbackLead]);
 
   const grouped = useMemo(() => {
-    return PIPELINE.reduce(
+    return stages.reduce(
       (acc, status) => {
         acc[status] = leads.filter((l) => l.status === status);
         return acc;
       },
-      {} as Record<PipelineStatus, Lead[]>,
+      {} as Record<string, KanbanCard[]>,
     );
-  }, [leads]);
+  }, [leads, stages]);
 
   const move = useMutation({
     mutationFn: async ({
@@ -334,37 +380,59 @@ export function KanbanBoard({ leads, focusLead, onFocusLeadConsumed }: KanbanBoa
       motivo,
     }: {
       leadId: string;
-      novo: PipelineStatus;
+      novo: string;
       motivo?: string | null;
-    }) => moverLeadStatus(leadId, novo, motivo),
+    }) => {
+      if (onMoveStatus) {
+        await onMoveStatus(leadId, novo, motivo);
+        return;
+      }
+      await moverLeadStatus(leadId, novo as PipelineStatus, motivo);
+    },
     onSuccess: () => {
-      toast.success("Lead movido");
-      void qc.invalidateQueries({ queryKey: ["leads-kanban"] });
+      toast.success(movedToast);
+      for (const key of invalidateKeys) {
+        void qc.invalidateQueries({ queryKey: key });
+      }
       setPendingPerda(null);
     },
-    onError: (err: Error) => toast.error(err.message || "Falha ao mover lead"),
+    onError: (err: Error) => toast.error(err.message || "Falha ao mover"),
   });
 
   function onDragStart(event: DragStartEvent) {
-    const lead = event.active.data.current?.lead as Lead | undefined;
+    const lead = event.active.data.current?.lead as KanbanCard | undefined;
     setActiveLead(lead ?? null);
   }
 
   function onDragEnd(event: DragEndEvent) {
     setActiveLead(null);
-    const lead = event.active.data.current?.lead as Lead | undefined;
+    const lead = event.active.data.current?.lead as KanbanCard | undefined;
     if (!lead) return;
 
-    const novo = resolveDropStatus(event.over?.id, leads);
+    const novo = resolveDropStatus(event.over?.id, leads, stages);
     if (!novo || lead.status === novo) return;
 
-    if (novo === "perdido") {
+    if (requireMotivoOnStatus && novo === requireMotivoOnStatus) {
       setPendingPerda({ leadId: lead.id });
       return;
     }
 
     move.mutate({ leadId: lead.id, novo });
   }
+
+  function handleOpen(card: KanbanCard) {
+    if (onCardOpen) {
+      onCardOpen(card);
+      return;
+    }
+    if (enableLeadDetail) setSelectedId(card.id);
+  }
+
+  const defaultStyle: ColStyle = {
+    header: "text-slate-700",
+    col: "bg-gradient-to-b from-slate-50/60 to-slate-50/10",
+    badge: "bg-slate-100 text-slate-700",
+  };
 
   return (
     <div className="flex h-full min-h-0 flex-col">
@@ -381,12 +449,15 @@ export function KanbanBoard({ leads, focusLead, onFocusLeadConsumed }: KanbanBoa
           }
         >
           <div className="flex h-full min-h-[360px] gap-3.5" style={{ minWidth: "max-content" }}>
-            {PIPELINE.map((status) => (
+            {stages.map((status) => (
               <KanbanColumn
                 key={status}
                 status={status}
-                leads={grouped[status]}
-                onOpen={(lead) => setSelectedId(lead.id)}
+                leads={grouped[status] ?? []}
+                onOpen={handleOpen}
+                label={statusLabels[status] ?? status}
+                style={colStyles[status] ?? defaultStyle}
+                emptyHint={emptyColumnHint}
               />
             ))}
           </div>
@@ -400,20 +471,24 @@ export function KanbanBoard({ leads, focusLead, onFocusLeadConsumed }: KanbanBoa
         </DragOverlay>
       </DndContext>
 
-      {pendingPerda ? (
+      {pendingPerda && requireMotivoOnStatus ? (
         <MotivoPerdaDialog
           key={pendingPerda.leadId}
           open
           loading={move.isPending}
           onCancel={() => setPendingPerda(null)}
           onConfirm={(motivo) => {
-            move.mutate({ leadId: pendingPerda.leadId, novo: "perdido", motivo });
+            move.mutate({
+              leadId: pendingPerda.leadId,
+              novo: requireMotivoOnStatus,
+              motivo,
+            });
           }}
         />
       ) : null}
 
-      {selected ? (
-        <LeadDetailDialog lead={selected} onClose={() => setSelectedId(null)} />
+      {enableLeadDetail && selected ? (
+        <LeadDetailDialog lead={selected as Lead} onClose={() => setSelectedId(null)} />
       ) : null}
     </div>
   );

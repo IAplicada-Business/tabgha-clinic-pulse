@@ -30,6 +30,7 @@ import {
   X,
   ShieldCheck,
   Package,
+  Briefcase,
 } from "lucide-react";
 
 type NavChild = {
@@ -154,6 +155,12 @@ const ADMIN_NAV: NavGroup[] = [
         perm: "admin.operacao",
       },
       { to: "/admin/leads", label: "Funil de leads", icon: Users, perm: "admin.operacao" },
+      {
+        to: "/admin/pipeline-comercial",
+        label: "Pipeline comercial",
+        icon: Briefcase,
+        perm: "admin.pipeline",
+      },
       { to: "/admin/config-meta", label: "Conectar Meta BM", icon: Link2, perm: "admin.meta_ads" },
     ],
   },

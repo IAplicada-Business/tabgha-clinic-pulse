@@ -770,6 +770,71 @@ export type Database = {
           },
         ]
       }
+      oportunidades_b2b: {
+        Row: {
+          atualizado_em: string
+          cac: number | null
+          canal: string | null
+          cidade: string | null
+          criado_em: string
+          email: string | null
+          especialidade: string | null
+          id: string
+          nome: string
+          observacoes: string | null
+          origem: string | null
+          responsavel_id: string | null
+          roi: number | null
+          status: string
+          telefone: string | null
+          ticket: number | null
+        }
+        Insert: {
+          atualizado_em?: string
+          cac?: number | null
+          canal?: string | null
+          cidade?: string | null
+          criado_em?: string
+          email?: string | null
+          especialidade?: string | null
+          id?: string
+          nome: string
+          observacoes?: string | null
+          origem?: string | null
+          responsavel_id?: string | null
+          roi?: number | null
+          status?: string
+          telefone?: string | null
+          ticket?: number | null
+        }
+        Update: {
+          atualizado_em?: string
+          cac?: number | null
+          canal?: string | null
+          cidade?: string | null
+          criado_em?: string
+          email?: string | null
+          especialidade?: string | null
+          id?: string
+          nome?: string
+          observacoes?: string | null
+          origem?: string | null
+          responsavel_id?: string | null
+          roi?: number | null
+          status?: string
+          telefone?: string | null
+          ticket?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "oportunidades_b2b_responsavel_id_fkey"
+            columns: ["responsavel_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       vw_funil_lead_cliente: {
@@ -788,6 +853,15 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      vw_funil_oportunidades_b2b: {
+        Row: {
+          horas_no_estagio: number | null
+          status: string | null
+          ticket_soma: number | null
+          total: number | null
+        }
+        Relationships: []
       }
       vw_kpis_cliente_diario: {
         Row: {
@@ -809,6 +883,17 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      vw_kpis_pipeline_b2b: {
+        Row: {
+          em_andamento: number | null
+          fechados: number | null
+          mrr: number | null
+          taxa_fechamento_pct: number | null
+          ticket_medio_b2b: number | null
+          total_oportunidades: number | null
+        }
+        Relationships: []
       }
     }
     Functions: {
@@ -863,6 +948,13 @@ export type Database = {
         }
         Returns: string
       }
+      has_any_role: {
+        Args: {
+          _roles: Database["public"]["Enums"]["app_role"][]
+          _user_id: string
+        }
+        Returns: boolean
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -870,12 +962,17 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_staff: { Args: { _user_id: string }; Returns: boolean }
       log_ticket_converted: {
         Args: { _lead_id: string; _ticket: number }
         Returns: undefined
       }
       mover_lead_status: {
         Args: { _lead_id: string; _motivo?: string; _novo: string }
+        Returns: undefined
+      }
+      mover_oportunidade_b2b_status: {
+        Args: { _id: string; _novo: string }
         Returns: undefined
       }
       responder_conteudo: {

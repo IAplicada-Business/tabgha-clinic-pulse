@@ -25,6 +25,7 @@ import { Route as AuthenticatedAdminDiagnosticosRouteImport } from './routes/_au
 import { Route as AuthenticatedAdminEstrategiaRouteImport } from './routes/_authenticated/admin/estrategia'
 import { Route as AuthenticatedAdminLeadsRouteImport } from './routes/_authenticated/admin/leads'
 import { Route as AuthenticatedAdminMetaAdsRouteImport } from './routes/_authenticated/admin/meta-ads'
+import { Route as AuthenticatedAdminPipelineComercialRouteImport } from './routes/_authenticated/admin/pipeline-comercial'
 import { Route as AuthenticatedAdminRoiRouteImport } from './routes/_authenticated/admin/roi'
 import { Route as AuthenticatedAdminUsuariosRouteImport } from './routes/_authenticated/admin/usuarios'
 import { Route as AuthenticatedClienteAtendimentoRouteImport } from './routes/_authenticated/cliente/atendimento'
@@ -128,6 +129,12 @@ const AuthenticatedAdminMetaAdsRoute =
   AuthenticatedAdminMetaAdsRouteImport.update({
     id: '/meta-ads',
     path: '/meta-ads',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
+const AuthenticatedAdminPipelineComercialRoute =
+  AuthenticatedAdminPipelineComercialRouteImport.update({
+    id: '/pipeline-comercial',
+    path: '/pipeline-comercial',
     getParentRoute: () => AuthenticatedAdminRouteRoute,
   } as any)
 const AuthenticatedAdminRoiRoute = AuthenticatedAdminRoiRouteImport.update({
@@ -235,6 +242,7 @@ export interface FileRoutesByFullPath {
   '/admin/estrategia': typeof AuthenticatedAdminEstrategiaRoute
   '/admin/leads': typeof AuthenticatedAdminLeadsRoute
   '/admin/meta-ads': typeof AuthenticatedAdminMetaAdsRoute
+  '/admin/pipeline-comercial': typeof AuthenticatedAdminPipelineComercialRoute
   '/admin/roi': typeof AuthenticatedAdminRoiRoute
   '/admin/usuarios': typeof AuthenticatedAdminUsuariosRoute
   '/cliente/atendimento': typeof AuthenticatedClienteAtendimentoRoute
@@ -267,6 +275,7 @@ export interface FileRoutesByTo {
   '/admin/estrategia': typeof AuthenticatedAdminEstrategiaRoute
   '/admin/leads': typeof AuthenticatedAdminLeadsRoute
   '/admin/meta-ads': typeof AuthenticatedAdminMetaAdsRoute
+  '/admin/pipeline-comercial': typeof AuthenticatedAdminPipelineComercialRoute
   '/admin/roi': typeof AuthenticatedAdminRoiRoute
   '/admin/usuarios': typeof AuthenticatedAdminUsuariosRoute
   '/cliente/atendimento': typeof AuthenticatedClienteAtendimentoRoute
@@ -301,6 +310,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/estrategia': typeof AuthenticatedAdminEstrategiaRoute
   '/_authenticated/admin/leads': typeof AuthenticatedAdminLeadsRoute
   '/_authenticated/admin/meta-ads': typeof AuthenticatedAdminMetaAdsRoute
+  '/_authenticated/admin/pipeline-comercial': typeof AuthenticatedAdminPipelineComercialRoute
   '/_authenticated/admin/roi': typeof AuthenticatedAdminRoiRoute
   '/_authenticated/admin/usuarios': typeof AuthenticatedAdminUsuariosRoute
   '/_authenticated/cliente/atendimento': typeof AuthenticatedClienteAtendimentoRoute
@@ -335,6 +345,7 @@ export interface FileRouteTypes {
     | '/admin/estrategia'
     | '/admin/leads'
     | '/admin/meta-ads'
+    | '/admin/pipeline-comercial'
     | '/admin/roi'
     | '/admin/usuarios'
     | '/cliente/atendimento'
@@ -367,6 +378,7 @@ export interface FileRouteTypes {
     | '/admin/estrategia'
     | '/admin/leads'
     | '/admin/meta-ads'
+    | '/admin/pipeline-comercial'
     | '/admin/roi'
     | '/admin/usuarios'
     | '/cliente/atendimento'
@@ -400,6 +412,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/estrategia'
     | '/_authenticated/admin/leads'
     | '/_authenticated/admin/meta-ads'
+    | '/_authenticated/admin/pipeline-comercial'
     | '/_authenticated/admin/roi'
     | '/_authenticated/admin/usuarios'
     | '/_authenticated/cliente/atendimento'
@@ -538,6 +551,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminMetaAdsRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
     }
+    '/_authenticated/admin/pipeline-comercial': {
+      id: '/_authenticated/admin/pipeline-comercial'
+      path: '/pipeline-comercial'
+      fullPath: '/admin/pipeline-comercial'
+      preLoaderRoute: typeof AuthenticatedAdminPipelineComercialRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
     '/_authenticated/admin/roi': {
       id: '/_authenticated/admin/roi'
       path: '/roi'
@@ -657,6 +677,7 @@ interface AuthenticatedAdminRouteRouteChildren {
   AuthenticatedAdminEstrategiaRoute: typeof AuthenticatedAdminEstrategiaRoute
   AuthenticatedAdminLeadsRoute: typeof AuthenticatedAdminLeadsRoute
   AuthenticatedAdminMetaAdsRoute: typeof AuthenticatedAdminMetaAdsRoute
+  AuthenticatedAdminPipelineComercialRoute: typeof AuthenticatedAdminPipelineComercialRoute
   AuthenticatedAdminRoiRoute: typeof AuthenticatedAdminRoiRoute
   AuthenticatedAdminUsuariosRoute: typeof AuthenticatedAdminUsuariosRoute
   AuthenticatedAdminClientesIdRoute: typeof AuthenticatedAdminClientesIdRoute
@@ -677,6 +698,8 @@ const AuthenticatedAdminRouteRouteChildren: AuthenticatedAdminRouteRouteChildren
     AuthenticatedAdminEstrategiaRoute: AuthenticatedAdminEstrategiaRoute,
     AuthenticatedAdminLeadsRoute: AuthenticatedAdminLeadsRoute,
     AuthenticatedAdminMetaAdsRoute: AuthenticatedAdminMetaAdsRoute,
+    AuthenticatedAdminPipelineComercialRoute:
+      AuthenticatedAdminPipelineComercialRoute,
     AuthenticatedAdminRoiRoute: AuthenticatedAdminRoiRoute,
     AuthenticatedAdminUsuariosRoute: AuthenticatedAdminUsuariosRoute,
     AuthenticatedAdminClientesIdRoute: AuthenticatedAdminClientesIdRoute,
