@@ -215,6 +215,134 @@ export type Database = {
           },
         ]
       }
+      diagnostico_questoes: {
+        Row: {
+          ajuda: string | null
+          ativa: boolean
+          codigo: string
+          criado_em: string
+          fonte: Database["public"]["Enums"]["fonte_diagnostico"]
+          id: string
+          ordem: number
+          pergunta: string
+          peso: number
+          placeholder: boolean
+          tipo: string
+        }
+        Insert: {
+          ajuda?: string | null
+          ativa?: boolean
+          codigo: string
+          criado_em?: string
+          fonte: Database["public"]["Enums"]["fonte_diagnostico"]
+          id?: string
+          ordem?: number
+          pergunta: string
+          peso?: number
+          placeholder?: boolean
+          tipo?: string
+        }
+        Update: {
+          ajuda?: string | null
+          ativa?: boolean
+          codigo?: string
+          criado_em?: string
+          fonte?: Database["public"]["Enums"]["fonte_diagnostico"]
+          id?: string
+          ordem?: number
+          pergunta?: string
+          peso?: number
+          placeholder?: boolean
+          tipo?: string
+        }
+        Relationships: []
+      }
+      diagnostico_respostas: {
+        Row: {
+          atualizado_em: string
+          cliente_id: string
+          criado_em: string
+          id: string
+          questao_id: string
+          respondido_por: string | null
+          valor_num: number | null
+          valor_texto: string | null
+        }
+        Insert: {
+          atualizado_em?: string
+          cliente_id: string
+          criado_em?: string
+          id?: string
+          questao_id: string
+          respondido_por?: string | null
+          valor_num?: number | null
+          valor_texto?: string | null
+        }
+        Update: {
+          atualizado_em?: string
+          cliente_id?: string
+          criado_em?: string
+          id?: string
+          questao_id?: string
+          respondido_por?: string | null
+          valor_num?: number | null
+          valor_texto?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "diagnostico_respostas_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "diagnostico_respostas_questao_id_fkey"
+            columns: ["questao_id"]
+            isOneToOne: false
+            referencedRelation: "diagnostico_questoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      diagnostico_scores: {
+        Row: {
+          atualizado_em: string
+          cliente_id: string
+          fonte: Database["public"]["Enums"]["fonte_diagnostico"]
+          id: string
+          respondidas: number
+          score: number | null
+          total: number
+        }
+        Insert: {
+          atualizado_em?: string
+          cliente_id: string
+          fonte: Database["public"]["Enums"]["fonte_diagnostico"]
+          id?: string
+          respondidas?: number
+          score?: number | null
+          total?: number
+        }
+        Update: {
+          atualizado_em?: string
+          cliente_id?: string
+          fonte?: Database["public"]["Enums"]["fonte_diagnostico"]
+          id?: string
+          respondidas?: number
+          score?: number | null
+          total?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "diagnostico_scores_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       entregas: {
         Row: {
           atualizado_em: string
@@ -837,6 +965,24 @@ export type Database = {
       }
     }
     Views: {
+      vw_diagnostico_score_geral: {
+        Row: {
+          atualizado_em: string | null
+          cliente_id: string | null
+          fontes_com_resposta: number | null
+          respostas_total: number | null
+          score_geral: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "diagnostico_scores_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       vw_funil_lead_cliente: {
         Row: {
           cliente_id: string | null
@@ -975,6 +1121,13 @@ export type Database = {
         Args: { _id: string; _novo: string }
         Returns: undefined
       }
+      recalcular_diagnostico_score: {
+        Args: {
+          _cliente_id: string
+          _fonte: Database["public"]["Enums"]["fonte_diagnostico"]
+        }
+        Returns: undefined
+      }
       responder_conteudo: {
         Args: { _aprovada: boolean; _feedback?: string; _id: string }
         Returns: undefined
@@ -994,6 +1147,14 @@ export type Database = {
         | "atendimento_cs"
         | "financeiro"
         | "cliente"
+      fonte_diagnostico:
+        | "posicionamento"
+        | "presenca_digital"
+        | "aquisicao_pacientes"
+        | "conversao"
+        | "experiencia_paciente"
+        | "inteligencia_dados"
+        | "escala"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1130,6 +1291,15 @@ export const Constants = {
         "atendimento_cs",
         "financeiro",
         "cliente",
+      ],
+      fonte_diagnostico: [
+        "posicionamento",
+        "presenca_digital",
+        "aquisicao_pacientes",
+        "conversao",
+        "experiencia_paciente",
+        "inteligencia_dados",
+        "escala",
       ],
     },
   },
