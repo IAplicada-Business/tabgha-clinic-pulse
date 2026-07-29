@@ -5,6 +5,7 @@ const AssistantBubble = lazy(() =>
 import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import { useAuth } from "@/lib/auth";
 import { canSeeNavPermission } from "@/lib/permissions";
+import { isStaff, isSuperAdmin } from "@/lib/roles";
 import { cn } from "@/lib/utils";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -826,9 +827,9 @@ export function AppLayout({ children }: { children: ReactNode }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
-  const isAdmin = roles.includes("admin");
+  const isAdmin = isSuperAdmin(roles);
   const canSwitchAreas =
-    roles.includes("admin") && roles.includes("cliente") && Boolean(profile?.cliente_id);
+    isStaff(roles) && roles.includes("cliente") && Boolean(profile?.cliente_id);
 
   const allGroups = role === "admin" ? ADMIN_NAV : CLIENTE_NAV;
 

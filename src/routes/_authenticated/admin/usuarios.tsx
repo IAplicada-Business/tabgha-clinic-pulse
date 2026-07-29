@@ -14,10 +14,22 @@ import { ProvisionalPasswordField } from "@/components/usuarios/ProvisionalPassw
 import { createUserWithRole } from "@/functions/usuarios/createUserWithRole.functions";
 import { resetProvisionalPassword } from "@/functions/usuarios/resetProvisionalPassword.functions";
 import { updateMemberAccess } from "@/functions/usuarios/updateMemberAccess.functions";
-import { summarizePermissions } from "@/lib/permissions";
+import {
+  permissionsForRoles,
+  ROLE_PRESET_OPTIONS,
+  summarizePermissions,
+} from "@/lib/permissions";
 import { provisionalPassword } from "@/lib/provisional-password";
 import { useAuth } from "@/lib/auth";
 import { useClientesOptions } from "@/hooks/useClientesOptions";
+import {
+  type AppRole,
+  type StaffRole,
+  formatRolesLabel,
+  isAppRole,
+  isStaff,
+  primaryStaffRole,
+} from "@/lib/roles";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -44,8 +56,6 @@ export const Route = createFileRoute("/_authenticated/admin/usuarios")({
   head: () => ({ meta: [{ title: "Usuários & acessos — Tabgha Admin" }] }),
 });
 
-type AppRole = "admin" | "cliente";
-
 type TeamMember = {
   id: string;
   nome: string | null;
@@ -55,6 +65,15 @@ type TeamMember = {
   cliente_id: string | null;
   cliente_nome: string | null;
 };
+
+type ProfileChoice = StaffRole | "cliente";
+
+function buildRoles(profile: ProfileChoice, alsoPortal: boolean): AppRole[] {
+  if (profile === "cliente") return ["cliente"];
+  const roles: AppRole[] = [profile];
+  if (alsoPortal) roles.push("cliente");
+  return roles;
+}
 
 /** Fetch rápido: profiles + roles + mapa de clientes em paralelo (sem join aninhado). */
 async function fetchTeam(): Promise<TeamMember[]> {
@@ -69,15 +88,23 @@ async function fetchTeam(): Promise<TeamMember[]> {
 
   const rolesByUser = new Map<string, AppRole[]>();
   for (const row of rolesRes.data ?? []) {
+    if (!isAppRole(row.role)) continue;
     const list = rolesByUser.get(row.user_id) ?? [];
-    if (row.role === "admin" || row.role === "cliente") list.push(row.role);
+    list.push(row.role);
     rolesByUser.set(row.user_id, list);
   }
   const nomeByCliente = new Map((clientesRes.data ?? []).map((c) => [c.id, c.nome]));
 
   return (profilesRes.data ?? []).map((p) => {
     const roles = rolesByUser.get(p.id) ?? [];
-    roles.sort((a, b) => (a === b ? 0 : a === "admin" ? -1 : 1));
+    roles.sort((a, b) => {
+      if (a === b) return 0;
+      if (a === "admin") return -1;
+      if (b === "admin") return 1;
+      if (a === "cliente") return 1;
+      if (b === "cliente") return -1;
+      return a.localeCompare(b);
+    });
     return {
       id: p.id,
       nome: p.nome,
@@ -94,11 +121,22 @@ const addUserSchema = z
   .object({
     nome: z.string().min(2, "Nome obrigatório"),
     email: z.string().email("Email inválido"),
-    roles: z.array(z.enum(["admin", "cliente"])).min(1, "Selecione ao menos um perfil"),
+    profile: z.enum([
+      "admin",
+      "gestor_estrategico",
+      "growth_manager",
+      "social_media",
+      "performance",
+      "atendimento_cs",
+      "financeiro",
+      "cliente",
+    ] as const),
+    also_portal: z.boolean().default(false),
     cliente_id: z.string().nullable().default(null),
   })
   .superRefine((data, ctx) => {
-    if (data.roles.includes("cliente") && !data.cliente_id) {
+    const wantsCliente = data.profile === "cliente" || data.also_portal;
+    if (wantsCliente && !data.cliente_id) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: "Selecione o consultório vinculado ao portal.",
@@ -107,12 +145,7 @@ const addUserSchema = z
     }
   });
 
-type AddUserForm = {
-  nome: string;
-  email: string;
-  roles: AppRole[];
-  cliente_id: string | null;
-};
+type AddUserForm = z.infer<typeof addUserSchema>;
 
 function initials(nome: string | null, email: string | null): string {
   if (nome)
@@ -124,13 +157,6 @@ function initials(nome: string | null, email: string | null): string {
       .toUpperCase();
   if (email) return email.slice(0, 2).toUpperCase();
   return "?";
-}
-
-function roleLabel(roles: AppRole[]): string {
-  if (roles.includes("admin") && roles.includes("cliente")) return "Admin + Portal";
-  if (roles.includes("admin")) return "Admin";
-  if (roles.includes("cliente")) return "Cliente";
-  return "Sem perfil";
 }
 
 function AddUserDialog({
@@ -150,33 +176,51 @@ function AddUserDialog({
   const form = useForm<AddUserForm>({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     resolver: zodResolver(addUserSchema) as any,
-    defaultValues: { nome: "", email: "", roles: ["cliente"], cliente_id: null },
+    defaultValues: {
+      nome: "",
+      email: "",
+      profile: "cliente",
+      also_portal: false,
+      cliente_id: null,
+    },
   });
 
-  const roles = form.watch("roles");
-  const wantsAdmin = roles.includes("admin");
-  const wantsCliente = roles.includes("cliente");
+  const profile = form.watch("profile");
+  const alsoPortal = form.watch("also_portal");
+  const wantsCliente = profile === "cliente" || alsoPortal;
+  const wantsStaff = profile !== "cliente";
 
-  function toggleRole(role: AppRole, checked: boolean) {
-    const next = checked
-      ? [...new Set([...roles, role])]
-      : roles.filter((r) => r !== role);
-    form.setValue("roles", next, { shouldValidate: true });
-    if (!next.includes("cliente")) form.setValue("cliente_id", null);
-    // Admin + Portal: acesso total evita menu vazio em uma das áreas.
-    if (next.includes("admin") && next.includes("cliente")) setPermissoes(["*"]);
+  function applyProfile(next: ProfileChoice) {
+    form.setValue("profile", next, { shouldValidate: true });
+    if (next === "cliente") {
+      form.setValue("also_portal", false);
+      setPermissoes(permissionsForRoles(["cliente"]));
+    } else {
+      const roles = buildRoles(next, form.getValues("also_portal"));
+      setPermissoes(permissionsForRoles(roles));
+    }
+  }
+
+  function toggleAlsoPortal(checked: boolean) {
+    form.setValue("also_portal", checked, { shouldValidate: true });
+    if (!checked) form.setValue("cliente_id", null);
+    const roles = buildRoles(form.getValues("profile"), checked);
+    setPermissoes(permissionsForRoles(roles));
   }
 
   const mutation = useMutation({
-    mutationFn: (data: AddUserForm) =>
-      createUserWithRole({
+    mutationFn: (data: AddUserForm) => {
+      const roles = buildRoles(data.profile, data.also_portal);
+      return createUserWithRole({
         data: {
-          ...data,
-          roles: data.roles,
-          cliente_id: data.roles.includes("cliente") ? data.cliente_id : null,
+          nome: data.nome,
+          email: data.email,
+          roles,
+          cliente_id: roles.includes("cliente") ? data.cliente_id : null,
           permissoes,
         },
-      }),
+      });
+    },
     onSuccess: (result) => {
       setFormError(null);
       toast.success(
@@ -192,8 +236,14 @@ function AddUserDialog({
       });
       void queryClient.invalidateQueries({ queryKey: ["admin", "team"] });
       onClose();
-      form.reset({ nome: "", email: "", roles: ["cliente"], cliente_id: null });
-      setPermissoes(["*"]);
+      form.reset({
+        nome: "",
+        email: "",
+        profile: "cliente",
+        also_portal: false,
+        cliente_id: null,
+      });
+      setPermissoes(permissionsForRoles(["cliente"]));
     },
     onError: (err: Error) => {
       setFormError(err.message);
@@ -219,7 +269,8 @@ function AddUserDialog({
         <form
           onSubmit={form.handleSubmit((d) => {
             setFormError(null);
-            if (d.roles.includes("cliente") && !d.cliente_id) {
+            const roles = buildRoles(d.profile, d.also_portal);
+            if (roles.includes("cliente") && !d.cliente_id) {
               setFormError("Selecione o consultório vinculado.");
               return;
             }
@@ -227,14 +278,14 @@ function AddUserDialog({
               setFormError("Selecione ao menos uma permissão.");
               return;
             }
-            mutation.mutate(d as AddUserForm);
+            mutation.mutate(d);
           })}
           className="space-y-4 py-2"
         >
           <p className="rounded-lg border border-border bg-muted/40 px-3 py-2 text-[11px] text-muted-foreground">
             Isso cria o <strong>login</strong> (email + senha provisória{" "}
-            <strong>{provisionalPassword()}</strong>). Dá para liberar Admin e Portal no mesmo
-            usuário — depois a pessoa troca de área no menu.
+            <strong>{provisionalPassword()}</strong>). Escolha um dos 8 perfis do Blueprint — o
+            preset de telas é aplicado automaticamente e ainda pode ser ajustado abaixo.
           </p>
 
           {formError ? (
@@ -262,33 +313,37 @@ function AddUserDialog({
           <ProvisionalPasswordField />
 
           <div className="space-y-2">
-            <Label>Perfis de acesso</Label>
-            <div className="space-y-2 rounded-xl border border-border p-3">
-              <div className="flex items-center gap-2">
-                <Checkbox
-                  id="role-admin"
-                  checked={wantsAdmin}
-                  onCheckedChange={(c) => toggleRole("admin", c === true)}
-                />
-                <Label htmlFor="role-admin" className="cursor-pointer font-normal">
-                  Admin — equipe Tabgha (painel interno)
-                </Label>
-              </div>
-              <div className="flex items-center gap-2">
-                <Checkbox
-                  id="role-cliente"
-                  checked={wantsCliente}
-                  onCheckedChange={(c) => toggleRole("cliente", c === true)}
-                />
-                <Label htmlFor="role-cliente" className="cursor-pointer font-normal">
-                  Portal do médico — abas do cliente
-                </Label>
-              </div>
-            </div>
-            {form.formState.errors.roles && (
-              <p className="text-xs text-destructive">{form.formState.errors.roles.message}</p>
-            )}
+            <Label>Perfil (Blueprint)</Label>
+            <Select value={profile} onValueChange={(v) => applyProfile(v as ProfileChoice)}>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione o perfil…" />
+              </SelectTrigger>
+              <SelectContent>
+                {ROLE_PRESET_OPTIONS.map((opt) => (
+                  <SelectItem key={opt.role} value={opt.role}>
+                    {opt.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-[11px] text-muted-foreground">
+              {ROLE_PRESET_OPTIONS.find((o) => o.role === profile)?.description}
+            </p>
+            {/* PLACEHOLDER — revisar com Pietro matriz exata de telas por perfil */}
           </div>
+
+          {wantsStaff && (
+            <div className="flex items-center gap-2 rounded-xl border border-border p-3">
+              <Checkbox
+                id="also-portal"
+                checked={alsoPortal}
+                onCheckedChange={(c) => toggleAlsoPortal(c === true)}
+              />
+              <Label htmlFor="also-portal" className="cursor-pointer font-normal">
+                Também liberar Portal do médico (mesmo login)
+              </Label>
+            </div>
+          )}
 
           {wantsCliente && (
             <div className="space-y-1">
@@ -312,10 +367,10 @@ function AddUserDialog({
           )}
 
           <div className="space-y-2">
-            <Label>Telas liberadas</Label>
-            {wantsAdmin && (
+            <Label>Telas liberadas (preset editável)</Label>
+            {wantsStaff && (
               <div className="space-y-1">
-                <p className="text-[11px] font-medium text-muted-foreground">Painel Admin</p>
+                <p className="text-[11px] font-medium text-muted-foreground">Painel interno</p>
                 <PermissionPicker value={permissoes} onChange={setPermissoes} variant="admin" />
               </div>
             )}
@@ -331,7 +386,7 @@ function AddUserDialog({
             <Button type="button" variant="outline" onClick={onClose}>
               Cancelar
             </Button>
-            <Button type="submit" disabled={mutation.isPending || roles.length === 0}>
+            <Button type="submit" disabled={mutation.isPending}>
               {mutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Criar acesso
             </Button>
@@ -357,24 +412,35 @@ function EditAccessDialog({
   const [nome, setNome] = useState(member.nome ?? "");
   const [email, setEmail] = useState(member.email ?? "");
   const [clienteId, setClienteId] = useState<string | null>(member.cliente_id);
-  const [roles, setRoles] = useState<AppRole[]>(
-    member.roles.length ? member.roles : ["cliente"],
+  const initialStaff = primaryStaffRole(member.roles);
+  const [profile, setProfile] = useState<ProfileChoice>(
+    initialStaff ?? (member.roles.includes("cliente") ? "cliente" : "admin"),
+  );
+  const [alsoPortal, setAlsoPortal] = useState(
+    Boolean(initialStaff && member.roles.includes("cliente")),
   );
   const [permissoes, setPermissoes] = useState<string[]>(
     member.permissoes.length ? member.permissoes : ["*"],
   );
   const [formError, setFormError] = useState<string | null>(null);
 
-  const wantsAdmin = roles.includes("admin");
-  const wantsCliente = roles.includes("cliente");
+  const wantsCliente = profile === "cliente" || alsoPortal;
+  const wantsStaff = profile !== "cliente";
 
-  function toggleRole(role: AppRole, checked: boolean) {
-    setRoles((prev) => {
-      const next = checked ? [...new Set([...prev, role])] : prev.filter((r) => r !== role);
-      if (!next.includes("cliente")) setClienteId(null);
-      if (next.includes("admin") && next.includes("cliente")) setPermissoes(["*"]);
-      return next;
-    });
+  function applyProfile(next: ProfileChoice) {
+    setProfile(next);
+    if (next === "cliente") {
+      setAlsoPortal(false);
+      setPermissoes(permissionsForRoles(["cliente"]));
+    } else {
+      setPermissoes(permissionsForRoles(buildRoles(next, alsoPortal)));
+    }
+  }
+
+  function toggleAlsoPortal(checked: boolean) {
+    setAlsoPortal(checked);
+    if (!checked) setClienteId(null);
+    setPermissoes(permissionsForRoles(buildRoles(profile, checked)));
   }
 
   const mutation = useMutation({
@@ -384,6 +450,7 @@ function EditAccessDialog({
       if (!nextEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(nextEmail)) {
         throw new Error("Informe um email de login válido.");
       }
+      const roles = buildRoles(profile, alsoPortal);
       if (roles.length === 0) throw new Error("Selecione ao menos um perfil.");
       if (roles.includes("cliente") && !clienteId) {
         throw new Error("Selecione o consultório vinculado.");
@@ -426,7 +493,7 @@ function EditAccessDialog({
         email: result.email || email.trim().toLowerCase(),
         temporary_password: result.temporary_password,
         reused_existing: true,
-        role: roles.join("+"),
+        role: buildRoles(profile, alsoPortal).join("+"),
       });
     },
     onError: (err: Error) => toast.error(err.message),
@@ -493,30 +560,36 @@ function EditAccessDialog({
           </div>
 
           <div className="space-y-2">
-            <Label>Perfis de acesso</Label>
-            <div className="space-y-2 rounded-xl border border-border p-3">
-              <div className="flex items-center gap-2">
-                <Checkbox
-                  id="edit-role-admin"
-                  checked={wantsAdmin}
-                  onCheckedChange={(c) => toggleRole("admin", c === true)}
-                />
-                <Label htmlFor="edit-role-admin" className="cursor-pointer font-normal">
-                  Admin — painel interno
-                </Label>
-              </div>
-              <div className="flex items-center gap-2">
-                <Checkbox
-                  id="edit-role-cliente"
-                  checked={wantsCliente}
-                  onCheckedChange={(c) => toggleRole("cliente", c === true)}
-                />
-                <Label htmlFor="edit-role-cliente" className="cursor-pointer font-normal">
-                  Portal do médico
-                </Label>
-              </div>
-            </div>
+            <Label>Perfil (Blueprint)</Label>
+            <Select value={profile} onValueChange={(v) => applyProfile(v as ProfileChoice)}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {ROLE_PRESET_OPTIONS.map((opt) => (
+                  <SelectItem key={opt.role} value={opt.role}>
+                    {opt.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-[11px] text-muted-foreground">
+              {ROLE_PRESET_OPTIONS.find((o) => o.role === profile)?.description}
+            </p>
           </div>
+
+          {wantsStaff && (
+            <div className="flex items-center gap-2 rounded-xl border border-border p-3">
+              <Checkbox
+                id="edit-also-portal"
+                checked={alsoPortal}
+                onCheckedChange={(c) => toggleAlsoPortal(c === true)}
+              />
+              <Label htmlFor="edit-also-portal" className="cursor-pointer font-normal">
+                Também liberar Portal do médico
+              </Label>
+            </div>
+          )}
 
           {wantsCliente && (
             <div className="space-y-1">
@@ -538,9 +611,9 @@ function EditAccessDialog({
 
           <div className="space-y-2">
             <Label>Telas liberadas</Label>
-            {wantsAdmin && (
+            {wantsStaff && (
               <div className="space-y-1">
-                <p className="text-[11px] font-medium text-muted-foreground">Painel Admin</p>
+                <p className="text-[11px] font-medium text-muted-foreground">Painel interno</p>
                 <PermissionPicker value={permissoes} onChange={setPermissoes} variant="admin" />
               </div>
             )}
@@ -556,11 +629,7 @@ function EditAccessDialog({
             <Button type="button" variant="outline" onClick={onClose}>
               Cancelar
             </Button>
-            <Button
-              type="button"
-              disabled={mutation.isPending || roles.length === 0}
-              onClick={() => mutation.mutate()}
-            >
+            <Button type="button" disabled={mutation.isPending} onClick={() => mutation.mutate()}>
               {mutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Salvar
             </Button>
@@ -587,9 +656,9 @@ function UsuariosPage() {
     staleTime: 15_000,
   });
 
-  const admins = team.filter((m) => m.roles.includes("admin"));
+  const staffMembers = team.filter((m) => isStaff(m.roles));
   const portalMembers = team.filter((m) => m.roles.includes("cliente"));
-  const dual = team.filter((m) => m.roles.includes("admin") && m.roles.includes("cliente"));
+  const dual = team.filter((m) => isStaff(m.roles) && m.roles.includes("cliente"));
 
   return (
     <div className="px-6 py-6 space-y-6">
@@ -600,9 +669,9 @@ function UsuariosPage() {
           </span>
           <h1 className="text-xl font-bold tracking-tight">Usuários & acessos</h1>
           <p className="mt-0.5 text-xs text-muted-foreground max-w-xl">
-            Aqui ficam os <strong>logins</strong>. Um mesmo email pode ter Admin e Portal: marque os
-            dois perfis e a pessoa troca de área no menu. A senha provisória só aparece na criação
-            ou ao redefinir.
+            Aqui ficam os <strong>logins</strong>. Os 8 perfis do Blueprint (Super Admin → Cliente)
+            aplicam presets de telas. Um perfil interno pode também liberar o Portal no mesmo
+            email.
           </p>
         </div>
         <Button onClick={() => setShowAdd(true)}>
@@ -615,9 +684,9 @@ function UsuariosPage() {
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
           {[
             { label: "Total de membros", value: team.length, color: "text-slate-700" },
-            { label: "Admins", value: admins.length, color: "text-primary" },
+            { label: "Equipe interna", value: staffMembers.length, color: "text-primary" },
             { label: "Portais", value: portalMembers.length, color: "text-sky-700" },
-            { label: "Admin + Portal", value: dual.length, color: "text-emerald-700" },
+            { label: "Equipe + Portal", value: dual.length, color: "text-emerald-700" },
           ].map((kpi, i) => (
             <div
               key={kpi.label}
@@ -647,7 +716,7 @@ function UsuariosPage() {
         <EmptyState
           icon={<Users className="h-6 w-6" />}
           title="Nenhum login cadastrado"
-          description="Crie o primeiro acesso (admin, portal, ou os dois)."
+          description="Crie o primeiro acesso com um dos 8 perfis do Blueprint."
           action={{ label: "Adicionar membro", onClick: () => setShowAdd(true) }}
         />
       ) : (
@@ -682,17 +751,17 @@ function UsuariosPage() {
                     </p>
                   )}
                 </div>
-                <div className="hidden max-w-[220px] flex-col items-end gap-1 sm:flex">
+                <div className="hidden max-w-[240px] flex-col items-end gap-1 sm:flex">
                   <span
                     className={
-                      member.roles.includes("admin") && member.roles.includes("cliente")
+                      isStaff(member.roles) && member.roles.includes("cliente")
                         ? "rounded-full bg-emerald-50 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-700"
-                        : member.roles.includes("admin")
+                        : isStaff(member.roles)
                           ? "rounded-full bg-slate-100 px-2.5 py-0.5 text-[11px] font-semibold text-slate-700"
                           : "rounded-full bg-sky-50 px-2.5 py-0.5 text-[11px] font-semibold text-sky-700"
                     }
                   >
-                    {roleLabel(member.roles)}
+                    {formatRolesLabel(member.roles)}
                   </span>
                   <Badge variant="outline" className="max-w-full truncate text-[10px] font-normal">
                     {summarizePermissions(member.permissoes, member.roles)}

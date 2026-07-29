@@ -46,8 +46,12 @@ export const requireRoleAuth = createMiddleware({ type: "function" }).server(
     ]);
 
     const roles = (roleResult.data ?? []).map((r) => r.role);
+    // Prefer Super Admin, depois qualquer staff, depois cliente
     const primaryRole =
-      roles.find((r) => r === "admin") ?? roles[0] ?? null;
+      roles.find((r) => r === "admin") ??
+      roles.find((r) => r !== "cliente") ??
+      roles[0] ??
+      null;
 
     if (profileResult.error || roleResult.error || !primaryRole) {
       throw new Response("Forbidden", { status: 403 });
@@ -68,8 +72,9 @@ export const requireRoleAuth = createMiddleware({ type: "function" }).server(
 );
 
 export function assertClienteAccess(auth: AuthContext, clienteId: string) {
-  if (auth.role === "admin") return;
-  if (auth.role !== "cliente" || auth.clienteId !== clienteId) {
+  // Super Admin e demais perfis internos (staff) passam; portal só o próprio cliente.
+  if (auth.role !== "cliente") return;
+  if (auth.clienteId !== clienteId) {
     throw new Response("Forbidden", { status: 403 });
   }
 }

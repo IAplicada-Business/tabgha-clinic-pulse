@@ -1,6 +1,9 @@
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { updateUserEmail } from "@/functions/usuarios/updateUserEmail.functions";
+import { APP_ROLES, type AppRole, isStaffRole } from "@/lib/roles";
+
+const appRoleSchema = z.enum(APP_ROLES as unknown as [AppRole, ...AppRole[]]);
 
 const schema = z.object({
   id: z.string().uuid(),
@@ -8,11 +11,10 @@ const schema = z.object({
   email: z.string().email().optional(),
   cliente_id: z.string().uuid().nullable().optional(),
   permissoes: z.array(z.string()).min(1),
-  roles: z.array(z.enum(["admin", "cliente"])).min(1).optional(),
+  roles: z.array(appRoleSchema).min(1).optional(),
 });
 
 type Input = z.infer<typeof schema>;
-type AppRole = "admin" | "cliente";
 
 async function syncRoles(userId: string, roles: AppRole[]) {
   const { data: currentRows, error: readErr } = await supabase
@@ -51,6 +53,10 @@ export async function updateMemberAccess(input: { data: Input }): Promise<void> 
 
   if (data.roles?.includes("cliente") && !data.cliente_id) {
     throw new Error("Selecione o consultório vinculado para o portal do médico.");
+  }
+
+  if (data.roles && data.roles.filter(isStaffRole).length > 1) {
+    throw new Error("Selecione apenas um perfil interno da equipe.");
   }
 
   if (data.email) {

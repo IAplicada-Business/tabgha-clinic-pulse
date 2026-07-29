@@ -1,8 +1,16 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import type { User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+import {
+  type AppRole,
+  type ViewArea,
+  isAppRole,
+  isStaff,
+  isSuperAdmin,
+  primaryStaffRole,
+} from "@/lib/roles";
 
-export type AppRole = "admin" | "cliente";
+export type { AppRole, ViewArea };
 
 const ACTIVE_ROLE_KEY = "tabgha_active_role";
 
@@ -18,13 +26,13 @@ interface AuthState {
   loading: boolean;
   user: User | null;
   profile: Profile | null;
-  /** Papel ativo na UI (admin ou portal). */
-  role: AppRole | null;
-  /** Papel “principal” (admin se tiver; senão cliente). */
+  /** Área ativa na UI (painel interno vs portal). */
+  role: ViewArea | null;
+  /** Papel “principal” (staff preferido; senão cliente). */
   realRole: AppRole | null;
-  /** Todos os papéis do usuário (admin e/ou cliente). */
+  /** Todos os papéis do usuário. */
   roles: AppRole[];
-  setActiveRole: (role: AppRole) => void;
+  setActiveRole: (area: ViewArea) => void;
   signOut: () => Promise<void>;
   refresh: () => Promise<void>;
   isSimulating: boolean;
@@ -36,7 +44,7 @@ interface AuthState {
 
 const AuthCtx = createContext<AuthState | undefined>(undefined);
 
-function readStoredActiveRole(): AppRole | null {
+function readStoredActiveRole(): ViewArea | null {
   if (typeof window === "undefined") return null;
   try {
     const v = sessionStorage.getItem(ACTIVE_ROLE_KEY);
@@ -47,10 +55,10 @@ function readStoredActiveRole(): AppRole | null {
   return null;
 }
 
-function storeActiveRole(role: AppRole | null) {
+function storeActiveRole(area: ViewArea | null) {
   if (typeof window === "undefined") return;
   try {
-    if (role) sessionStorage.setItem(ACTIVE_ROLE_KEY, role);
+    if (area) sessionStorage.setItem(ACTIVE_ROLE_KEY, area);
     else sessionStorage.removeItem(ACTIVE_ROLE_KEY);
   } catch {
     /* ignore */
@@ -70,11 +78,18 @@ async function loadProfileAndRoles(
   ]);
 
   const roles = (roleRows ?? [])
-    .map((r) => r.role as AppRole)
-    .filter((r): r is AppRole => r === "admin" || r === "cliente");
+    .map((r) => r.role as string)
+    .filter(isAppRole);
 
-  // Ordem estável: admin primeiro
-  roles.sort((a, b) => (a === b ? 0 : a === "admin" ? -1 : 1));
+  // Ordem estável: Super Admin primeiro, demais staff, cliente por último
+  roles.sort((a, b) => {
+    if (a === b) return 0;
+    if (a === "admin") return -1;
+    if (b === "admin") return 1;
+    if (a === "cliente") return 1;
+    if (b === "cliente") return -1;
+    return a.localeCompare(b);
+  });
 
   return {
     profile: profile
@@ -90,10 +105,14 @@ async function loadProfileAndRoles(
   };
 }
 
-function pickActiveRole(roles: AppRole[], preferred: AppRole | null): AppRole | null {
-  if (preferred && roles.includes(preferred)) return preferred;
-  if (roles.includes("admin")) return "admin";
-  return roles[0] ?? null;
+function pickViewArea(roles: AppRole[], preferred: ViewArea | null): ViewArea | null {
+  const staff = isStaff(roles);
+  const hasCliente = roles.includes("cliente");
+  if (preferred === "admin" && staff) return "admin";
+  if (preferred === "cliente" && hasCliente) return "cliente";
+  if (staff) return "admin";
+  if (hasCliente) return "cliente";
+  return null;
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -101,7 +120,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [roles, setRoles] = useState<AppRole[]>([]);
-  const [activeRole, setActiveRoleState] = useState<AppRole | null>(null);
+  const [activeArea, setActiveAreaState] = useState<ViewArea | null>(null);
   const [simulatedClientId, setSimulatedClientId] = useState<string | null>(null);
   const [simulatedClientNome, setSimulatedClientNome] = useState<string | null>(null);
 
@@ -110,14 +129,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!u) {
       setProfile(null);
       setRoles([]);
-      setActiveRoleState(null);
+      setActiveAreaState(null);
       setLoading(false);
       return;
     }
     const { profile: p, roles: nextRoles } = await loadProfileAndRoles(u.id);
     setProfile(p);
     setRoles(nextRoles);
-    setActiveRoleState((prev) => pickActiveRole(nextRoles, prev ?? readStoredActiveRole()));
+    setActiveAreaState((prev) => pickViewArea(nextRoles, prev ?? readStoredActiveRole()));
     setLoading(false);
   };
 
@@ -148,25 +167,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  const realRole: AppRole | null = roles.includes("admin")
-    ? "admin"
-    : (roles[0] ?? null);
+  const realRole: AppRole | null =
+    primaryStaffRole(roles) ?? (roles.includes("cliente") ? "cliente" : null);
 
-  const viewRole = pickActiveRole(roles, activeRole);
-  const isSimulating = !!simulatedClientId && roles.includes("admin");
+  const viewArea = pickViewArea(roles, activeArea);
+  const isSimulating = !!simulatedClientId && isSuperAdmin(roles);
 
   const value: AuthState = {
     loading,
     user,
     profile: isSimulating && profile ? { ...profile, cliente_id: simulatedClientId } : profile,
-    role: isSimulating ? "cliente" : viewRole,
+    role: isSimulating ? "cliente" : viewArea,
     realRole,
     roles,
-    setActiveRole: (role) => {
-      if (!roles.includes(role)) return;
-      storeActiveRole(role);
-      setActiveRoleState(role);
-      // Sair da simulação ao mudar de área
+    setActiveRole: (area) => {
+      const staff = isStaff(roles);
+      const hasCliente = roles.includes("cliente");
+      if (area === "admin" && !staff) return;
+      if (area === "cliente" && !hasCliente) return;
+      storeActiveRole(area);
+      setActiveAreaState(area);
       setSimulatedClientId(null);
       setSimulatedClientNome(null);
     },
@@ -182,16 +202,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     simulatedClientId,
     simulatedClientNome,
     startSimulation: (id, nome) => {
+      if (!isSuperAdmin(roles)) return;
       setSimulatedClientId(id);
       setSimulatedClientNome(nome);
       storeActiveRole("cliente");
-      setActiveRoleState("cliente");
+      setActiveAreaState("cliente");
     },
     stopSimulation: () => {
       setSimulatedClientId(null);
       setSimulatedClientNome(null);
       storeActiveRole("admin");
-      setActiveRoleState("admin");
+      setActiveAreaState("admin");
     },
   };
 
