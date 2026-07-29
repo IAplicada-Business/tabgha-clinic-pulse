@@ -17,7 +17,7 @@ export const Route = createFileRoute("/quero-saber-mais")({
   ssr: false,
   head: () => ({
     meta: [
-      { title: "Quero saber mais — Tabgha Health Marketing" },
+      { title: "Quero saber mais — Tabgha OS · Health Growth Operating System" },
       {
         name: "description",
         content:
@@ -61,13 +61,21 @@ function QueroSaberMaisPage() {
 
   const utms = useMemo(() => {
     if (typeof window === "undefined") {
-      return { utm_source: null, utm_medium: null, utm_campaign: null };
+      return {
+        utm_source: null,
+        utm_medium: null,
+        utm_campaign: null,
+        utm_content: null,
+        utm_term: null,
+      };
     }
     const params = new URLSearchParams(window.location.search);
     return {
       utm_source: params.get("utm_source"),
       utm_medium: params.get("utm_medium"),
       utm_campaign: params.get("utm_campaign"),
+      utm_content: params.get("utm_content"),
+      utm_term: params.get("utm_term"),
     };
   }, []);
 
@@ -125,7 +133,7 @@ function QueroSaberMaisPage() {
             TB
           </div>
           <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-sky-700">
-            Tabgha Health Marketing
+            Tabgha OS · Health Growth Operating System
           </p>
           <h1 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
             Quero saber mais
