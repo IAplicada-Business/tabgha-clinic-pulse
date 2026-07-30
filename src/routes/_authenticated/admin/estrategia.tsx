@@ -224,9 +224,6 @@ function EstrategiaPage() {
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-6 py-4">
         <div>
-          <span className="inline-flex items-center rounded-full bg-violet-50 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-widest text-violet-700 mb-1.5">
-            Estratégia
-          </span>
           <h1 className="text-xl font-bold tracking-tight">Pipeline Editorial</h1>
           <p className="text-xs text-muted-foreground mt-0.5">Acompanhe cada conteúdo por etapa</p>
         </div>

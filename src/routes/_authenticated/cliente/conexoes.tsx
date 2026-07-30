@@ -130,8 +130,7 @@ function ConexoesPage() {
   return (
     <div className="space-y-8 px-6 py-6">
       <header className="animate-fade-up">
-        <span className="eyebrow-pill">Configurações</span>
-        <h1 className="mt-3 text-xl font-bold tracking-tight">Conexões</h1>
+        <h1 className="text-xl font-bold tracking-tight">Conexões</h1>
         <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
           Conecte o WhatsApp do consultório para o atendimento e o agente. As redes sociais ficam
           abaixo, só como referência do perfil.

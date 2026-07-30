@@ -5,6 +5,7 @@ import { Zap, Loader2 } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { supabase } from "@/integrations/supabase/client";
 import { EmptyState } from "@/components/EmptyState";
+import { CHART_TOOLTIP_STYLE, CHART_TOOLTIP_CURSOR } from "@/components/analytics/InsightPanel";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/admin/automacoes-leads")({
@@ -26,7 +27,15 @@ type ClienteMetrics = {
   taxa_conversao: number;
 };
 
-const LEAD_STATUSES = ["novo","em_conversa","interessado","agendado","atendido","convertido","perdido"] as const;
+const LEAD_STATUSES = [
+  "novo",
+  "em_conversa",
+  "interessado",
+  "agendado",
+  "atendido",
+  "convertido",
+  "perdido",
+] as const;
 const STATUS_LABEL: Record<string, string> = {
   novo: "Novo",
   em_conversa: "Em conversa",
@@ -37,22 +46,22 @@ const STATUS_LABEL: Record<string, string> = {
   perdido: "Perdido",
 };
 const STATUS_COLOR: Record<string, string> = {
-  novo:        "bg-blue-100 text-blue-700",
+  novo: "bg-blue-100 text-blue-700",
   em_conversa: "bg-amber-100 text-amber-700",
   interessado: "bg-violet-100 text-violet-700",
-  agendado:    "bg-cyan-100 text-cyan-700",
-  atendido:    "bg-teal-100 text-teal-700",
-  convertido:  "bg-green-100 text-green-700",
-  perdido:     "bg-slate-100 text-slate-600",
+  agendado: "bg-cyan-100 text-cyan-700",
+  atendido: "bg-teal-100 text-teal-700",
+  convertido: "bg-green-100 text-green-700",
+  perdido: "bg-slate-100 text-slate-600",
 };
 const STATUS_BAR: Record<string, string> = {
-  novo:        "bg-blue-400",
+  novo: "bg-blue-400",
   em_conversa: "bg-amber-400",
   interessado: "bg-violet-400",
-  agendado:    "bg-cyan-400",
-  atendido:    "bg-teal-400",
-  convertido:  "bg-green-500",
-  perdido:     "bg-slate-300",
+  agendado: "bg-cyan-400",
+  atendido: "bg-teal-400",
+  convertido: "bg-green-500",
+  perdido: "bg-slate-300",
 };
 
 const TABGHA_ID = "00000000-0000-0000-0000-000000000001";
@@ -67,7 +76,10 @@ function AutomacoesLeadsPage() {
   const [filterCanal, setFilterCanal] = useState("");
 
   const startOfMonth = useMemo(() => {
-    const d = new Date(); d.setDate(1); d.setHours(0, 0, 0, 0); return d;
+    const d = new Date();
+    d.setDate(1);
+    d.setHours(0, 0, 0, 0);
+    return d;
   }, []);
 
   const { data: metricas = [], isLoading } = useQuery<ClienteMetrics[]>({
@@ -85,10 +97,23 @@ function AutomacoesLeadsPage() {
         const leads = (Array.isArray(c.leads) ? c.leads : []) as Lead[];
         const total = leads.length;
         const novos = leads.filter((l) => l.criado_em >= startOfMonth.toISOString()).length;
-        const emAndamento = leads.filter((l) => ["em_conversa","interessado","agendado","atendido","convertido"].includes(l.status)).length;
+        const emAndamento = leads.filter((l) =>
+          ["em_conversa", "interessado", "agendado", "atendido", "convertido"].includes(l.status),
+        ).length;
         const convertidos = leads.filter((l) => l.status === "convertido").length;
         const taxa = total > 0 ? (convertidos / total) * 100 : 0;
-        return { id: c.id, nome: c.nome, especialidade: c.especialidade, status: c.status, leads, leads_total: total, leads_novos: novos, leads_em_andamento: emAndamento, leads_convertidos: convertidos, taxa_conversao: taxa };
+        return {
+          id: c.id,
+          nome: c.nome,
+          especialidade: c.especialidade,
+          status: c.status,
+          leads,
+          leads_total: total,
+          leads_novos: novos,
+          leads_em_andamento: emAndamento,
+          leads_convertidos: convertidos,
+          taxa_conversao: taxa,
+        };
       });
     },
   });
@@ -119,7 +144,8 @@ function AutomacoesLeadsPage() {
   // Evolução: leads por dia (últimos 30d)
   const evolucao = useMemo(() => {
     const days: Record<string, number> = {};
-    const cutoff = new Date(); cutoff.setDate(cutoff.getDate() - 29);
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - 29);
     for (const m of metricas) {
       for (const l of m.leads) {
         if (filterCanal && l.canal !== filterCanal) continue;
@@ -127,9 +153,12 @@ function AutomacoesLeadsPage() {
         if (d >= cutoff.toISOString().slice(0, 10)) days[d] = (days[d] ?? 0) + 1;
       }
     }
-    return Object.entries(days).sort((a, b) => a[0].localeCompare(b[0])).map(([date, count]) => ({
-      date: date.slice(5), count,
-    }));
+    return Object.entries(days)
+      .sort((a, b) => a[0].localeCompare(b[0]))
+      .map(([date, count]) => ({
+        date: date.slice(5),
+        count,
+      }));
   }, [metricas, filterCanal]);
 
   const kpis = [
@@ -144,12 +173,10 @@ function AutomacoesLeadsPage() {
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-3 animate-fade-up">
         <div>
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-2.5 py-0.5 text-[10.5px] font-semibold uppercase tracking-widest text-primary mb-2">
-            <span className="h-1.5 w-1.5 rounded-full bg-primary" />
-            Leads / CRM
-          </span>
           <h1 className="text-xl font-bold tracking-tight">Automações de leads</h1>
-          <p className="text-xs text-muted-foreground mt-0.5">CPL · CPA · jornada de captação por cliente</p>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            CPL · CPA · jornada de captação por cliente
+          </p>
         </div>
         <div className="flex items-center gap-2">
           <select
@@ -159,14 +186,18 @@ function AutomacoesLeadsPage() {
           >
             <option value="">Todos canais</option>
             {CANAIS.map((c) => (
-              <option key={c} value={c}>{c === "site" ? "Leads do site (Tabgha)" : c}</option>
+              <option key={c} value={c}>
+                {c === "site" ? "Leads do site (Tabgha)" : c}
+              </option>
             ))}
           </select>
         </div>
       </div>
 
       {isLoading ? (
-        <div className="flex justify-center py-16"><Loader2 className="h-8 w-8 animate-spin text-muted-foreground" /></div>
+        <div className="flex justify-center py-16">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        </div>
       ) : metricas.length === 0 ? (
         <EmptyState icon={<Zap className="h-6 w-6" />} title="Nenhum cliente ativo" />
       ) : (
@@ -179,23 +210,39 @@ function AutomacoesLeadsPage() {
                 className="card-lift animate-fade-up rounded-2xl border border-border bg-card px-5 pt-5 pb-4 shadow-[0_1px_3px_rgba(15,27,53,0.04)] flex flex-col"
                 style={{ animationDelay: i * 75 + "ms" }}
               >
-                <span className="text-[9px] font-black tracking-[0.16em] text-muted-foreground/40 mb-4">{k.rank}</span>
-                <p className="text-[10.5px] font-semibold uppercase tracking-wide text-muted-foreground mb-1">{k.label}</p>
-                <p className={cn("text-[2.4rem] font-black tracking-tight leading-none animate-numeric-pop mt-auto", k.color)}>{k.value}</p>
+                <span className="text-[9px] font-black tracking-[0.16em] text-muted-foreground/40 mb-4">
+                  {k.rank}
+                </span>
+                <p className="text-[10.5px] font-semibold uppercase tracking-wide text-muted-foreground mb-1">
+                  {k.label}
+                </p>
+                <p
+                  className={cn(
+                    "text-[2.4rem] font-black tracking-tight leading-none animate-numeric-pop mt-auto",
+                    k.color,
+                  )}
+                >
+                  {k.value}
+                </p>
                 <div className="mt-3 h-0.5 w-full rounded-full bg-primary" />
               </div>
             ))}
           </div>
 
           {/* Tabs */}
-          <div className="flex gap-0.5 border-b border-border animate-fade-up" style={{ animationDelay: "300ms" }}>
+          <div
+            className="flex gap-0.5 border-b border-border animate-fade-up"
+            style={{ animationDelay: "300ms" }}
+          >
             {TABS.map((t) => (
               <button
                 key={t}
                 onClick={() => setTab(t)}
                 className={cn(
                   "px-4 py-2 text-sm transition-colors border-b-2 -mb-px",
-                  tab === t ? "border-primary text-foreground font-semibold" : "border-transparent text-muted-foreground hover:text-foreground",
+                  tab === t
+                    ? "border-primary text-foreground font-semibold"
+                    : "border-transparent text-muted-foreground hover:text-foreground",
                 )}
               >
                 {t}
@@ -208,21 +255,36 @@ function AutomacoesLeadsPage() {
               {/* Funil visual — dark chart card */}
               <div
                 className="rounded-2xl overflow-hidden shadow-[0_4px_24px_rgba(11,27,62,0.18)] animate-fade-up"
-                style={{ background: "linear-gradient(135deg, #0B1B3E 0%, #0F2550 100%)", animationDelay: "375ms" }}
+                style={{
+                  background: "linear-gradient(135deg, #0B1B3E 0%, #0F2550 100%)",
+                  animationDelay: "375ms",
+                }}
               >
                 <div className="p-5">
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-white/40 mb-4">Funil global de leads</p>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-white/40 mb-4">
+                    Funil global de leads
+                  </p>
                   <div className="flex flex-col gap-3">
                     {funil.map((f) => (
                       <div key={f.status} className="flex items-center gap-3">
-                        <span className="w-28 text-[11px] text-white/50 text-right shrink-0">{f.label}</span>
+                        <span className="w-28 text-[11px] text-white/50 text-right shrink-0">
+                          {f.label}
+                        </span>
                         <div className="flex-1 h-6 rounded-md bg-white/10 overflow-hidden">
                           <div
-                            className={cn("h-full rounded-md transition-all", STATUS_BAR[f.status] ?? "bg-white/20")}
-                            style={{ width: `${(f.count / maxFunil) * 100}%`, minWidth: f.count > 0 ? 32 : 0 }}
+                            className={cn(
+                              "h-full rounded-md transition-all",
+                              STATUS_BAR[f.status] ?? "bg-white/20",
+                            )}
+                            style={{
+                              width: `${(f.count / maxFunil) * 100}%`,
+                              minWidth: f.count > 0 ? 32 : 0,
+                            }}
                           />
                         </div>
-                        <span className="w-8 text-[11px] font-bold text-white/70 text-right shrink-0 tabular-nums">{f.count}</span>
+                        <span className="w-8 text-[11px] font-bold text-white/70 text-right shrink-0 tabular-nums">
+                          {f.count}
+                        </span>
                       </div>
                     ))}
                   </div>
@@ -234,15 +296,27 @@ function AutomacoesLeadsPage() {
                 className="rounded-2xl border border-border bg-card p-5 shadow-[0_1px_3px_rgba(15,27,53,0.04)] animate-fade-up"
                 style={{ animationDelay: "450ms" }}
               >
-                <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-3">Por cliente</p>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-3">
+                  Por cliente
+                </p>
                 <div className="rounded-xl border border-border overflow-hidden">
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm">
                       <thead>
                         <tr className="bg-secondary/60 text-[10.5px] uppercase tracking-wide text-muted-foreground">
                           <th className="px-4 py-2.5 text-left font-semibold w-8">#</th>
-                          {["Cliente", "Especialidade", "Total", "Novos/mês", "Em andamento", "Convertidos", "% Conv."].map((h) => (
-                            <th key={h} className="px-4 py-2.5 text-left font-semibold">{h}</th>
+                          {[
+                            "Cliente",
+                            "Especialidade",
+                            "Total",
+                            "Novos/mês",
+                            "Em andamento",
+                            "Convertidos",
+                            "% Conv.",
+                          ].map((h) => (
+                            <th key={h} className="px-4 py-2.5 text-left font-semibold">
+                              {h}
+                            </th>
                           ))}
                         </tr>
                       </thead>
@@ -256,15 +330,23 @@ function AutomacoesLeadsPage() {
                               <span className="flex items-center gap-2">
                                 {m.nome}
                                 {m.id === TABGHA_ID && (
-                                  <span className="rounded-full bg-cyan-100 px-2 py-0.5 text-[10px] font-semibold text-cyan-700">site</span>
+                                  <span className="rounded-full bg-cyan-100 px-2 py-0.5 text-[10px] font-semibold text-cyan-700">
+                                    site
+                                  </span>
                                 )}
                               </span>
                             </td>
-                            <td className="px-4 py-3 text-muted-foreground">{m.especialidade ?? "—"}</td>
+                            <td className="px-4 py-3 text-muted-foreground">
+                              {m.especialidade ?? "—"}
+                            </td>
                             <td className="px-4 py-3 tabular-nums">{m.leads_total}</td>
-                            <td className="px-4 py-3 font-semibold text-primary tabular-nums">{m.leads_novos}</td>
+                            <td className="px-4 py-3 font-semibold text-primary tabular-nums">
+                              {m.leads_novos}
+                            </td>
                             <td className="px-4 py-3 tabular-nums">{m.leads_em_andamento}</td>
-                            <td className="px-4 py-3 font-semibold text-emerald-700 tabular-nums">{m.leads_convertidos}</td>
+                            <td className="px-4 py-3 font-semibold text-emerald-700 tabular-nums">
+                              {m.leads_convertidos}
+                            </td>
                             <td className="px-4 py-3 tabular-nums">
                               {m.taxa_conversao > 0 ? (
                                 <span className="rounded-full px-2.5 py-0.5 text-[11px] font-semibold bg-green-100 text-green-700">
@@ -286,35 +368,33 @@ function AutomacoesLeadsPage() {
 
           {tab === "Evolução" && (
             <div
-              className="rounded-2xl overflow-hidden shadow-[0_4px_24px_rgba(11,27,62,0.18)] animate-fade-up"
-              style={{ background: "linear-gradient(135deg, #0B1B3E 0%, #0F2550 100%)", animationDelay: "375ms" }}
+              className="rounded-2xl border border-border bg-gradient-to-br from-slate-50 to-sky-50/60 p-5 shadow-[0_1px_3px_rgba(15,27,53,0.04)] animate-fade-up"
+              style={{ animationDelay: "375ms" }}
             >
-              <div className="p-5">
-                <p className="text-[10px] font-bold uppercase tracking-widest text-white/40 mb-4">Leads por dia — últimos 30 dias</p>
-                {evolucao.length === 0 ? (
-                  <p className="text-sm text-white/40 py-8 text-center">Sem dados para o período</p>
-                ) : (
-                  <div className="h-64">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={evolucao} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.08)" />
-                        <XAxis dataKey="date" tick={{ fontSize: 10, fill: "rgba(255,255,255,0.4)" }} interval="preserveStartEnd" />
-                        <YAxis tick={{ fontSize: 10, fill: "rgba(255,255,255,0.4)" }} allowDecimals={false} />
-                        <Tooltip
-                          contentStyle={{
-                            fontSize: 12,
-                            borderRadius: 8,
-                            background: "#0F2550",
-                            border: "1px solid rgba(255,255,255,0.12)",
-                            color: "#fff",
-                          }}
-                        />
-                        <Bar dataKey="count" name="Leads" fill="#60C3E8" radius={[3, 3, 0, 0]} />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </div>
-                )}
-              </div>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-4">
+                Leads por dia — últimos 30 dias
+              </p>
+              {evolucao.length === 0 ? (
+                <p className="text-sm text-muted-foreground py-8 text-center">
+                  Sem dados para o período
+                </p>
+              ) : (
+                <div className="h-64">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={evolucao} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(15,27,53,0.08)" />
+                      <XAxis
+                        dataKey="date"
+                        tick={{ fontSize: 10, fill: "#64748b" }}
+                        interval="preserveStartEnd"
+                      />
+                      <YAxis tick={{ fontSize: 10, fill: "#64748b" }} allowDecimals={false} />
+                      <Tooltip contentStyle={CHART_TOOLTIP_STYLE} cursor={CHART_TOOLTIP_CURSOR} />
+                      <Bar dataKey="count" name="Leads" fill="#0ea5e9" radius={[3, 3, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              )}
             </div>
           )}
         </>

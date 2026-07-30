@@ -21,10 +21,13 @@ import {
   type AnalyticsFiltersValue,
 } from "@/components/analytics/AnalyticsFilters";
 import {
+  CHART_TOOLTIP_CURSOR,
+  CHART_TOOLTIP_STYLE,
   FunnelBars,
   InsightStack,
   Panel,
   RankedBarChart,
+  renderChartLegend,
   StatusChips,
   StoryBanner,
 } from "@/components/analytics/InsightPanel";
@@ -282,8 +285,7 @@ function DashboardClientesPage() {
     <div className="space-y-4 px-6 py-6">
       <header className="animate-fade-up flex flex-wrap items-start justify-between gap-3">
         <div>
-          <span className="eyebrow-pill">Visão Clientes</span>
-          <h1 className="mt-2 text-2xl font-extrabold tracking-tight">Dashboard Clientes</h1>
+          <h1 className="text-2xl font-extrabold tracking-tight">Dashboard Clientes</h1>
           <p className="mt-0.5 max-w-2xl text-xs text-muted-foreground">
             Performance por clínica: evolução de mídia, CAQ, funil e se a estratégia está
             respondendo
@@ -424,8 +426,8 @@ function DashboardClientesPage() {
                         axisLine={false}
                         tickLine={false}
                       />
-                      <Tooltip />
-                      <Legend />
+                      <Tooltip contentStyle={CHART_TOOLTIP_STYLE} cursor={CHART_TOOLTIP_CURSOR} />
+                      <Legend content={renderChartLegend} />
                       <Bar
                         yAxisId="left"
                         dataKey="investimento"
@@ -504,7 +506,7 @@ function DashboardClientesPage() {
                       axisLine={false}
                       allowDecimals={false}
                     />
-                    <Tooltip />
+                    <Tooltip contentStyle={CHART_TOOLTIP_STYLE} />
                     <Area
                       type="monotone"
                       dataKey="count"

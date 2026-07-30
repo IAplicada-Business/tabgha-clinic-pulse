@@ -1426,8 +1426,8 @@ function TabConexoes({ cliente }: { cliente: Cliente }) {
 
   const saveInstance = useMutation({
     mutationFn: async () => {
-      if (!instanceId.trim() || !instanceToken.trim()) {
-        throw new Error("Instance ID e Token são obrigatórios.");
+      if (!instanceId.trim() || !instanceToken.trim() || !clientToken.trim()) {
+        throw new Error("Instance ID, Token e Client-Token são obrigatórios.");
       }
       const keepStatus =
         wppInstance?.status === "connected" || wppInstance?.status === "connecting"
@@ -1623,11 +1623,11 @@ function TabConexoes({ cliente }: { cliente: Cliente }) {
               />
             </div>
             <div className="space-y-2">
-              <Label>Client-Token (se a Z-API pedir)</Label>
+              <Label>Client-Token</Label>
               <Input
                 value={clientToken}
                 onChange={(e) => setClientToken(e.target.value)}
-                placeholder="Opcional"
+                placeholder="Token de segurança da conta Z-API"
                 autoComplete="off"
               />
             </div>

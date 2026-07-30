@@ -273,8 +273,7 @@ function PipelineComercialPage() {
   return (
     <div className="flex h-[calc(100dvh-3rem)] flex-col overflow-hidden md:h-screen">
       <div className="shrink-0 border-b border-border px-6 py-5">
-        <span className="eyebrow-pill">Aquisição</span>
-        <div className="mt-2 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-baseline gap-3">
             <h1 className="text-xl font-bold tracking-tight">Pipeline comercial B2B</h1>
             <span className="text-sm text-muted-foreground">

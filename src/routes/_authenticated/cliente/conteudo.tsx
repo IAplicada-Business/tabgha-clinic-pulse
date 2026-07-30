@@ -130,8 +130,7 @@ function ConteudoPage() {
   return (
     <div className="px-6 py-6 space-y-6">
       <div>
-        <span className="eyebrow-pill">Editorial</span>
-        <h1 className="mt-2 text-xl font-bold tracking-tight">Conteúdo</h1>
+        <h1 className="text-xl font-bold tracking-tight">Conteúdo</h1>
         {pendentes.length > 0 && (
           <p className="mt-0.5 text-xs font-medium text-yellow-700">
             {pendentes.length} {pendentes.length === 1 ? "conteúdo aguarda" : "conteúdos aguardam"} sua aprovação

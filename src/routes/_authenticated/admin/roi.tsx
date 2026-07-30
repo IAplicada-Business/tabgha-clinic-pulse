@@ -19,10 +19,13 @@ import {
   type AnalyticsFiltersValue,
 } from "@/components/analytics/AnalyticsFilters";
 import {
+  CHART_TOOLTIP_CURSOR,
+  CHART_TOOLTIP_STYLE,
   FunnelBars,
   InsightStack,
   Panel,
   RankedBarChart,
+  renderChartLegend,
   StatusChips,
   StoryBanner,
 } from "@/components/analytics/InsightPanel";
@@ -460,17 +463,13 @@ function RoiAdminPage() {
                           tickLine={false}
                         />
                         <Tooltip
-                          contentStyle={{
-                            fontSize: 12,
-                            borderRadius: 8,
-                            background: "#fff",
-                            border: "1px solid #e2e8f0",
-                          }}
+                          contentStyle={CHART_TOOLTIP_STYLE}
+                          cursor={CHART_TOOLTIP_CURSOR}
                           formatter={(v: number, name: string) =>
                             name === "Investimento" ? [fmt(v), name] : [v, name]
                           }
                         />
-                        <Legend wrapperStyle={{ fontSize: 11 }} />
+                        <Legend content={renderChartLegend} />
                         <Bar
                           yAxisId="left"
                           dataKey="investimento"

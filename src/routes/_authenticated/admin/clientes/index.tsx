@@ -226,8 +226,7 @@ function ClientesAdminPage() {
       {/* Header */}
       <div className="flex items-start justify-between gap-4 animate-fade-up">
         <div>
-          <span className="eyebrow-pill">CRM</span>
-          <h1 className="mt-2 text-xl font-bold tracking-tight">Clientes</h1>
+          <h1 className="text-xl font-bold tracking-tight">Clientes</h1>
         </div>
         <Button onClick={() => setShowNew(true)}>
           <Plus className="mr-2 h-4 w-4" />

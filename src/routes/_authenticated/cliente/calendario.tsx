@@ -74,9 +74,6 @@ function CalendarioPage() {
     <div className="px-6 py-6 space-y-6">
       {/* Page header */}
       <header className="animate-fade-up">
-        <span className="inline-flex items-center rounded-full bg-sky-50 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-widest text-sky-700 mb-2">
-          Agenda
-        </span>
         <h1 className="text-xl font-bold tracking-tight">Calendário</h1>
         <p className="text-xs text-muted-foreground mt-0.5">Gravações, reuniões e conteúdos agendados</p>
       </header>

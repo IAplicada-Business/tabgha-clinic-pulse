@@ -214,31 +214,6 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* Eyebrow pill — adaptado para fundo claro */
-.eyebrow-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background: oklch(0.14 0.044 264 / 6%);
-  border: 1px solid oklch(0.14 0.044 264 / 10%);
-  border-radius: 4px;
-  padding: 4px 10px;
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: oklch(0.45 0.018 264);
-}
-.eyebrow-pill::before {
-  content: '';
-  display: block;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: oklch(0.463 0.170 264);
-  flex-shrink: 0;
-}
-
 /* Skeleton shimmer — light theme */
 @keyframes shimmer {
   0%   { background-position: -200% 0; }

@@ -336,8 +336,7 @@ function ConfigMetaPage() {
   return (
     <div className="w-full min-h-full space-y-6 px-6 py-6 lg:px-8">
       <header className="w-full animate-fade-up">
-        <span className="eyebrow-pill">Aquisição</span>
-        <h1 className="mt-2 text-2xl font-bold tracking-tight sm:text-3xl">
+        <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
           Conectar Meta Business
         </h1>
         <p className="mt-2 max-w-3xl text-sm text-muted-foreground">

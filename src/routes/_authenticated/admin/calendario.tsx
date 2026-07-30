@@ -50,9 +50,6 @@ function CalendarioAdminPage() {
     <div className="px-6 py-6 space-y-6">
       {/* Page header */}
       <header className="animate-fade-up" style={{ animationDelay: "0ms" }}>
-        <span className="inline-flex items-center rounded-full bg-violet-50 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-widest text-violet-700 mb-3">
-          Conteúdo
-        </span>
         <h1 className="text-xl font-black tracking-tight leading-none">Calendário editorial</h1>
         <p className="text-xs text-muted-foreground mt-1">Conteúdos agendados de todos os clientes</p>
       </header>

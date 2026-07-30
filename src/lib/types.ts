@@ -70,10 +70,3 @@ export function defaultRange(days = 7) {
     until: until.toISOString().slice(0, 10),
   };
 }
-
-export const META_TOOLTIP_STYLE = {
-  backgroundColor: "#111827",
-  border: "1px solid #374151",
-  borderRadius: "8px",
-  color: "#f9fafb",
-} as const;

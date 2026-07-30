@@ -156,9 +156,6 @@ function DiagnosticoPage() {
   return (
     <div className="space-y-6 px-6 py-6">
       <header className="animate-fade-up">
-        <span className="mb-2 inline-flex items-center rounded-full bg-primary/10 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-widest text-primary">
-          Estratégia
-        </span>
         <h1 className="text-xl font-bold tracking-tight">Diagnóstico</h1>
         <p className="mt-0.5 text-xs text-muted-foreground">
           Análise estratégica do{" "}

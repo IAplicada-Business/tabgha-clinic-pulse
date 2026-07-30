@@ -664,9 +664,6 @@ function UsuariosPage() {
     <div className="px-6 py-6 space-y-6">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <span className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-widest text-slate-600 mb-2">
-            Configurações
-          </span>
           <h1 className="text-xl font-bold tracking-tight">Usuários & acessos</h1>
           <p className="mt-0.5 text-xs text-muted-foreground max-w-xl">
             Aqui ficam os <strong>logins</strong>. Os 8 perfis do Blueprint (Super Admin → Cliente)

@@ -44,8 +44,7 @@ function ClientesPage() {
     <div className="px-6 py-6 space-y-6">
       {/* Header */}
       <div className="animate-fade-up">
-        <span className="eyebrow-pill">Carteira</span>
-        <h1 className="mt-2 text-xl font-bold tracking-tight">Pacientes</h1>
+        <h1 className="text-xl font-bold tracking-tight">Pacientes</h1>
         <p className="mt-0.5 text-xs text-muted-foreground">Leads convertidos em pacientes do consultório.</p>
       </div>
 

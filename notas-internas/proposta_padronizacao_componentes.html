@@ -1,0 +1,531 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tabgha OS — padronização de componentes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap">
+<style>
+  :root {
+    --bg: #F7F9FC; --card: #FFFFFF;
+    --ink: #0B1A2B; --ink-2: #253347; --muted: #626B7A; --muted-2: #8991A0;
+    --border: rgba(11,26,43,0.10); --border-strong: rgba(11,26,43,0.16);
+    --primary: #1A5FAD; --primary-hover: #17518C; --primary-fg: #FFFFFF;
+    --secondary: #EEF1F6;
+    --sidebar: #0B1B3E; --sidebar-2: #0F2550; --sidebar-fg: #F5F7FA; --sidebar-border: rgba(245,247,250,0.10); --sidebar-accent: rgba(245,247,250,0.07);
+    --sky: #60C3E8; --sky-050: #EAF7FC; --sky-100: #DCEFF9;
+    --gold: #E8A83E;
+    --green-100: #DCF3E2; --green-700: #1D7A45;
+    --yellow-100: #FBEDD3; --yellow-700: #8A5A12;
+    --blue-100: #DCE6F7; --blue-700: #1D5FA8;
+    --slate-100: #E7E9EC; --slate-700: #5B6270;
+    --red-100: #FADCD7; --red-700: #B23A26;
+    --emerald-600: #059669; --emerald-700: #047857;
+    --sky-500: #0EA5E9; --sky-700: #0369A1; --sky-900: #0C4A6E;
+    --amber-700: #B45309; --rose-600: #E11D48;
+    --radius-sm: 6px; --radius: 10px; --radius-lg: 12px; --radius-xl: 16px;
+    --shadow-card: 0 1px 3px rgba(15,27,53,0.04);
+    --shadow-card-hover: 0 2px 8px rgba(15,27,53,0.08);
+    --shadow-lift: 0 8px 24px -8px rgba(15,27,53,0.14);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    background: var(--bg); color: var(--ink);
+    font-family: "Poppins", -apple-system, system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    font-size: 14px; line-height: 1.6;
+  }
+  h1, h2, h3 { font-weight: 600; letter-spacing: -0.01em; margin: 0; }
+  .tabular { font-variant-numeric: tabular-nums; }
+  code { font-family: "SF Mono", ui-monospace, monospace; font-size: 12px; background: var(--secondary); padding: 2px 6px; border-radius: 5px; color: var(--ink-2); }
+
+  * { scrollbar-width: thin; scrollbar-color: rgba(11,26,43,0.15) transparent; }
+  ::-webkit-scrollbar { width: 4px; height: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(11,26,43,0.15); border-radius: 999px; }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(11,26,43,0.30); }
+
+  .intro { max-width: 780px; margin: 0 auto; padding: 48px 24px 8px; }
+  .kicker { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin: 0 0 14px; }
+  .kicker::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--primary); }
+  .intro h1 { font-size: clamp(24px, 3vw, 30px); margin-bottom: 12px; text-wrap: balance; }
+  .intro p.lead { color: var(--muted); font-size: 14.5px; line-height: 1.7; max-width: 66ch; }
+  .fixnote { border: 1px solid var(--border-strong); background: linear-gradient(135deg, #fff 0%, var(--sky-050) 100%); border-radius: var(--radius); padding: 16px 18px; font-size: 13px; line-height: 1.65; margin: 22px 0 6px; }
+  .fixnote b { color: var(--primary); }
+  .fixnote .tag { display: inline-block; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--primary); background: var(--blue-100); border-radius: 999px; padding: 2px 9px; margin-bottom: 8px; }
+
+  .rule-row { display: flex; gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin: 24px 0; }
+  .rule { flex: 1; background: var(--card); padding: 14px 16px; }
+  .rule .sw { width: 100%; height: 28px; border-radius: 6px; margin-bottom: 10px; }
+  .rule .t { font-size: 12.5px; font-weight: 600; }
+  .rule .d { font-size: 11.5px; color: var(--muted); margin-top: 2px; }
+
+  section.spec { max-width: 960px; margin: 52px auto 0; padding: 0 24px; }
+  section.spec h2 { font-size: 17px; margin-bottom: 4px; }
+  section.spec .spec-note { font-size: 13px; color: var(--muted); margin: 4px 0 18px; max-width: 66ch; }
+  .panel { border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 24px; background: var(--card); box-shadow: var(--shadow-card); }
+  .row-flex { display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start; }
+  .state-label { font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); font-weight: 600; margin-bottom: 8px; display: block; }
+  .cell { display: flex; flex-direction: column; gap: 8px; }
+
+  /* ===== Type scale ===== */
+  .type-row { display: flex; align-items: baseline; gap: 18px; padding: 14px 0; border-bottom: 1px solid var(--border); }
+  .type-row:last-child { border-bottom: none; }
+  .type-row .lbl { width: 130px; flex-shrink: 0; font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+  .kpi-number { font-size: clamp(28px, 4vw, 40px); font-weight: 600; letter-spacing: -0.02em; }
+  .eyebrow-pill { display: inline-flex; align-items: center; gap: 6px; background: rgba(11,26,43,0.06); border: 1px solid var(--border-strong); border-radius: 5px; padding: 4px 10px; font-size: 11px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--slate-700); }
+  .eyebrow-pill::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--primary); }
+
+  /* ===== Buttons ===== */
+  .btn { font-family: inherit; font-size: 13.5px; font-weight: 500; letter-spacing: -0.005em; padding: 8px 16px; height: 36px; border-radius: 8px; border: 1px solid transparent; cursor: default; display: inline-flex; align-items: center; gap: 8px; transition: all .15s; }
+  .btn-primary { background: var(--primary); color: #fff; }
+  .btn-primary.hover { background: var(--primary-hover); }
+  .btn-primary.disabled { opacity: 0.5; }
+  .btn-secondary { background: var(--secondary); color: var(--ink-2); }
+  .btn-outline { background: transparent; color: var(--ink); border-color: var(--border-strong); }
+  .btn-ghost { background: transparent; color: rgba(11,26,43,0.8); }
+  .btn-destructive { background: var(--rose-600); color: #fff; }
+  .btn-link { background: transparent; color: var(--primary); padding: 0; height: auto; text-decoration: underline; text-underline-offset: 3px; }
+  .btn-sm { height: 30px; font-size: 12px; padding: 6px 12px; }
+  .btn-loading { }
+  .spin { width: 13px; height: 13px; border: 2px solid rgba(255,255,255,0.4); border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite; }
+  @media (prefers-reduced-motion: reduce) { .spin { animation: none; } }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ===== Inputs ===== */
+  .field { display: flex; flex-direction: column; gap: 6px; width: 220px; }
+  .field label { font-size: 12px; font-weight: 500; color: var(--ink-2); }
+  .input { border: 1px solid var(--border-strong); border-radius: 8px; padding: 8px 12px; height: 36px; font-size: 13.5px; font-family: inherit; color: var(--ink); background: rgba(255,255,255,0.7); width: 100%; }
+  .input.focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(26,95,173,0.16); outline: none; }
+  .input.error { border-color: var(--rose-600); }
+  .input.disabled { background: var(--secondary); color: var(--muted); }
+  .help { font-size: 11.5px; color: var(--muted); }
+  .help.error { color: var(--rose-600); }
+  textarea.input { resize: vertical; min-height: 68px; font-family: inherit; height: auto; }
+  select.input { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23626B7A' stroke-width='1.4' fill='none'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 30px; }
+
+  .opt-row { display: flex; align-items: center; gap: 9px; font-size: 13.5px; }
+  .box { width: 16px; height: 16px; border: 1px solid var(--primary); border-radius: 4px; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 1px 1px rgba(0,0,0,0.03); }
+  .box.checked { background: var(--primary); }
+  .box.checked svg { width: 10px; height: 10px; }
+  .box.disabled { background: var(--secondary); border-color: var(--border-strong); }
+  .switch-demo { width: 36px; height: 20px; border-radius: 999px; background: var(--secondary); position: relative; flex-shrink: 0; }
+  .switch-demo.on { background: var(--primary); }
+  .switch-demo .thumb { position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.2); transition: transform .15s; }
+  .switch-demo.on .thumb { transform: translateX(16px); }
+
+  /* ===== Badges ===== */
+  .badge { display: inline-flex; align-items: center; border-radius: 999px; padding: 3px 11px; font-size: 12px; font-weight: 600; letter-spacing: 0.01em; }
+  .badge-default { background: var(--primary); color: #fff; }
+  .badge-secondary { background: var(--secondary); color: var(--ink-2); }
+  .badge-outline { background: transparent; border: 1px solid var(--border-strong); color: var(--ink); }
+  .badge-success { background: var(--green-100); color: var(--green-700); }
+  .badge-warning { background: var(--yellow-100); color: var(--yellow-700); }
+  .badge-error { background: var(--red-100); color: var(--red-700); }
+  .badge-info { background: var(--blue-100); color: var(--blue-700); }
+  .dot-row { display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 600; }
+  .dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+
+  /* ===== KPI cards ===== */
+  .kpi-a { position: relative; border-radius: var(--radius-xl); border: 1px solid var(--border); background: var(--card); padding: 18px 20px; overflow: hidden; box-shadow: var(--shadow-card); width: 220px; }
+  .kpi-a .grad { pointer-events: none; position: absolute; top: 0; right: 0; bottom: 0; width: 42%; background: linear-gradient(to bottom left, var(--sky-100), transparent); }
+  .kpi-a .top { position: relative; z-index: 1; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .kpi-a .lbl { font-size: 10.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); }
+  .kpi-a .ico { position: relative; z-index: 1; width: 28px; height: 28px; border-radius: 8px; background: var(--secondary); display: flex; align-items: center; justify-content: center; color: var(--primary); font-size: 13px; }
+  .kpi-a .val { position: relative; z-index: 1; margin-top: 10px; font-size: 30px; font-weight: 800; letter-spacing: -0.02em; }
+  .kpi-a .delta { position: relative; z-index: 1; margin-top: 8px; display: flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 500; }
+  .kpi-a .arrow { width: 16px; height: 16px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 8px; font-weight: 700; }
+  .kpi-a .arrow.up { background: var(--green-100); color: var(--green-700); }
+
+  .kpi-b { border-radius: var(--radius-xl); border: 1px solid var(--border); background: var(--card); padding: 20px 20px 16px; box-shadow: var(--shadow-card); width: 220px; display: flex; flex-direction: column; }
+  .kpi-b .rank { font-size: 9px; font-weight: 800; letter-spacing: 0.16em; color: rgba(98,107,122,0.4); margin-bottom: 16px; }
+  .kpi-b .val { font-size: 32px; font-weight: 800; line-height: 1; letter-spacing: -0.03em; }
+  .kpi-b .lbl { margin-top: 8px; font-size: 10.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
+  .kpi-b .hint { margin-top: 4px; font-size: 10px; color: rgba(98,107,122,0.7); }
+  .kpi-b .bar { margin-top: 16px; height: 2px; border-radius: 999px; width: 100%; }
+
+  .kpi-c { border-radius: var(--radius-xl); border: 1px solid var(--border); background: var(--card); padding: 18px 20px; box-shadow: var(--shadow-card); width: 240px; position: relative; overflow: hidden; }
+  .kpi-c .accentbar { position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--primary); }
+  .kpi-c .top { display: flex; align-items: center; justify-content: space-between; }
+  .kpi-c .lbl { font-size: 10.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); }
+  .kpi-c .ico { width: 26px; height: 26px; border-radius: 7px; background: var(--secondary); display: flex; align-items: center; justify-content: center; color: var(--primary); font-size: 12px; }
+  .kpi-c .val { margin-top: 10px; font-size: 30px; font-weight: 800; letter-spacing: -0.02em; }
+  .kpi-c .foot { margin-top: 9px; display: flex; align-items: center; justify-content: space-between; }
+  .kpi-c .delta { display: flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 500; color: var(--green-700); }
+
+  /* ===== Base card anatomy ===== */
+  .card-demo { border: 1px solid var(--border); border-radius: var(--radius-xl); width: 300px; background: var(--card); box-shadow: var(--shadow-card); transition: all .18s cubic-bezier(.16,1,.3,1); }
+  .card-demo:hover { transform: translateY(-2px); box-shadow: var(--shadow-lift); border-color: rgba(26,95,173,0.2); }
+  .card-demo .c-head { padding: 16px 18px 8px; }
+  .card-demo .c-head h3 { font-size: 14px; }
+  .card-demo .c-head .c-meta { font-size: 12px; color: var(--muted); margin-top: 3px; }
+  .card-demo .c-body { padding: 8px 18px 12px; font-size: 13px; color: var(--ink-2); line-height: 1.6; }
+  .card-demo .c-foot { padding: 12px 18px 16px; display: flex; justify-content: flex-end; gap: 8px; }
+
+  /* ===== Kanban lead card ===== */
+  .kanban-col { width: 236px; border-radius: var(--radius-xl); border: 1px solid var(--border); padding: 12px; background: var(--sky-050); }
+  .kanban-col .k-head { display: flex; align-items: center; justify-content: space-between; padding-bottom: 12px; margin-bottom: 12px; border-bottom: 1px solid rgba(11,26,43,0.06); }
+  .kanban-col .k-head h4 { font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--sky-700); }
+  .kanban-col .k-head .count { background: #fff; border-radius: 999px; padding: 2px 10px; font-size: 11px; font-weight: 700; box-shadow: var(--shadow-card); }
+  .lead-card { display: flex; border-radius: var(--radius-lg); border: 1px solid var(--border); background: var(--card); box-shadow: var(--shadow-card); overflow: hidden; margin-bottom: 10px; }
+  .lead-card:hover { border-color: rgba(26,95,173,0.2); box-shadow: var(--shadow-card-hover); }
+  .lead-card .grip { flex-shrink: 0; width: 20px; display: flex; align-items: center; justify-content: center; border-right: 1px solid rgba(11,26,43,0.07); color: var(--muted-2); font-size: 12px; }
+  .lead-card .body { flex: 1; padding: 12px; }
+  .lead-card .name { font-size: 13px; font-weight: 700; }
+  .lead-card .row { margin-top: 6px; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .lead-card .phone { font-size: 11px; color: var(--muted); }
+  .lead-card .canal { border-radius: 4px; padding: 2px 6px; font-size: 9.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; }
+  .lead-card .time { margin-top: 8px; font-size: 10.5px; color: rgba(98,107,122,0.7); }
+
+  /* ===== Panel / chart wrapper ===== */
+  .chart-panel { border-radius: var(--radius-xl); border: 1px solid var(--border); background: linear-gradient(135deg, #F8FAFC 0%, #fff 55%, var(--sky-050) 100%); box-shadow: var(--shadow-card); width: 380px; overflow: hidden; }
+  .chart-panel .p-head { padding: 16px 20px 12px; border-bottom: 1px solid rgba(11,26,43,0.06); }
+  .chart-panel .p-head .eyebrow { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+  .chart-panel .p-head .sub { margin-top: 3px; font-size: 12px; color: var(--muted); }
+  .chart-panel .p-body { padding: 18px 20px; }
+  .legend { display: flex; gap: 16px; margin-top: 12px; font-size: 11.5px; color: var(--muted); }
+  .legend .lg { display: flex; align-items: center; gap: 6px; }
+  .legend .sw2 { width: 10px; height: 3px; border-radius: 2px; }
+
+  /* ===== Sidebar ===== */
+  .sidebar-frame { background: var(--bg); border-radius: var(--radius-xl); padding: 24px; }
+  .sidebar-demo { width: 224px; background: var(--sidebar); border-radius: var(--radius-lg); overflow: hidden; }
+  .sidebar-demo .s-brand { padding: 16px 14px; border-bottom: 1px solid var(--sidebar-border); display: flex; align-items: center; gap: 8px; }
+  .sidebar-demo .s-brand .mark { width: 24px; height: 24px; border-radius: 6px; background: rgba(245,247,250,0.12); display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 800; color: var(--sidebar-fg); }
+  .sidebar-demo .s-brand span { font-size: 12.5px; font-weight: 600; color: var(--sidebar-fg); }
+  .sidebar-demo .s-nav { padding: 10px 0; }
+  .nav-item { margin: 0 8px 1px; padding: 7px 10px; border-radius: 7px; font-size: 12.5px; display: flex; align-items: center; gap: 10px; color: rgba(245,247,250,0.55); }
+  .nav-item .ic { width: 14px; height: 14px; border-radius: 3px; background: currentColor; opacity: 0.5; flex-shrink: 0; }
+  .nav-item.active { background: var(--sidebar-accent); color: var(--sidebar-fg); font-weight: 600; box-shadow: inset 3px 0 0 0 var(--sky); }
+  .nav-item.active .ic { opacity: 1; background: var(--sky); }
+  .nav-item.hover { background: rgba(245,247,250,0.06); color: var(--sidebar-fg); }
+  .sidebar-demo .s-foot { border-top: 1px solid var(--sidebar-border); padding: 10px 14px; display: flex; align-items: center; justify-content: space-between; }
+  .sidebar-demo .s-foot .who { font-size: 11px; font-weight: 500; color: rgba(245,247,250,0.7); }
+  .sidebar-demo .s-foot .out { font-size: 10.5px; color: rgba(245,247,250,0.4); }
+
+  /* ===== Chat bubbles ===== */
+  .chat-demo { width: 340px; border-radius: var(--radius-xl); border: 1px solid var(--border); background: var(--card); overflow: hidden; box-shadow: var(--shadow-card); }
+  .chat-demo .c-top { padding: 14px 16px; background: linear-gradient(135deg, var(--sidebar) 0%, var(--sidebar-2) 100%); color: var(--sidebar-fg); font-size: 12.5px; font-weight: 600; display: flex; align-items: center; justify-content: space-between; }
+  .chat-demo .c-msgs { padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+  .bubble { max-width: 78%; border-radius: 14px; padding: 9px 12px; font-size: 13px; line-height: 1.5; }
+  .bubble.in { align-self: flex-start; border: 1px solid var(--border); background: var(--card); color: var(--ink); }
+  .bubble.bot { align-self: flex-end; background: rgba(14,165,233,0.1); border: 1px solid var(--sky-100); color: var(--sky-900); }
+  .bubble.human { align-self: flex-end; background: var(--emerald-600); color: #fff; }
+  .score-box { padding: 14px 16px; border-top: 1px solid var(--border); }
+  .score-box .lbl { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+  .score-box .val { margin-top: 3px; font-size: 22px; font-weight: 800; letter-spacing: -0.02em; color: var(--sky-700); }
+  .score-box .track { margin-top: 8px; height: 2px; border-radius: 999px; background: rgba(14,165,233,0.3); }
+  .score-box .fill { height: 2px; border-radius: 999px; background: var(--sky-500); }
+
+  /* ===== Table ===== */
+  .table-demo { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  .table-demo th { text-align: left; font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); font-weight: 700; padding: 0 12px 10px; background: rgba(238,241,246,0.6); }
+  .table-demo th:first-child { border-top-left-radius: 6px; padding-left: 12px; }
+  .table-demo td { padding: 11px 12px; border-bottom: 1px solid var(--border); }
+  .table-demo tr:last-child td { border-bottom: none; }
+  .sev { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; font-size: 11.5px; }
+  .sev::before { content: ""; width: 6px; height: 6px; border-radius: 50%; }
+  .sev.crit::before { background: var(--rose-600); } .sev.crit { color: var(--rose-600); }
+  .sev.warn::before { background: var(--amber-700); } .sev.warn { color: var(--amber-700); }
+  .sev.ok::before { background: var(--emerald-600); } .sev.ok { color: var(--emerald-700); }
+
+  /* ===== Motion tokens ===== */
+  .token-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+  .token-card { border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; background: var(--card); }
+  .token-card .name { font-size: 12px; font-weight: 600; }
+  .token-card .desc { font-size: 11.5px; color: var(--muted); margin-top: 3px; }
+
+  footer.note { max-width: 960px; margin: 60px auto 72px; padding: 22px 24px 0; font-size: 12px; color: var(--muted); border-top: 1px solid var(--border); line-height: 1.7; }
+</style>
+</head>
+<body>
+
+<div class="intro">
+  <p class="kicker">Tabgha OS · padronização de componentes</p>
+  <h1>O sistema já tem um bom gosto — falta só ele parar de se repetir.</h1>
+  <p class="lead">
+    Levantamento feito direto no código (não é mockup): tokens de <code>src/styles.css</code>,
+    componentes-base em <code>src/components/ui/</code> e o uso real nas telas de admin, CRM,
+    atendimento e dashboards. A base visual já é consistente — azul de marca, cinza-claro de
+    fundo, radius generoso, sombra suave, Poppins. O problema não é falta de identidade, é
+    <b>duplicação</b>: o mesmo tipo de componente foi resolvido de formas diferentes em telas
+    diferentes. Abaixo, para cada categoria, os padrões reais encontrados e qual deles vira
+    o padrão daqui pra frente.
+  </p>
+
+  <div class="fixnote">
+    <span class="tag">Achado principal</span><br>
+    Existem <b>dois cards de KPI</b> competindo no mesmo produto: o componente compartilhado
+    <code>KpiCard</code> (ícone + valor + chip de variação) e um card "rank" inline, copiado e
+    colado em pelo menos 3 arquivos (<code>dashboard.tsx</code>, <code>dashboard-clientes.tsx</code>,
+    <code>MetaAdsPage.tsx</code>) com número de ranking, valor gigante e barra de cor no rodapé.
+    Nenhum dos dois está errado — a proposta é fundir os dois num único componente reutilizável
+    (seção "Cards de KPI" abaixo), em vez de continuar reescrevendo a mesma célula três vezes.
+  </div>
+
+  <div class="rule-row">
+    <div class="rule"><div class="sw" style="background:var(--card);border:1px solid var(--border)"></div><div class="t">Branco / cinza-claro</div><div class="d">Fundo de página e cartões — superfície principal</div></div>
+    <div class="rule"><div class="sw" style="background:var(--primary)"></div><div class="t">Azul #1A5FAD — ação</div><div class="d">Botões primários, foco, links, ícones ativos</div></div>
+    <div class="rule"><div class="sw" style="background:var(--sidebar)"></div><div class="t">Navy #0B1B3E — sidebar</div><div class="d">Única superfície escura: menu lateral e header do chat</div></div>
+    <div class="rule"><div class="sw" style="background:var(--sky)"></div><div class="t">Sky #60C3E8 — realce</div><div class="d">Gráficos, score da IA, gradientes de destaque</div></div>
+    <div class="rule"><div class="sw" style="background:var(--gold)"></div><div class="t">Âmbar — contraponto</div><div class="d">Segunda cor de gráfico, usada com moderação</div></div>
+  </div>
+</div>
+
+<section class="spec">
+  <h2>Tipografia</h2>
+  <p class="spec-note">Poppins em tudo — inclusive números. <code>tabular-nums</code> obrigatório em qualquer valor que muda (KPI, tabela, score), pra dígito não "dançar" o layout ao atualizar.</p>
+  <div class="panel">
+    <div class="type-row"><span class="lbl">H1 · 600</span><h1 style="font-size:28px;">Dashboard de clientes</h1></div>
+    <div class="type-row"><span class="lbl">H2 · 600</span><h2 style="font-size:20px;">Pipeline editorial</h2></div>
+    <div class="type-row"><span class="lbl">Body · 400</span><span style="font-size:14px;">Texto de parágrafo padrão, 14px, línea 1.6.</span></div>
+    <div class="type-row"><span class="lbl">KPI number</span><span class="kpi-number tabular">R$ 84.320</span></div>
+    <div class="type-row"><span class="lbl">Eyebrow pill</span><span class="eyebrow-pill">Sete Fontes™</span></div>
+    <div class="type-row"><span class="lbl">Code / mono</span><code>bot_score</code></div>
+  </div>
+</section>
+
+<section class="spec">
+  <h2>Botões</h2>
+  <p class="spec-note">Radius 8px, sem caixa-alta, peso 500. Primary é o único preenchido de forma sólida — o resto é sempre superfície clara ou transparente.</p>
+  <div class="panel row-flex">
+    <div class="cell"><span class="state-label">Primary</span><button class="btn btn-primary">Salvar</button></div>
+    <div class="cell"><span class="state-label">Hover</span><button class="btn btn-primary hover">Salvar</button></div>
+    <div class="cell"><span class="state-label">Disabled</span><button class="btn btn-primary disabled">Salvar</button></div>
+    <div class="cell"><span class="state-label">Loading</span><button class="btn btn-primary btn-loading"><span class="spin"></span>Salvando…</button></div>
+    <div class="cell"><span class="state-label">Secondary</span><button class="btn btn-secondary">Exportar</button></div>
+    <div class="cell"><span class="state-label">Outline</span><button class="btn btn-outline">Ver viatura</button></div>
+    <div class="cell"><span class="state-label">Ghost</span><button class="btn btn-ghost">Cancelar</button></div>
+    <div class="cell"><span class="state-label">Destructive</span><button class="btn btn-destructive">Excluir</button></div>
+    <div class="cell"><span class="state-label">Link</span><button class="btn btn-link">Ver detalhes</button></div>
+    <div class="cell"><span class="state-label">Small</span><button class="btn btn-primary btn-sm">Adicionar</button></div>
+  </div>
+</section>
+
+<section class="spec">
+  <h2>Inputs</h2>
+  <p class="spec-note">Foco é anel azul suave (não borda grossa), erro é vermelho só na borda + texto de ajuda. Nada de glow difuso.</p>
+  <div class="panel row-flex">
+    <div class="field"><label>Nome do lead</label><input class="input" placeholder="Nome completo"></div>
+    <div class="field"><label>Nome — foco</label><input class="input focus" value="Dr. Pedro Correa"></div>
+    <div class="field"><label>Telefone — erro</label><input class="input error" value="119999"><span class="help error">Telefone inválido</span></div>
+    <div class="field"><label>Cliente — desativado</label><input class="input disabled" value="Tabgha Health Marketing" disabled></div>
+    <div class="field"><label>Observações</label><textarea class="input" placeholder="Notas do atendimento…"></textarea></div>
+    <div class="field"><label>Especialidade</label><select class="input"><option>Ortopedia</option><option>Dermatologia</option></select></div>
+    <div class="field"><label>Agente ativo</label><div class="switch-demo on" style="margin-top:6px;"><div class="thumb"></div></div></div>
+  </div>
+</section>
+
+<section class="spec">
+  <h2>Checkbox &amp; seleção</h2>
+  <p class="spec-note">Quadrado, radius 4px, preenchido com o azul de marca — nunca cinza genérico.</p>
+  <div class="panel row-flex">
+    <div class="opt-row"><span class="box"></span> Não marcado</div>
+    <div class="opt-row"><span class="box checked"><svg viewBox="0 0 10 8" fill="none" stroke="#fff" stroke-width="1.6"><path d="M1 4l3 3 5-6"/></svg></span> Marcado</div>
+    <div class="opt-row"><span class="box disabled"></span> Desativado</div>
+  </div>
+</section>
+
+<section class="spec">
+  <h2>Badges &amp; status</h2>
+  <p class="spec-note">Duas famílias convivendo hoje: badges "pílula" (variant do componente <code>Badge</code>) para status de registro, e o padrão "ponto + texto" (usado no Atendimento) para estado ao vivo de uma conversa. Mantenha as duas — pílula é para <i>coisas</i> (lead, cliente), ponto é para <i>estados que mudam em tempo real</i>.</p>
+  <div class="panel row-flex">
+    <div class="cell"><span class="state-label">Default</span><span class="badge badge-default">Novo</span></div>
+    <div class="cell"><span class="state-label">Secondary</span><span class="badge badge-secondary">Rascunho</span></div>
+    <div class="cell"><span class="state-label">Outline</span><span class="badge badge-outline">Pausa</span></div>
+    <div class="cell"><span class="state-label">Success</span><span class="badge badge-success">Convertido</span></div>
+    <div class="cell"><span class="state-label">Warning</span><span class="badge badge-warning">Em conversa</span></div>
+    <div class="cell"><span class="state-label">Error</span><span class="badge badge-error">Perdido</span></div>
+    <div class="cell"><span class="state-label">Info</span><span class="badge badge-info">Agendado</span></div>
+  </div>
+  <div class="panel row-flex" style="margin-top:12px;">
+    <div class="cell"><span class="state-label">Ponto · humano</span><span class="dot-row" style="color:var(--emerald-700);"><span class="dot" style="background:var(--emerald-600);"></span>Humano</span></div>
+    <div class="cell"><span class="state-label">Ponto · bot ativo</span><span class="dot-row" style="color:var(--sky-700);"><span class="dot" style="background:var(--sky-500);"></span>Bot</span></div>
+    <div class="cell"><span class="state-label">Ponto · aguardando</span><span class="dot-row" style="color:var(--amber-700);"><span class="dot" style="background:#D97706;"></span>Aguardando</span></div>
+    <div class="cell"><span class="state-label">Ponto · fechada</span><span class="dot-row" style="color:var(--muted);"><span class="dot" style="background:#9CA3AF;"></span>Fechada</span></div>
+  </div>
+</section>
+
+<section class="spec">
+  <h2>Cards de KPI — o achado que motivou este documento</h2>
+  <p class="spec-note">As três primeiras são exatamente como existem hoje no código, lado a lado. A quarta (<b>proposta</b>) funde os dois padrões num componente único: mantém o ícone + variação do <code>KpiCard</code> e adiciona a barra de cor do rank-card como indicador opcional — sem rank number (que é ruído: ninguém lê "01, 02, 03" num grid de 4 KPIs).</p>
+  <div class="panel row-flex">
+    <div class="cell">
+      <span class="state-label">A · KpiCard (componente compartilhado)</span>
+      <div class="kpi-a">
+        <div class="grad"></div>
+        <div class="top"><span class="lbl">Leads no mês</span><span class="ico">◆</span></div>
+        <div class="val tabular">1.284</div>
+        <div class="delta"><span class="arrow up">▲</span><span style="color:var(--green-700);">+12% vs. mês anterior</span></div>
+      </div>
+    </div>
+    <div class="cell">
+      <span class="state-label">B · "rank card" (copiado em 3 arquivos)</span>
+      <div class="kpi-b">
+        <div class="rank">01</div>
+        <div class="val tabular">R$ 84.320</div>
+        <div class="lbl">Investimento total</div>
+        <div class="hint">últimos 30 dias</div>
+        <div class="bar" style="background:var(--primary);"></div>
+      </div>
+    </div>
+    <div class="cell">
+      <span class="state-label">B · variante MetaAdsPage (sem rank, sem barra)</span>
+      <div class="kpi-b" style="padding-bottom:20px;">
+        <div class="lbl" style="margin-bottom:0;">CTR médio</div>
+        <div class="val tabular" style="margin-top:12px;color:var(--sky-700);">2.4%</div>
+      </div>
+    </div>
+    <div class="cell">
+      <span class="state-label" style="color:var(--primary);">Proposta · KpiCard v2 (canônico)</span>
+      <div class="kpi-c">
+        <div class="accentbar"></div>
+        <div class="top"><span class="lbl">Leads no mês</span><span class="ico">◆</span></div>
+        <div class="val tabular">1.284</div>
+        <div class="foot"><span class="delta"><span class="arrow up" style="width:14px;height:14px;">▲</span>+12%</span><span style="font-size:10.5px;color:var(--muted);">vs. mês ant.</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="spec">
+  <h2>Card — anatomia base</h2>
+  <p class="spec-note">Header / corpo / rodapé, sem linha divisória entre eles (diferente do padrão antigo de shadcn) — o espaçamento já separa visualmente. Sombra sempre <code>0 1px 3px rgba(15,27,53,.04)</code>, nunca a sombra genérica do navegador.</p>
+  <div class="panel row-flex">
+    <div class="card-demo">
+      <div class="c-head"><h3>Dr. Pedro Correa</h3><div class="c-meta">Ortopedia · atualizado há 12 min</div></div>
+      <div class="c-body">Cliente ativo desde 17/07. Meta Ads conectado, 1 conversa em aberto no WhatsApp aguardando resposta humana.</div>
+      <div class="c-foot"><button class="btn btn-ghost btn-sm">Ver ficha</button><button class="btn btn-primary btn-sm">Abrir conversa</button></div>
+    </div>
+  </div>
+</section>
+
+<section class="spec">
+  <h2>Card — Kanban de leads</h2>
+  <p class="spec-note">O card mais bem resolvido do sistema hoje: alça de arraste separada por borda, badge de canal colorido por origem, telefone mascarado, timestamp relativo discreto. Vira a referência para qualquer novo card "de item arrastável".</p>
+  <div class="panel">
+    <div class="kanban-col">
+      <div class="k-head"><h4>Interessado</h4><span class="count">3</span></div>
+      <div class="lead-card">
+        <div class="grip">⋮⋮</div>
+        <div class="body">
+          <div class="name">Mariana Souza</div>
+          <div class="row"><span class="phone">(11) 9••••-4021</span><span class="canal" style="background:var(--green-100);color:var(--green-700);">whatsapp</span></div>
+          <div class="time">há 8 min</div>
+        </div>
+      </div>
+      <div class="lead-card">
+        <div class="grip">⋮⋮</div>
+        <div class="body">
+          <div class="name">Carlos Nunes</div>
+          <div class="row"><span class="phone">(11) 9••••-8837</span><span class="canal" style="background:var(--blue-100);color:var(--blue-700);">meta</span></div>
+          <div class="time">há 34 min</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="spec">
+  <h2>Card — Painel com gráfico</h2>
+  <p class="spec-note">Wrapper compartilhado (<code>Panel</code>) usado nos dois dashboards para envolver qualquer gráfico ou lista — gradiente sutil de fundo, eyebrow em maiúsculas, uma linha de legenda com traço colorido (não bolinha).</p>
+  <div class="panel row-flex">
+    <div class="chart-panel">
+      <div class="p-head"><div class="eyebrow">Operação · 7 dias</div><div class="sub">Checklists concluídos por dia</div></div>
+      <div class="p-body">
+        <svg viewBox="0 0 320 90" width="100%" height="80" preserveAspectRatio="none">
+          <line x1="0" y1="15" x2="320" y2="15" stroke="var(--border)" stroke-width="1"/>
+          <line x1="0" y1="45" x2="320" y2="45" stroke="var(--border)" stroke-width="1"/>
+          <line x1="0" y1="75" x2="320" y2="75" stroke="var(--border)" stroke-width="1"/>
+          <polyline points="0,60 46,52 91,56 137,36 183,40 229,20 274,26 320,10" fill="none" stroke="var(--primary)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+          <circle cx="320" cy="10" r="4" fill="var(--sky)"/>
+        </svg>
+        <div class="legend"><div class="lg"><span class="sw2" style="background:var(--primary);"></span>checklists concluídos</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="spec">
+  <h2>Sidebar — única superfície escura</h2>
+  <p class="spec-note">Navy sólido, nunca gradiente pesado. Item ativo não ganha fundo cheio — ganha um "trilho" de 3px na cor sky à esquerda (<code>shadow: inset 3px 0 0 0 var(--sky)</code>), mais elegante que preencher a linha toda.</p>
+  <div class="sidebar-frame">
+    <div class="sidebar-demo">
+      <div class="s-brand"><div class="mark">TB</div><span>Tabgha OS</span></div>
+      <div class="s-nav">
+        <div class="nav-item active"><span class="ic"></span>Dashboard</div>
+        <div class="nav-item hover"><span class="ic"></span>Clientes</div>
+        <div class="nav-item"><span class="ic"></span>Leads</div>
+        <div class="nav-item"><span class="ic"></span>Atendimento</div>
+        <div class="nav-item"><span class="ic"></span>Meta Ads</div>
+      </div>
+      <div class="s-foot"><span class="who">Mariana Costa</span><span class="out">Sair</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="spec">
+  <h2>Chat &amp; score da IA</h2>
+  <p class="spec-note">Três remetentes, três tratamentos: humano é a única bolha 100% preenchida (para destacar quando um humano assumiu), bot é translúcida em sky (para parecer "auxiliar", não definitiva), cliente é neutra. Score do bot é sempre <code>tabular-nums</code> com barra de progresso de 2px.</p>
+  <div class="panel row-flex">
+    <div class="chat-demo">
+      <div class="c-top"><span>Mariana Souza</span><span class="dot-row" style="color:var(--sidebar-fg);opacity:.7;"><span class="dot" style="background:var(--sky);"></span>Bot</span></div>
+      <div class="c-msgs">
+        <div class="bubble in">Oi, vi o anúncio de vocês. Fazem avaliação de joelho?</div>
+        <div class="bubble bot">Fazemos sim! Posso te passar os horários disponíveis essa semana 🙂</div>
+        <div class="bubble human">Oi Mariana, aqui é a Dra. Ana — vi que o Pietro já te passou os horários, alguma dúvida?</div>
+      </div>
+      <div class="score-box">
+        <div class="lbl">Bot score</div>
+        <div class="val tabular">78</div>
+        <div class="track"><div class="fill" style="width:78%;"></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="spec">
+  <h2>Tabela</h2>
+  <p class="spec-note">Cabeçalho em fundo cinza suave (não branco puro, não linha grossa), severidade lida por cor do texto + ponto — nunca por fundo de linha inteiro (zebra).</p>
+  <div class="panel">
+    <table class="table-demo">
+      <thead><tr><th>Clínica</th><th>Investimento</th><th>Gap vs. meta</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td>Dr. Pedro Correa</td><td class="tabular">R$ 12.400</td><td class="tabular" style="color:var(--amber-700);font-weight:600;">+18%</td><td><span class="sev warn">Atenção</span></td></tr>
+        <tr><td>Clínica Vitta</td><td class="tabular">R$ 8.900</td><td class="tabular" style="color:var(--muted);">−2%</td><td><span class="sev ok">Ok</span></td></tr>
+        <tr><td>Espaço Sorriso</td><td class="tabular">R$ 3.100</td><td class="tabular" style="color:var(--rose-600);font-weight:600;">+41%</td><td><span class="sev crit">Crítico</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="spec">
+  <h2>Tokens de movimento &amp; sombra</h2>
+  <p class="spec-note">Já existem no CSS e valem a pena virar regra explícita — hoje dependem de quem lembra de usar.</p>
+  <div class="panel token-grid">
+    <div class="token-card"><div class="name">shadow-card</div><div class="desc"><code>0 1px 3px rgba(15,27,53,.04)</code> — repouso de todo card</div></div>
+    <div class="token-card"><div class="name">shadow-lift (hover)</div><div class="desc"><code>0 8px 24px -8px rgba(15,27,53,.14)</code> + translateY(-2px)</div></div>
+    <div class="token-card"><div class="name">animate-fade-up</div><div class="desc">entrada padrão de card/lista, 450ms, stagger de 75ms por item</div></div>
+    <div class="token-card"><div class="name">animate-numeric-pop</div><div class="desc">KPI e score "chegando" — scale 0.88 → 1, spring leve</div></div>
+    <div class="token-card"><div class="name">animate-shimmer</div><div class="desc">skeleton de loading, 1.4s, sem cor forte</div></div>
+    <div class="token-card"><div class="name">radius-xl (16px)</div><div class="desc">cards e painéis — o "grande" da escala</div></div>
+    <div class="token-card"><div class="name">radius-lg (12px)</div><div class="desc">colunas de kanban, botões grandes</div></div>
+    <div class="token-card"><div class="name">radius (10px)</div><div class="desc">base do sistema (<code>--radius: 0.625rem</code>)</div></div>
+  </div>
+</section>
+
+<footer class="note">
+  <b>Resumo do que muda na prática:</b> (1) consolidar o card de KPI num único componente
+  (proposta acima) e substituir as 3 versões copiadas; (2) documentar o padrão "ponto + label"
+  do Atendimento como um componente próprio, hoje ele só existe inline; (3) quando alguém
+  precisar de um card com imagem/thumbnail (ex: criativo de anúncio em Meta Ads), não existe
+  ainda um padrão no código — desenhar do zero seguindo a anatomia da seção "Card — anatomia
+  base" antes de inventar um estilo novo. Todo o resto (botão, input, badge, tabela, sidebar,
+  chat) já está consistente — é só formalizar como regra e reaproveitar.
+</footer>
+
+</body>
+</html>

@@ -552,7 +552,7 @@ function SidebarNav({
       )}
 
       {/* ── Nav groups ── */}
-      <nav className="flex-1 overflow-y-auto py-2">
+      <nav className="min-h-0 flex-1 overflow-y-auto overscroll-contain py-2">
         {groups.map((g) => {
           const key = g.group;
           const isOpen = isGroupOpen(key);
@@ -980,10 +980,10 @@ export function AppLayout({ children }: { children: ReactNode }) {
   };
 
   return (
-    <div className="flex min-h-screen w-full bg-background text-foreground">
+    <div className="flex min-h-dvh w-full bg-background text-foreground md:h-dvh md:overflow-hidden">
       {/* ── Desktop sidebar ── */}
       <aside
-        className="relative hidden shrink-0 flex-col border-r border-sidebar-border bg-sidebar md:flex overflow-hidden"
+        className="relative hidden h-dvh min-h-0 shrink-0 flex-col overflow-hidden border-r border-sidebar-border bg-sidebar md:flex"
         style={{
           width: sidebarCollapsed ? "3.5rem" : "14rem",
           transition: "width 280ms cubic-bezier(0.4, 0, 0.2, 1)",
@@ -1046,7 +1046,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
           </SheetContent>
         </Sheet>
 
-        <main className="flex-1 min-w-0 bg-background">{children}</main>
+        <main className="min-w-0 flex-1 bg-background md:h-dvh md:overflow-y-auto">{children}</main>
       </div>
 
       {process.env.ANTHROPIC_API_KEY && (

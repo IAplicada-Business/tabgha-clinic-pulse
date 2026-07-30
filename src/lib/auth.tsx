@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import type { User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+import { clearAuthAccessCache, seedAuthAccessCache } from "@/lib/auth-access";
 import {
   type AppRole,
   type ViewArea,
@@ -77,9 +78,7 @@ async function loadProfileAndRoles(
     supabase.from("user_roles").select("role").eq("user_id", userId),
   ]);
 
-  const roles = (roleRows ?? [])
-    .map((r) => r.role as string)
-    .filter(isAppRole);
+  const roles = (roleRows ?? []).map((r) => r.role as string).filter(isAppRole);
 
   // Ordem estável: Super Admin primeiro, demais staff, cliente por último
   roles.sort((a, b) => {
@@ -127,6 +126,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const hydrate = async (u: User | null) => {
     setUser(u);
     if (!u) {
+      clearAuthAccessCache();
       setProfile(null);
       setRoles([]);
       setActiveAreaState(null);
@@ -136,34 +136,45 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { profile: p, roles: nextRoles } = await loadProfileAndRoles(u.id);
     setProfile(p);
     setRoles(nextRoles);
+    seedAuthAccessCache({
+      user: u,
+      roles: nextRoles,
+      permissoes: p?.permissoes ?? [],
+      clienteId: p?.cliente_id ?? null,
+    });
     setActiveAreaState((prev) => pickViewArea(nextRoles, prev ?? readStoredActiveRole()));
     setLoading(false);
   };
 
   useEffect(() => {
     let mounted = true;
-    supabase.auth.getUser().then(({ data }) => {
-      if (mounted) hydrate(data.user);
+    // Sessão local primeiro — evita Auth API no boot.
+    void supabase.auth.getSession().then(({ data }) => {
+      if (mounted) void hydrate(data.session?.user ?? null);
     });
     const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event !== "SIGNED_IN" && event !== "SIGNED_OUT" && event !== "USER_UPDATED") return;
-      hydrate(session?.user ?? null);
-    });
-
-    const onFocus = () => {
-      void supabase.auth.getUser().then(({ data }) => {
-        if (mounted && data.user) void hydrate(data.user);
-      });
-    };
-    window.addEventListener("focus", onFocus);
-    document.addEventListener("visibilitychange", () => {
-      if (document.visibilityState === "visible") onFocus();
+      if (event === "SIGNED_OUT") {
+        clearAuthAccessCache();
+      }
+      if (
+        event !== "SIGNED_IN" &&
+        event !== "SIGNED_OUT" &&
+        event !== "USER_UPDATED" &&
+        event !== "TOKEN_REFRESHED"
+      ) {
+        return;
+      }
+      if (event === "TOKEN_REFRESHED" && session?.user) {
+        // Só atualiza referência do user; roles já estão em cache.
+        setUser(session.user);
+        return;
+      }
+      void hydrate(session?.user ?? null);
     });
 
     return () => {
       mounted = false;
       sub.subscription.unsubscribe();
-      window.removeEventListener("focus", onFocus);
     };
   }, []);
 
@@ -192,11 +203,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
     signOut: async () => {
       storeActiveRole(null);
+      clearAuthAccessCache();
       await supabase.auth.signOut();
     },
     refresh: async () => {
-      const { data } = await supabase.auth.getUser();
-      await hydrate(data.user);
+      clearAuthAccessCache();
+      const { data } = await supabase.auth.getSession();
+      await hydrate(data.session?.user ?? null);
     },
     isSimulating,
     simulatedClientId,

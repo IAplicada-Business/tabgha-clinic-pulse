@@ -184,9 +184,6 @@ function ClienteDashboard() {
   return (
     <div className="px-6 py-6 space-y-6">
       <header className="animate-fade-up">
-        <span className="inline-flex items-center rounded-full bg-primary/10 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-widest text-primary mb-2">
-          Portal do Cliente
-        </span>
         <h1 className="text-xl font-bold tracking-tight">Dashboard</h1>
         <p className="text-xs text-muted-foreground mt-0.5">Visão geral da sua operação de marketing</p>
       </header>

@@ -257,6 +257,44 @@ export type Database = {
         }
         Relationships: []
       }
+      diagnostico_relatorios: {
+        Row: {
+          cliente_id: string
+          gerado_em: string
+          gerado_por: string | null
+          id: string
+          por_fonte: Json
+          resumo_executivo: string | null
+          score_geral: number | null
+        }
+        Insert: {
+          cliente_id: string
+          gerado_em?: string
+          gerado_por?: string | null
+          id?: string
+          por_fonte?: Json
+          resumo_executivo?: string | null
+          score_geral?: number | null
+        }
+        Update: {
+          cliente_id?: string
+          gerado_em?: string
+          gerado_por?: string | null
+          id?: string
+          por_fonte?: Json
+          resumo_executivo?: string | null
+          score_geral?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "diagnostico_relatorios_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: true
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       diagnostico_respostas: {
         Row: {
           atualizado_em: string

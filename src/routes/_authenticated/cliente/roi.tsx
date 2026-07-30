@@ -17,6 +17,8 @@ import { format, subDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 import {
+  CHART_TOOLTIP_CURSOR,
+  CHART_TOOLTIP_STYLE,
   FunnelBars,
   InsightStack,
   Panel,
@@ -349,12 +351,7 @@ function RoiPage() {
                             axisLine={false}
                           />
                           <Tooltip
-                            contentStyle={{
-                              fontSize: 11,
-                              borderRadius: 10,
-                              background: "#fff",
-                              border: "1px solid #e2e8f0",
-                            }}
+                            contentStyle={CHART_TOOLTIP_STYLE}
                             formatter={(v: number, name: string) => [
                               name === "Investimento (R$)" ? fmtCurrency(v) : v,
                               name,
@@ -421,7 +418,10 @@ function RoiPage() {
                             tickLine={false}
                           />
                           <YAxis tick={{ fontSize: 10 }} axisLine={false} tickLine={false} />
-                          <Tooltip />
+                          <Tooltip
+                            contentStyle={CHART_TOOLTIP_STYLE}
+                            cursor={CHART_TOOLTIP_CURSOR}
+                          />
                           <Bar dataKey="leads" fill="#14b8a6" radius={[4, 4, 0, 0]} />
                         </BarChart>
                       </ResponsiveContainer>
