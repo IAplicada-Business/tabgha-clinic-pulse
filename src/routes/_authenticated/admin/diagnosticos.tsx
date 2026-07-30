@@ -6,20 +6,13 @@ import { ChevronDown, Loader2, Stethoscope } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { EmptyState } from "@/components/EmptyState";
 import { RelatorioFontes } from "@/components/diagnostico/RelatorioFontes";
-import { faixaScore } from "@/lib/fontes";
+import { faixaScore, TONE_CLASS } from "@/lib/fontes";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/admin/diagnosticos")({
   component: DiagnosticosPage,
   head: () => ({ meta: [{ title: "Diagnósticos — Tabgha Admin" }] }),
 });
-
-const TONE_CHIP: Record<ReturnType<typeof faixaScore>["tone"], string> = {
-  critico: "bg-rose-50 text-rose-700",
-  atencao: "bg-amber-50 text-amber-700",
-  bom: "bg-blue-50 text-blue-700",
-  forte: "bg-emerald-50 text-emerald-700",
-};
 
 function DiagnosticosPage() {
   const [clienteId, setClienteId] = useState<string>("");
@@ -83,7 +76,7 @@ function DiagnosticosPage() {
   return (
     <div className="px-6 py-6 space-y-6">
       <div>
-        <h1 className="text-xl font-bold tracking-tight">Diagnósticos · 7 Fontes</h1>
+        <h1 className="text-xl font-bold tracking-tight">Diagnóstico 7 Fontes</h1>
         <p className="mt-0.5 text-xs text-muted-foreground">
           Autoavaliação, score por Fonte e relatório executivo gerado por IA. Clique em um cliente
           para abrir o radar e o relatório.
@@ -178,7 +171,7 @@ function DiagnosticosPage() {
                     <span
                       className={cn(
                         "rounded-full px-2.5 py-0.5 text-xs font-semibold",
-                        TONE_CHIP[faixa.tone],
+                        TONE_CLASS[faixa.tone],
                       )}
                     >
                       {info?.score != null

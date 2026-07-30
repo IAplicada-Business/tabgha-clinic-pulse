@@ -178,21 +178,19 @@ function DashboardTabghaPage() {
 
   return (
     <div className="space-y-4 px-6 py-6">
-      <header className="animate-fade-up flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-extrabold tracking-tight">Dashboard Tabgha</h1>
-          <p className="mt-0.5 max-w-2xl text-xs text-muted-foreground">
-            Crescimento da agência e gestão da carteira. Mídia e CAQ ficam em ROI e Marketing Pago.
-          </p>
-        </div>
-        <AnalyticsFilters
-          value={filters}
-          onChange={setFilters}
-          clientes={clientesOptions}
-          categorias={categorias}
-          showPlataforma={false}
-        />
+      <header className="animate-fade-up">
+        <h1 className="text-xl font-bold tracking-tight">Dashboard Tabgha</h1>
+        <p className="mt-0.5 max-w-2xl text-xs text-muted-foreground">
+          Crescimento da agência e gestão da carteira. Mídia e CAQ ficam em ROI e Marketing Pago.
+        </p>
       </header>
+      <AnalyticsFilters
+        value={filters}
+        onChange={setFilters}
+        clientes={clientesOptions}
+        categorias={categorias}
+        showPlataforma={false}
+      />
 
       {!isLoading ? (
         <StoryBanner

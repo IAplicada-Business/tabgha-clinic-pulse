@@ -336,9 +336,7 @@ function ConfigMetaPage() {
   return (
     <div className="w-full min-h-full space-y-6 px-6 py-6 lg:px-8">
       <header className="w-full animate-fade-up">
-        <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
-          Conectar Meta Business
-        </h1>
+        <h1 className="text-xl font-bold tracking-tight">Conexões Meta</h1>
         <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
           Lista das conexões Meta. Clique em um cliente para abrir o painel de gerenciamento.
         </p>
@@ -553,8 +551,9 @@ function ConfigMetaPage() {
                     </Button>
                   </div>
                   <p className="max-w-lg text-xs text-muted-foreground">
-                    Só a conta deste cliente fica visível aqui. Outras contas da BM não são listadas.
-                    Se o sync vier sem insights, o servidor pode auto-corrigir a conta vinculada.
+                    Só a conta deste cliente fica visível aqui. Outras contas da BM não são
+                    listadas. Se o sync vier sem insights, o servidor pode auto-corrigir a conta
+                    vinculada.
                   </p>
                 </div>
 

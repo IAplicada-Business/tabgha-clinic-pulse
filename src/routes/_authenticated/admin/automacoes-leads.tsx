@@ -171,27 +171,25 @@ function AutomacoesLeadsPage() {
   return (
     <div className="px-6 py-6 space-y-6">
       {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-3 animate-fade-up">
-        <div>
-          <h1 className="text-xl font-bold tracking-tight">Automações de leads</h1>
-          <p className="text-xs text-muted-foreground mt-0.5">
-            CPL · CPA · jornada de captação por cliente
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <select
-            value={filterCanal}
-            onChange={(e) => setFilterCanal(e.target.value)}
-            className="h-8 rounded-md border border-input bg-background px-2 text-xs"
-          >
-            <option value="">Todos canais</option>
-            {CANAIS.map((c) => (
-              <option key={c} value={c}>
-                {c === "site" ? "Leads do site (Tabgha)" : c}
-              </option>
-            ))}
-          </select>
-        </div>
+      <div className="animate-fade-up">
+        <h1 className="text-xl font-bold tracking-tight">Automações de pacientes</h1>
+        <p className="text-xs text-muted-foreground mt-0.5">
+          CPL · CPA · jornada de captação por cliente
+        </p>
+      </div>
+      <div className="flex items-center gap-2">
+        <select
+          value={filterCanal}
+          onChange={(e) => setFilterCanal(e.target.value)}
+          className="h-8 rounded-md border border-input bg-background px-2 text-xs"
+        >
+          <option value="">Todos canais</option>
+          {CANAIS.map((c) => (
+            <option key={c} value={c}>
+              {c === "site" ? "Leads do site (Tabgha)" : c}
+            </option>
+          ))}
+        </select>
       </div>
 
       {isLoading ? (
@@ -252,29 +250,26 @@ function AutomacoesLeadsPage() {
 
           {tab === "Pipeline" && (
             <div className="space-y-6">
-              {/* Funil visual — dark chart card */}
+              {/* Funil visual */}
               <div
-                className="rounded-2xl overflow-hidden shadow-[0_4px_24px_rgba(11,27,62,0.18)] animate-fade-up"
-                style={{
-                  background: "linear-gradient(135deg, #0B1B3E 0%, #0F2550 100%)",
-                  animationDelay: "375ms",
-                }}
+                className="rounded-2xl border border-border bg-gradient-to-br from-slate-50 to-sky-50/60 shadow-[0_1px_3px_rgba(15,27,53,0.04)] animate-fade-up"
+                style={{ animationDelay: "375ms" }}
               >
                 <div className="p-5">
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-white/40 mb-4">
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-4">
                     Funil global de leads
                   </p>
                   <div className="flex flex-col gap-3">
                     {funil.map((f) => (
                       <div key={f.status} className="flex items-center gap-3">
-                        <span className="w-28 text-[11px] text-white/50 text-right shrink-0">
+                        <span className="w-28 text-[11px] text-muted-foreground text-right shrink-0">
                           {f.label}
                         </span>
-                        <div className="flex-1 h-6 rounded-md bg-white/10 overflow-hidden">
+                        <div className="flex-1 h-6 rounded-md bg-secondary/60 overflow-hidden">
                           <div
                             className={cn(
                               "h-full rounded-md transition-all",
-                              STATUS_BAR[f.status] ?? "bg-white/20",
+                              STATUS_BAR[f.status] ?? "bg-muted-foreground/20",
                             )}
                             style={{
                               width: `${(f.count / maxFunil) * 100}%`,
@@ -282,7 +277,7 @@ function AutomacoesLeadsPage() {
                             }}
                           />
                         </div>
-                        <span className="w-8 text-[11px] font-bold text-white/70 text-right shrink-0 tabular-nums">
+                        <span className="w-8 text-[11px] font-bold text-foreground text-right shrink-0 tabular-nums">
                           {f.count}
                         </span>
                       </div>

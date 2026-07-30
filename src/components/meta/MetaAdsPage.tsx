@@ -27,8 +27,8 @@ import {
   RankedBarChart,
   StoryBanner,
 } from "@/components/analytics/InsightPanel";
+import { SubTabs } from "@/components/analytics/SubTabs";
 import { Skeleton } from "@/components/ui/skeleton";
-import { cn } from "@/lib/utils";
 import {
   Table,
   TableBody,
@@ -39,11 +39,7 @@ import {
 } from "@/components/ui/table";
 import { useAuth } from "@/lib/auth";
 import { useClientesOptions } from "@/hooks/useClientesOptions";
-import {
-  buildAdInsights,
-  buildCampaignInsights,
-  fmtMoneyCompact,
-} from "@/lib/analytics-insights";
+import { buildAdInsights, buildCampaignInsights, fmtMoneyCompact } from "@/lib/analytics-insights";
 import { calcCaq } from "@/lib/analytics-range";
 import { supabase } from "@/integrations/supabase/client";
 import { formatCurrency } from "@/lib/types";
@@ -198,7 +194,13 @@ export function MetaAdsPage({
 
       const byCampaign = new Map<
         string,
-        { campanha: string; investimento: number; leads: number; impressoes: number; cliques: number }
+        {
+          campanha: string;
+          investimento: number;
+          leads: number;
+          impressoes: number;
+          cliques: number;
+        }
       >();
       for (const row of currentCampaigns) {
         const key = row.campanha ?? "Sem campanha";
@@ -343,99 +345,40 @@ export function MetaAdsPage({
   }
 
   return (
-    <div className="space-y-5">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        {!embedded ? (
-          <div>
-            <h2 className="text-xl font-bold tracking-tight">Marketing pago</h2>
-          </div>
-        ) : (
-          <div
-            className="inline-flex items-center gap-1 text-[12px] text-muted-foreground"
-            role="tablist"
-            aria-label="Nível de mídia"
-          >
-            {(
-              [
-                ["campanhas", "Campanhas"],
-                ["anuncios", "Anúncios"],
-              ] as const
-            ).map(([id, label], index) => (
-              <span key={id} className="inline-flex items-center gap-1">
-                {index > 0 ? <span className="text-border">·</span> : null}
-                <button
-                  type="button"
-                  role="tab"
-                  aria-selected={tab === id}
-                  onClick={() => setTab(id)}
-                  className={cn(
-                    "rounded px-1.5 py-0.5 transition-colors",
-                    tab === id
-                      ? "font-semibold text-foreground"
-                      : "hover:text-foreground",
-                  )}
-                >
-                  {label}
-                </button>
-              </span>
-            ))}
-          </div>
-        )}
-        <div className="flex flex-wrap items-center gap-2">
-          {!embedded ? (
-            <div
-              className="mr-1 inline-flex items-center gap-1 text-[12px] text-muted-foreground"
-              role="tablist"
-              aria-label="Nível de mídia"
-            >
-              {(
-                [
-                  ["campanhas", "Campanhas"],
-                  ["anuncios", "Anúncios"],
-                ] as const
-              ).map(([id, label], index) => (
-                <span key={id} className="inline-flex items-center gap-1">
-                  {index > 0 ? <span className="text-border">·</span> : null}
-                  <button
-                    type="button"
-                    role="tab"
-                    aria-selected={tab === id}
-                    onClick={() => setTab(id)}
-                    className={cn(
-                      "rounded px-1.5 py-0.5 transition-colors",
-                      tab === id
-                        ? "font-semibold text-foreground"
-                        : "hover:text-foreground",
-                    )}
-                  >
-                    {label}
-                  </button>
-                </span>
-              ))}
-            </div>
-          ) : null}
-          <AnalyticsFilters
-            value={filters}
-            onChange={setFilters}
-            clientes={clientesOptions}
-            showCliente={isAdmin && !fixedClienteId}
-            showCategoria={false}
-            showPlataforma={false}
-          />
-          <button
-            type="button"
-            disabled={!activeClienteId || syncMutation.isPending}
-            onClick={() => syncMutation.mutate()}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-2 text-xs font-semibold text-foreground hover:bg-secondary/60 disabled:opacity-50"
-          >
-            {syncMutation.isPending ? (
-              <Loader2 className="h-3.5 w-3.5 animate-spin" />
-            ) : (
-              <RefreshCw className="h-3.5 w-3.5" />
-            )}
-            Sincronizar Meta
-          </button>
-        </div>
+    <div className="space-y-4">
+      {!embedded ? <h2 className="text-xl font-bold tracking-tight">Marketing pago</h2> : null}
+
+      <SubTabs
+        value={tab}
+        onChange={setTab}
+        tabs={[
+          { id: "campanhas", label: "Campanhas" },
+          { id: "anuncios", label: "Anúncios" },
+        ]}
+      />
+
+      <div className="flex flex-wrap items-center gap-2">
+        <AnalyticsFilters
+          value={filters}
+          onChange={setFilters}
+          clientes={clientesOptions}
+          showCliente={isAdmin && !fixedClienteId}
+          showCategoria={false}
+          showPlataforma={false}
+        />
+        <button
+          type="button"
+          disabled={!activeClienteId || syncMutation.isPending}
+          onClick={() => syncMutation.mutate()}
+          className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-2 text-xs font-semibold text-foreground hover:bg-secondary/60 disabled:opacity-50"
+        >
+          {syncMutation.isPending ? (
+            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+          ) : (
+            <RefreshCw className="h-3.5 w-3.5" />
+          )}
+          Sincronizar Meta
+        </button>
       </div>
 
       {syncMutation.isError ? (

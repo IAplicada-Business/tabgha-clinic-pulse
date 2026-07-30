@@ -33,25 +33,33 @@ export function useGerarDiagnosticoRelatorio(clienteId: string | null | undefine
       const payload = data as {
         ok?: boolean;
         error?: string;
+        raw?: string;
         relatorio?: DiagnosticoRelatorio;
       } | null;
 
       if (error) {
         let fromContext: string | undefined;
+        let rawFromContext: string | undefined;
         try {
           const ctx = (error as { context?: Response }).context;
           if (ctx) {
-            const bodyJson = (await ctx.clone().json()) as { error?: string };
+            const bodyJson = (await ctx.clone().json()) as { error?: string; raw?: string };
             fromContext = bodyJson?.error;
+            rawFromContext = bodyJson?.raw;
           }
         } catch {
           /* ignore */
         }
-        throw new Error(
-          payload?.error || fromContext || error.message || "Falha ao gerar relatório.",
-        );
+        const message =
+          payload?.error || fromContext || error.message || "Falha ao gerar relatório.";
+        const raw = payload?.raw || rawFromContext;
+        throw new Error(raw ? `${message} — resposta da IA: ${raw.slice(0, 300)}` : message);
       }
-      if (!payload?.ok) throw new Error(payload?.error || "Falha ao gerar relatório.");
+      if (!payload?.ok) {
+        const raw = payload?.raw;
+        const message = payload?.error || "Falha ao gerar relatório.";
+        throw new Error(raw ? `${message} — resposta da IA: ${raw.slice(0, 300)}` : message);
+      }
       return payload.relatorio!;
     },
     onSuccess: () => {

@@ -16,7 +16,8 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 // @ts-expect-error Deno global
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 // @ts-expect-error Deno global
-const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY") ?? Deno.env.get("SUPABASE_PUBLISHABLE_KEY") ?? "";
+const ANON_KEY =
+  Deno.env.get("SUPABASE_ANON_KEY") ?? Deno.env.get("SUPABASE_PUBLISHABLE_KEY") ?? "";
 // @ts-expect-error Deno global
 const ANTHROPIC_KEY = Deno.env.get("ANTHROPIC_API_KEY") ?? "";
 
@@ -32,8 +33,18 @@ function json(body: unknown, status = 200) {
   });
 }
 
-function stripFences(raw: string) {
-  return raw.replace(/^```json\s*/i, "").replace(/^```\s*/i, "").replace(/```\s*$/i, "").trim();
+function extractJson(raw: string): string {
+  let text = raw.trim();
+  const fenceMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/i);
+  if (fenceMatch) {
+    text = fenceMatch[1].trim();
+  }
+  const start = text.indexOf("{");
+  const end = text.lastIndexOf("}");
+  if (start !== -1 && end !== -1 && end > start) {
+    text = text.slice(start, end + 1);
+  }
+  return text;
 }
 
 const FONTES = [
@@ -90,7 +101,10 @@ Deno.serve(async (req: Request) => {
   if (req.method !== "POST") return json({ ok: false, error: "method_not_allowed" }, 405);
 
   if (!ANTHROPIC_KEY) {
-    return json({ ok: false, error: "ANTHROPIC_API_KEY não configurada no ambiente Supabase." }, 500);
+    return json(
+      { ok: false, error: "ANTHROPIC_API_KEY não configurada no ambiente Supabase." },
+      500,
+    );
   }
 
   const authHeader = req.headers.get("Authorization") ?? "";
@@ -163,7 +177,9 @@ Deno.serve(async (req: Request) => {
 
     const scoreGeral =
       scores.length > 0
-        ? Math.round((scores.reduce((acc, s) => acc + Number(s.score ?? 0), 0) / scores.length) * 100) / 100
+        ? Math.round(
+            (scores.reduce((acc, s) => acc + Number(s.score ?? 0), 0) / scores.length) * 100,
+          ) / 100
         : null;
 
     const system = `Você é consultor de growth marketing para clínicas médicas, aplicando o Método das 7 Fontes da Tabgha.
@@ -174,7 +190,10 @@ REGRAS:
 - Para cada Fonte: diagnóstico curto (2-3 frases, direto, sem jargão), 2-4 oportunidades concretas, 2-4 itens de plano de ação priorizados.
 - Score baixo (<40) = tom mais urgente; score alto (>=80) = reconhecer o que já funciona e sugerir próximo nível.
 - Português do Brasil, direto, sem enrolação.
-- Retorne SOMENTE JSON válido, exatamente neste formato:
+- Responda APENAS com o objeto JSON abaixo. Não inclua nenhum texto antes ou depois, não use
+  blocos de código markdown (\`\`\`), não escreva introdução nem conclusão — a resposta inteira
+  deve começar com { e terminar com }.
+- Formato exato:
 {
   "resumo_executivo": "string — 2-3 parágrafos com visão geral do consultório e prioridades",
   "por_fonte": {
@@ -193,12 +212,15 @@ Score geral: ${scoreGeral != null ? `${scoreGeral}/100` : "sem dados"}
 
 ${porFonteInput}`;
 
-    const raw = await callClaude(system, userPrompt, 4096);
+    const raw = await callClaude(system, userPrompt, 8192);
     let parsed: { resumo_executivo?: string; por_fonte?: Record<string, Partial<FonteRelatorio>> };
     try {
-      parsed = JSON.parse(stripFences(raw));
+      parsed = JSON.parse(extractJson(raw));
     } catch {
-      return json({ ok: false, error: "Resposta da IA não é JSON válido.", raw }, 502);
+      return json(
+        { ok: false, error: "Resposta da IA não é JSON válido.", raw: raw.slice(0, 4000) },
+        502,
+      );
     }
 
     const porFonte: Record<string, FonteRelatorio> = {};

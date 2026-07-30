@@ -202,37 +202,35 @@ function EntregasPage() {
 
   return (
     <div className="space-y-6 px-6 py-6">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h1 className="text-xl font-bold tracking-tight">Entregas</h1>
-          <p className="mt-0.5 text-xs text-muted-foreground">
-            Aprove ou peça ajustes nas peças da Tabgha.
+      <div>
+        <h1 className="text-xl font-bold tracking-tight">Entregas</h1>
+        <p className="mt-0.5 text-xs text-muted-foreground">
+          Aprove ou peça ajustes nas peças da Tabgha.
+        </p>
+        {pendentes.length > 0 ? (
+          <p className="mt-1 text-xs font-medium text-amber-700">
+            {pendentes.length} {pendentes.length === 1 ? "entrega aguarda" : "entregas aguardam"}{" "}
+            sua aprovação
           </p>
-          {pendentes.length > 0 ? (
-            <p className="mt-1 text-xs font-medium text-amber-700">
-              {pendentes.length} {pendentes.length === 1 ? "entrega aguarda" : "entregas aguardam"}{" "}
-              sua aprovação
-            </p>
-          ) : null}
-        </div>
-        <div className="flex items-center gap-1.5 rounded-lg border border-border bg-secondary/40 p-1">
-          <Button
-            size="sm"
-            variant={filter === "acao" ? "default" : "ghost"}
-            className="h-7 px-3 text-xs"
-            onClick={() => setFilter("acao")}
-          >
-            Precisam de ação
-          </Button>
-          <Button
-            size="sm"
-            variant={filter === "todas" ? "default" : "ghost"}
-            className="h-7 px-3 text-xs"
-            onClick={() => setFilter("todas")}
-          >
-            Todas
-          </Button>
-        </div>
+        ) : null}
+      </div>
+      <div className="flex items-center gap-1.5 rounded-lg border border-border bg-secondary/40 p-1">
+        <Button
+          size="sm"
+          variant={filter === "acao" ? "default" : "ghost"}
+          className="h-7 px-3 text-xs"
+          onClick={() => setFilter("acao")}
+        >
+          Precisam de ação
+        </Button>
+        <Button
+          size="sm"
+          variant={filter === "todas" ? "default" : "ghost"}
+          className="h-7 px-3 text-xs"
+          onClick={() => setFilter("todas")}
+        >
+          Todas
+        </Button>
       </div>
 
       {isLoading ? (

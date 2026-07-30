@@ -40,7 +40,9 @@ function CalendarioAdminPage() {
         id: c.id,
         date: c.data_postagem!,
         title: c.titulo ?? "Conteúdo",
-        type: c.tipo?.toLowerCase().includes("grav") ? ("gravacao" as const) : ("conteudo" as const),
+        type: c.tipo?.toLowerCase().includes("grav")
+          ? ("gravacao" as const)
+          : ("conteudo" as const),
         sub: [c.rede, c.tipo].filter(Boolean).join(" · "),
       }));
     },
@@ -50,8 +52,10 @@ function CalendarioAdminPage() {
     <div className="px-6 py-6 space-y-6">
       {/* Page header */}
       <header className="animate-fade-up" style={{ animationDelay: "0ms" }}>
-        <h1 className="text-xl font-black tracking-tight leading-none">Calendário editorial</h1>
-        <p className="text-xs text-muted-foreground mt-1">Conteúdos agendados de todos os clientes</p>
+        <h1 className="text-xl font-bold tracking-tight">Calendário editorial</h1>
+        <p className="text-xs text-muted-foreground mt-1">
+          Conteúdos agendados de todos os clientes
+        </p>
       </header>
 
       {/* KPI strip — total events for the month */}
@@ -59,7 +63,9 @@ function CalendarioAdminPage() {
         className="card-lift animate-fade-up rounded-2xl border border-border bg-card px-5 pt-5 pb-4 shadow-[0_1px_3px_rgba(15,27,53,0.04)] flex flex-col"
         style={{ animationDelay: "75ms" }}
       >
-        <span className="text-[9px] font-black tracking-[0.16em] text-muted-foreground/40 mb-4">01</span>
+        <span className="text-[9px] font-black tracking-[0.16em] text-muted-foreground/40 mb-4">
+          01
+        </span>
         <span className="text-[10.5px] font-semibold uppercase tracking-wide text-muted-foreground mb-1">
           Conteúdos no mês
         </span>

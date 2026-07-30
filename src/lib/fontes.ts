@@ -94,10 +94,12 @@ export function isFonte(value: unknown): value is Fonte {
   return typeof value === "string" && (FONTES as readonly string[]).includes(value);
 }
 
+export type FaixaTone = "critico" | "atencao" | "bom" | "forte";
+
 /** Faixa qualitativa do score 0–100 — PLACEHOLDER, pendente da rubrica do Pietro. */
 export function faixaScore(score: number | null | undefined): {
   label: string;
-  tone: "critico" | "atencao" | "bom" | "forte";
+  tone: FaixaTone;
 } {
   if (score == null) return { label: "Sem resposta", tone: "atencao" };
   if (score < 40) return { label: "Crítico", tone: "critico" };
@@ -105,3 +107,15 @@ export function faixaScore(score: number | null | undefined): {
   if (score < 80) return { label: "Bom", tone: "bom" };
   return { label: "Forte", tone: "forte" };
 }
+
+/**
+ * Classe de cor por faixa — só vermelho/amarelo/verde (semáforo), sem cores
+ * decorativas extras. "bom" e "forte" usam o MESMO tom (emerald), só
+ * intensidade diferente, em vez de introduzir azul como uma 3ª cor "boa".
+ */
+export const TONE_CLASS: Record<FaixaTone, string> = {
+  critico: "bg-rose-50 text-rose-700",
+  atencao: "bg-amber-50 text-amber-700",
+  bom: "bg-emerald-50 text-emerald-600",
+  forte: "bg-emerald-100 text-emerald-800",
+};

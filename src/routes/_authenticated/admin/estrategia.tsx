@@ -8,7 +8,13 @@ import { useClientesOptions } from "@/hooks/useClientesOptions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import type { Tables } from "@/integrations/supabase/types";
 
 export const Route = createFileRoute("/_authenticated/admin/estrategia")({
@@ -19,12 +25,32 @@ export const Route = createFileRoute("/_authenticated/admin/estrategia")({
 type Conteudo = Tables<"conteudos"> & { clientes?: { nome: string } | null };
 
 const COLUMNS: { key: string; label: string; color: string; accent: string }[] = [
-  { key: "briefing",  label: "Briefing",  color: "bg-slate-100 text-slate-600",          accent: "bg-slate-400" },
-  { key: "roteiro",   label: "Roteiro",   color: "bg-blue-100 text-blue-700",             accent: "bg-blue-500" },
-  { key: "producao",  label: "Produção",  color: "bg-amber-100 text-amber-700",           accent: "bg-amber-500" },
-  { key: "aprovacao", label: "Aprovação", color: "bg-red-100 text-red-700",               accent: "bg-red-500" },
-  { key: "agendado",  label: "Agendado",  color: "bg-violet-100 text-violet-700",         accent: "bg-violet-500" },
-  { key: "postado",   label: "Postado",   color: "bg-green-100 text-green-700",           accent: "bg-emerald-500" },
+  {
+    key: "briefing",
+    label: "Briefing",
+    color: "bg-slate-100 text-slate-600",
+    accent: "bg-slate-400",
+  },
+  { key: "roteiro", label: "Roteiro", color: "bg-blue-100 text-blue-700", accent: "bg-blue-500" },
+  {
+    key: "producao",
+    label: "Produção",
+    color: "bg-amber-100 text-amber-700",
+    accent: "bg-amber-500",
+  },
+  { key: "aprovacao", label: "Aprovação", color: "bg-red-100 text-red-700", accent: "bg-red-500" },
+  {
+    key: "agendado",
+    label: "Agendado",
+    color: "bg-violet-100 text-violet-700",
+    accent: "bg-violet-500",
+  },
+  {
+    key: "postado",
+    label: "Postado",
+    color: "bg-green-100 text-green-700",
+    accent: "bg-emerald-500",
+  },
 ];
 
 const REDES = ["Instagram", "Facebook", "TikTok", "YouTube", "LinkedIn", "WhatsApp"];
@@ -34,13 +60,7 @@ function statusColor(status: string) {
   return COLUMNS.find((c) => c.key === status)?.color ?? "bg-slate-100 text-slate-600";
 }
 
-function NovoConteudoDialog({
-  open,
-  onClose,
-}: {
-  open: boolean;
-  onClose: () => void;
-}) {
+function NovoConteudoDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
   const qc = useQueryClient();
   const { data: clientes = [] } = useClientesOptions();
   const [form, setForm] = useState({
@@ -79,7 +99,9 @@ function NovoConteudoDialog({
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
       <DialogContent className="max-w-lg">
-        <DialogHeader><DialogTitle>Novo conteúdo</DialogTitle></DialogHeader>
+        <DialogHeader>
+          <DialogTitle>Novo conteúdo</DialogTitle>
+        </DialogHeader>
         <div className="space-y-3 py-2">
           <div>
             <Label>Cliente *</Label>
@@ -89,32 +111,58 @@ function NovoConteudoDialog({
               className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
             >
               <option value="">Selecione…</option>
-              {clientes.map((c) => <option key={c.id} value={c.id}>{c.nome}</option>)}
+              {clientes.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.nome}
+                </option>
+              ))}
             </select>
           </div>
           <div>
             <Label>Título</Label>
-            <Input className="mt-1" value={form.titulo} onChange={(e) => set("titulo", e.target.value)} placeholder="Ex: Reels — artroscopia explicada" />
+            <Input
+              className="mt-1"
+              value={form.titulo}
+              onChange={(e) => set("titulo", e.target.value)}
+              placeholder="Ex: Reels — artroscopia explicada"
+            />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
               <Label>Rede</Label>
-              <select value={form.rede} onChange={(e) => set("rede", e.target.value)} className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+              <select
+                value={form.rede}
+                onChange={(e) => set("rede", e.target.value)}
+                className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              >
                 <option value="">Selecione…</option>
-                {REDES.map((r) => <option key={r}>{r}</option>)}
+                {REDES.map((r) => (
+                  <option key={r}>{r}</option>
+                ))}
               </select>
             </div>
             <div>
               <Label>Tipo</Label>
-              <select value={form.tipo} onChange={(e) => set("tipo", e.target.value)} className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+              <select
+                value={form.tipo}
+                onChange={(e) => set("tipo", e.target.value)}
+                className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              >
                 <option value="">Selecione…</option>
-                {TIPOS.map((t) => <option key={t}>{t}</option>)}
+                {TIPOS.map((t) => (
+                  <option key={t}>{t}</option>
+                ))}
               </select>
             </div>
           </div>
           <div>
             <Label>Data de postagem</Label>
-            <Input type="date" className="mt-1" value={form.data_postagem} onChange={(e) => set("data_postagem", e.target.value)} />
+            <Input
+              type="date"
+              className="mt-1"
+              value={form.data_postagem}
+              onChange={(e) => set("data_postagem", e.target.value)}
+            />
           </div>
           <div>
             <Label>Roteiro / briefing</Label>
@@ -128,7 +176,9 @@ function NovoConteudoDialog({
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={onClose}>Cancelar</Button>
+          <Button variant="outline" onClick={onClose}>
+            Cancelar
+          </Button>
           <Button onClick={() => criar.mutate()} disabled={!form.cliente_id || criar.isPending}>
             {criar.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Criar"}
           </Button>
@@ -138,10 +188,19 @@ function NovoConteudoDialog({
   );
 }
 
-function ConteudoCard({ item, onMove }: { item: Conteudo; onMove: (id: string, status: string) => void }) {
+function ConteudoCard({
+  item,
+  onMove,
+}: {
+  item: Conteudo;
+  onMove: (id: string, status: string) => void;
+}) {
   const nextStatuses = COLUMNS.filter((c) => c.key !== item.status);
   const dataStr = item.data_postagem
-    ? new Date(item.data_postagem + "T00:00:00").toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" })
+    ? new Date(item.data_postagem + "T00:00:00").toLocaleDateString("pt-BR", {
+        day: "2-digit",
+        month: "2-digit",
+      })
     : null;
 
   return (
@@ -150,22 +209,34 @@ function ConteudoCard({ item, onMove }: { item: Conteudo; onMove: (id: string, s
       <p className="text-[11px] text-muted-foreground">{item.clientes?.nome ?? "—"}</p>
       <div className="flex flex-wrap gap-1">
         {item.rede && (
-          <span className="rounded-full bg-violet-50 px-2 py-0.5 text-[10px] font-medium text-violet-700">{item.rede}</span>
+          <span className="rounded-full bg-violet-50 px-2 py-0.5 text-[10px] font-medium text-violet-700">
+            {item.rede}
+          </span>
         )}
         {item.tipo && (
-          <span className="rounded-full bg-secondary px-2 py-0.5 text-[10px] font-medium text-muted-foreground">{item.tipo}</span>
+          <span className="rounded-full bg-secondary px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+            {item.tipo}
+          </span>
         )}
         {dataStr && (
-          <span className="rounded-full bg-secondary px-2 py-0.5 text-[10px] font-medium text-muted-foreground">{dataStr}</span>
+          <span className="rounded-full bg-secondary px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+            {dataStr}
+          </span>
         )}
       </div>
       <select
         value=""
-        onChange={(e) => { if (e.target.value) onMove(item.id, e.target.value); }}
+        onChange={(e) => {
+          if (e.target.value) onMove(item.id, e.target.value);
+        }}
         className="w-full rounded-lg border border-border bg-background px-2 py-1 text-[11px] text-muted-foreground cursor-pointer"
       >
         <option value="">Mover para…</option>
-        {nextStatuses.map((s) => <option key={s.key} value={s.key}>{s.label}</option>)}
+        {nextStatuses.map((s) => (
+          <option key={s.key} value={s.key}>
+            {s.label}
+          </option>
+        ))}
       </select>
     </div>
   );
@@ -207,7 +278,11 @@ function EstrategiaPage() {
     if (filterRede && c.rede !== filterRede) return false;
     if (search) {
       const s = search.toLowerCase();
-      if (!(c.titulo ?? "").toLowerCase().includes(s) && !(c.clientes?.nome ?? "").toLowerCase().includes(s)) return false;
+      if (
+        !(c.titulo ?? "").toLowerCase().includes(s) &&
+        !(c.clientes?.nome ?? "").toLowerCase().includes(s)
+      )
+        return false;
     }
     return true;
   });
@@ -222,9 +297,9 @@ function EstrategiaPage() {
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-6 py-4">
+      <div className="space-y-3 border-b border-border px-6 py-4">
         <div>
-          <h1 className="text-xl font-bold tracking-tight">Pipeline Editorial</h1>
+          <h1 className="text-xl font-bold tracking-tight">Estratégia editorial</h1>
           <p className="text-xs text-muted-foreground mt-0.5">Acompanhe cada conteúdo por etapa</p>
         </div>
         <Button size="sm" onClick={() => setNovoOpen(true)}>
@@ -235,18 +310,45 @@ function EstrategiaPage() {
       {/* KPI Summary Cards */}
       <div className="grid grid-cols-3 gap-3 px-6 pt-4 pb-2">
         {[
-          { rank: "01", label: "Postados", value: totalPostado, color: "text-emerald-600", bar: "bg-emerald-500", delay: 0 },
-          { rank: "02", label: "Em aprovação", value: totalAprovacao, color: "text-red-600", bar: "bg-red-500", delay: 75 },
-          { rank: "03", label: "Em produção", value: totalProducao, color: "text-amber-600", bar: "bg-amber-500", delay: 150 },
+          {
+            rank: "01",
+            label: "Postados",
+            value: totalPostado,
+            color: "text-emerald-600",
+            bar: "bg-emerald-500",
+            delay: 0,
+          },
+          {
+            rank: "02",
+            label: "Em aprovação",
+            value: totalAprovacao,
+            color: "text-red-600",
+            bar: "bg-red-500",
+            delay: 75,
+          },
+          {
+            rank: "03",
+            label: "Em produção",
+            value: totalProducao,
+            color: "text-amber-600",
+            bar: "bg-amber-500",
+            delay: 150,
+          },
         ].map((kpi) => (
           <div
             key={kpi.rank}
             className="card-lift animate-fade-up rounded-2xl border border-border bg-card px-5 pt-5 pb-4 shadow-[0_1px_3px_rgba(15,27,53,0.04)] flex flex-col"
             style={{ animationDelay: kpi.delay + "ms" }}
           >
-            <span className="text-[9px] font-black tracking-[0.16em] text-muted-foreground/40 mb-4">{kpi.rank}</span>
-            <p className="text-[10.5px] font-semibold uppercase tracking-wide text-muted-foreground mb-1">{kpi.label}</p>
-            <p className={`text-[2.4rem] font-black tracking-tight leading-none animate-numeric-pop mt-auto ${kpi.color}`}>
+            <span className="text-[9px] font-black tracking-[0.16em] text-muted-foreground/40 mb-4">
+              {kpi.rank}
+            </span>
+            <p className="text-[10.5px] font-semibold uppercase tracking-wide text-muted-foreground mb-1">
+              {kpi.label}
+            </p>
+            <p
+              className={`text-[2.4rem] font-black tracking-tight leading-none animate-numeric-pop mt-auto ${kpi.color}`}
+            >
               {kpi.value}
             </p>
             <div className={`mt-3 h-0.5 w-full rounded-full ${kpi.bar}`} />
@@ -271,7 +373,11 @@ function EstrategiaPage() {
           className="h-8 rounded-md border border-input bg-background px-2 text-xs"
         >
           <option value="">Todos os clientes</option>
-          {clientesOptions.map((c) => <option key={c.id} value={c.id}>{c.nome}</option>)}
+          {clientesOptions.map((c) => (
+            <option key={c.id} value={c.id}>
+              {c.nome}
+            </option>
+          ))}
         </select>
         <select
           value={filterRede}
@@ -279,10 +385,13 @@ function EstrategiaPage() {
           className="h-8 rounded-md border border-input bg-background px-2 text-xs"
         >
           <option value="">Todas as redes</option>
-          {REDES.map((r) => <option key={r}>{r}</option>)}
+          {REDES.map((r) => (
+            <option key={r}>{r}</option>
+          ))}
         </select>
         <span className="ml-auto text-[11px] font-medium text-muted-foreground">
-          <span className="font-bold text-foreground">{filtered.length}</span> conteúdo{filtered.length !== 1 ? "s" : ""}
+          <span className="font-bold text-foreground">{filtered.length}</span> conteúdo
+          {filtered.length !== 1 ? "s" : ""}
         </span>
       </div>
 
@@ -305,7 +414,9 @@ function EstrategiaPage() {
                   {/* Column header */}
                   <div className="px-3.5 pt-3.5 pb-3 border-b border-border">
                     <div className="flex items-center justify-between">
-                      <span className={`rounded-full px-2.5 py-0.5 text-[10.5px] font-semibold ${col.color}`}>
+                      <span
+                        className={`rounded-full px-2.5 py-0.5 text-[10.5px] font-semibold ${col.color}`}
+                      >
                         {col.label}
                       </span>
                       <span className="text-[10px] font-black tabular-nums text-muted-foreground/50">

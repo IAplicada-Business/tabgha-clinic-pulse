@@ -156,7 +156,7 @@ function DiagnosticoPage() {
   return (
     <div className="space-y-6 px-6 py-6">
       <header className="animate-fade-up">
-        <h1 className="text-xl font-bold tracking-tight">Diagnóstico</h1>
+        <h1 className="text-xl font-bold tracking-tight">Meu Diagnóstico 7F</h1>
         <p className="mt-0.5 text-xs text-muted-foreground">
           Análise estratégica do{" "}
           {cliente?.especialidade ? `consultório de ${cliente.especialidade}` : "seu consultório"}

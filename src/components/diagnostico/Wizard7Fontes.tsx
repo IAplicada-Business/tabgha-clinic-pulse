@@ -4,7 +4,7 @@ import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { useDiagnostico7Fontes, useSalvarResposta } from "@/hooks/useDiagnostico7Fontes";
-import { ESCALA_LABELS, FONTES_LIST, faixaScore, type FonteMeta } from "@/lib/fontes";
+import { ESCALA_LABELS, FONTES_LIST, TONE_CLASS, faixaScore, type FonteMeta } from "@/lib/fontes";
 import { cn } from "@/lib/utils";
 
 const ACCENT: Record<FonteMeta["accent"], { chip: string; bar: string; ring: string }> = {
@@ -19,13 +19,6 @@ const ACCENT: Record<FonteMeta["accent"], { chip: string; bar: string; ring: str
   amber: { chip: "bg-amber-50 text-amber-700", bar: "bg-amber-500", ring: "ring-amber-200" },
   rose: { chip: "bg-rose-50 text-rose-700", bar: "bg-rose-500", ring: "ring-rose-200" },
   indigo: { chip: "bg-indigo-50 text-indigo-700", bar: "bg-indigo-500", ring: "ring-indigo-200" },
-};
-
-const TONE_CLASS: Record<ReturnType<typeof faixaScore>["tone"], string> = {
-  critico: "bg-rose-50 text-rose-700",
-  atencao: "bg-amber-50 text-amber-700",
-  bom: "bg-blue-50 text-blue-700",
-  forte: "bg-emerald-50 text-emerald-700",
 };
 
 export function Wizard7Fontes({ clienteId }: { clienteId: string | null | undefined }) {

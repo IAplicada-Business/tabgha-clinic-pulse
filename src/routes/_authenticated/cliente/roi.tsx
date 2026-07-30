@@ -219,35 +219,37 @@ function RoiPage() {
     campanhas: "Campanhas",
     marketing: "Marketing pago",
   };
+  const pageDescription: Record<TabId, string> = {
+    operacao: "Investimento em mídia e retorno da sua clínica.",
+    oportunidades: "Leads gerados e convertidos no período.",
+    campanhas: "Ranking das suas campanhas por investimento e leads.",
+    marketing: "Métricas detalhadas dos seus anúncios (Meta Ads).",
+  };
 
   return (
     <div className="space-y-6 px-6 py-6">
-      <div className="animate-fade-up flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-            ROI
-          </p>
-          <h1 className="mt-0.5 text-xl font-bold tracking-tight">{pageTitle[tab]}</h1>
-        </div>
-        {tab !== "marketing" ? (
-          <div className="flex gap-1 rounded-xl border border-border bg-secondary/40 p-1">
-            {PERIODOS.map((p) => (
-              <button
-                key={p.days}
-                onClick={() => setPeriodo(p.days)}
-                className={cn(
-                  "rounded-lg px-3.5 py-1.5 text-xs font-semibold transition-all duration-150",
-                  periodo === p.days
-                    ? "bg-card text-foreground shadow-sm"
-                    : "text-muted-foreground hover:text-foreground",
-                )}
-              >
-                {p.label}
-              </button>
-            ))}
-          </div>
-        ) : null}
+      <div className="animate-fade-up">
+        <h1 className="text-xl font-bold tracking-tight">{pageTitle[tab]}</h1>
+        <p className="mt-0.5 text-xs text-muted-foreground">{pageDescription[tab]}</p>
       </div>
+      {tab !== "marketing" ? (
+        <div className="flex gap-1 rounded-xl border border-border bg-secondary/40 p-1">
+          {PERIODOS.map((p) => (
+            <button
+              key={p.days}
+              onClick={() => setPeriodo(p.days)}
+              className={cn(
+                "rounded-lg px-3.5 py-1.5 text-xs font-semibold transition-all duration-150",
+                periodo === p.days
+                  ? "bg-card text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground",
+              )}
+            >
+              {p.label}
+            </button>
+          ))}
+        </div>
+      ) : null}
 
       {tab === "marketing" ? (
         <MetaAdsPage fixedClienteId={clienteId ?? null} embedded defaultTab="anuncios" />
@@ -304,7 +306,11 @@ function RoiPage() {
               <InsightStack items={[...campaignInsights, ...funnelInsights].slice(0, 3)} />
 
               <div className="grid gap-4 lg:grid-cols-2">
-                <Panel title="Investimento × Leads" subtitle={`Últimos ${periodo} dias`} tone="soft">
+                <Panel
+                  title="Investimento × Leads"
+                  subtitle={`Últimos ${periodo} dias`}
+                  tone="soft"
+                >
                   {chartData.length === 0 ? (
                     <p className="py-10 text-center text-sm text-muted-foreground">
                       Sem série diária de mídia no período

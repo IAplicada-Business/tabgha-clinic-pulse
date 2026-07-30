@@ -204,11 +204,21 @@ function OportunidadeDialog({
             </div>
             <div className="space-y-1">
               <Label>ROI</Label>
-              <Input type="number" step="0.01" value={roi} onChange={(e) => setRoi(e.target.value)} />
+              <Input
+                type="number"
+                step="0.01"
+                value={roi}
+                onChange={(e) => setRoi(e.target.value)}
+              />
             </div>
             <div className="space-y-1">
               <Label>CAC</Label>
-              <Input type="number" step="0.01" value={cac} onChange={(e) => setCac(e.target.value)} />
+              <Input
+                type="number"
+                step="0.01"
+                value={cac}
+                onChange={(e) => setCac(e.target.value)}
+              />
             </div>
           </div>
           <div className="space-y-1">
@@ -273,24 +283,16 @@ function PipelineComercialPage() {
   return (
     <div className="flex h-[calc(100dvh-3rem)] flex-col overflow-hidden md:h-screen">
       <div className="shrink-0 border-b border-border px-6 py-5">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-baseline gap-3">
-            <h1 className="text-xl font-bold tracking-tight">Pipeline comercial B2B</h1>
-            <span className="text-sm text-muted-foreground">
-              {oportunidades.length} no período
-            </span>
-          </div>
-          <Button size="sm" className="gap-2" onClick={() => setShowCreate(true)}>
-            <UserPlus className="h-4 w-4" />
-            Nova oportunidade
-          </Button>
+        <div className="flex items-baseline gap-3">
+          <h1 className="text-xl font-bold tracking-tight">Pipeline Tabgha · B2B</h1>
+          <span className="text-sm text-muted-foreground">{oportunidades.length} no período</span>
         </div>
         <p className="mt-0.5 text-xs text-muted-foreground">
           Funil de clínicas/prospects (paralelo ao funil de pacientes). Acesso: Super Admin e Growth
           Manager.
         </p>
 
-        <div className="mt-4 flex flex-wrap gap-2">
+        <div className="mt-3 flex flex-wrap items-center gap-2">
           <select
             value={search.periodo}
             onChange={(e) => updateSearch({ periodo: Number(e.target.value) })}
@@ -323,6 +325,10 @@ function PipelineComercialPage() {
             placeholder="Buscar nome, cidade, telefone…"
             className="max-w-xs rounded-xl"
           />
+          <Button size="sm" className="gap-2" onClick={() => setShowCreate(true)}>
+            <UserPlus className="h-4 w-4" />
+            Nova oportunidade
+          </Button>
         </div>
       </div>
 
@@ -373,12 +379,7 @@ function PipelineComercialPage() {
       )}
 
       {showCreate ? (
-        <OportunidadeDialog
-          key="create"
-          open
-          editing={null}
-          onClose={() => setShowCreate(false)}
-        />
+        <OportunidadeDialog key="create" open editing={null} onClose={() => setShowCreate(false)} />
       ) : null}
       {editing ? (
         <OportunidadeDialog

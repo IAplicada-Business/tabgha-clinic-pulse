@@ -14,11 +14,7 @@ import { ProvisionalPasswordField } from "@/components/usuarios/ProvisionalPassw
 import { createUserWithRole } from "@/functions/usuarios/createUserWithRole.functions";
 import { resetProvisionalPassword } from "@/functions/usuarios/resetProvisionalPassword.functions";
 import { updateMemberAccess } from "@/functions/usuarios/updateMemberAccess.functions";
-import {
-  permissionsForRoles,
-  ROLE_PRESET_OPTIONS,
-  summarizePermissions,
-} from "@/lib/permissions";
+import { permissionsForRoles, ROLE_PRESET_OPTIONS, summarizePermissions } from "@/lib/permissions";
 import { provisionalPassword } from "@/lib/provisional-password";
 import { useAuth } from "@/lib/auth";
 import { useClientesOptions } from "@/hooks/useClientesOptions";
@@ -662,20 +658,17 @@ function UsuariosPage() {
 
   return (
     <div className="px-6 py-6 space-y-6">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-xl font-bold tracking-tight">Usuários & acessos</h1>
-          <p className="mt-0.5 text-xs text-muted-foreground max-w-xl">
-            Aqui ficam os <strong>logins</strong>. Os 8 perfis do Blueprint (Super Admin → Cliente)
-            aplicam presets de telas. Um perfil interno pode também liberar o Portal no mesmo
-            email.
-          </p>
-        </div>
-        <Button onClick={() => setShowAdd(true)}>
-          <UserPlus className="mr-2 h-4 w-4" />
-          Adicionar membro
-        </Button>
+      <div>
+        <h1 className="text-xl font-bold tracking-tight">Usuários & acessos</h1>
+        <p className="mt-0.5 text-xs text-muted-foreground max-w-xl">
+          Aqui ficam os <strong>logins</strong>. Os 8 perfis do Blueprint (Super Admin → Cliente)
+          aplicam presets de telas. Um perfil interno pode também liberar o Portal no mesmo email.
+        </p>
       </div>
+      <Button onClick={() => setShowAdd(true)}>
+        <UserPlus className="mr-2 h-4 w-4" />
+        Adicionar membro
+      </Button>
 
       {!isLoading && team.length > 0 && (
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">

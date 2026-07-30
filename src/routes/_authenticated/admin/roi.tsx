@@ -351,28 +351,30 @@ function RoiAdminPage() {
     campanhas: "Campanhas",
     marketing: "Marketing pago",
   };
+  const pageDescription: Record<TabId, string> = {
+    operacao: "Investimento, leads e CAQ consolidados de toda a operação.",
+    clientes: "ROI por clínica: investimento, leads e conversão comparados.",
+    campanhas: "Ranking de campanhas por investimento, leads e custo por lead.",
+    marketing: "Métricas detalhadas de anúncios (Meta Ads) por cliente.",
+  };
 
   return (
     <div className="space-y-5 px-6 py-6">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-            ROI da operação
-          </p>
-          <h1 className="mt-0.5 text-xl font-bold tracking-tight">{pageTitle[tab]}</h1>
-        </div>
-        {tab !== "marketing" ? (
-          <AnalyticsFilters
-            value={filters}
-            onChange={(next) => {
-              setShowAllRows(false);
-              setFilters(next);
-            }}
-            clientes={clientesOptions}
-            categorias={categorias}
-          />
-        ) : null}
+      <div>
+        <h1 className="text-xl font-bold tracking-tight">{pageTitle[tab]}</h1>
+        <p className="mt-0.5 text-xs text-muted-foreground">{pageDescription[tab]}</p>
       </div>
+      {tab !== "marketing" ? (
+        <AnalyticsFilters
+          value={filters}
+          onChange={(next) => {
+            setShowAllRows(false);
+            setFilters(next);
+          }}
+          clientes={clientesOptions}
+          categorias={categorias}
+        />
+      ) : null}
 
       {tab === "marketing" ? (
         <MetaAdsPage isAdmin embedded defaultTab="anuncios" />
@@ -638,7 +640,9 @@ function RoiAdminPage() {
                       rows.sort(
                         (a, b) =>
                           b.investimento - a.investimento ||
-                          b.novos + b.qualificacao + b.convertidos -
+                          b.novos +
+                            b.qualificacao +
+                            b.convertidos -
                             (a.novos + a.qualificacao + a.convertidos),
                       );
                       if (rows.length === 0) {
