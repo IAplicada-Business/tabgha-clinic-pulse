@@ -215,6 +215,192 @@ export type Database = {
           },
         ]
       }
+      diagnostico_questoes: {
+        Row: {
+          ajuda: string | null
+          ativa: boolean
+          codigo: string
+          criado_em: string
+          fonte: Database["public"]["Enums"]["fonte_diagnostico"]
+          id: string
+          ordem: number
+          pergunta: string
+          peso: number
+          placeholder: boolean
+          tipo: string
+        }
+        Insert: {
+          ajuda?: string | null
+          ativa?: boolean
+          codigo: string
+          criado_em?: string
+          fonte: Database["public"]["Enums"]["fonte_diagnostico"]
+          id?: string
+          ordem?: number
+          pergunta: string
+          peso?: number
+          placeholder?: boolean
+          tipo?: string
+        }
+        Update: {
+          ajuda?: string | null
+          ativa?: boolean
+          codigo?: string
+          criado_em?: string
+          fonte?: Database["public"]["Enums"]["fonte_diagnostico"]
+          id?: string
+          ordem?: number
+          pergunta?: string
+          peso?: number
+          placeholder?: boolean
+          tipo?: string
+        }
+        Relationships: []
+      }
+      diagnostico_relatorios: {
+        Row: {
+          cliente_id: string
+          gerado_em: string
+          gerado_por: string | null
+          id: string
+          link_expira_em: string | null
+          link_token: string | null
+          por_fonte: Json
+          resumo_executivo: string | null
+          score_geral: number | null
+        }
+        Insert: {
+          cliente_id: string
+          gerado_em?: string
+          gerado_por?: string | null
+          id?: string
+          link_expira_em?: string | null
+          link_token?: string | null
+          por_fonte?: Json
+          resumo_executivo?: string | null
+          score_geral?: number | null
+        }
+        Update: {
+          cliente_id?: string
+          gerado_em?: string
+          gerado_por?: string | null
+          id?: string
+          link_expira_em?: string | null
+          link_token?: string | null
+          por_fonte?: Json
+          resumo_executivo?: string | null
+          score_geral?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "diagnostico_relatorios_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: true
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "diagnostico_relatorios_gerado_por_fkey"
+            columns: ["gerado_por"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      diagnostico_respostas: {
+        Row: {
+          atualizado_em: string
+          cliente_id: string
+          criado_em: string
+          id: string
+          questao_id: string
+          respondido_por: string | null
+          valor_num: number | null
+          valor_texto: string | null
+        }
+        Insert: {
+          atualizado_em?: string
+          cliente_id: string
+          criado_em?: string
+          id?: string
+          questao_id: string
+          respondido_por?: string | null
+          valor_num?: number | null
+          valor_texto?: string | null
+        }
+        Update: {
+          atualizado_em?: string
+          cliente_id?: string
+          criado_em?: string
+          id?: string
+          questao_id?: string
+          respondido_por?: string | null
+          valor_num?: number | null
+          valor_texto?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "diagnostico_respostas_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "diagnostico_respostas_questao_id_fkey"
+            columns: ["questao_id"]
+            isOneToOne: false
+            referencedRelation: "diagnostico_questoes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "diagnostico_respostas_respondido_por_fkey"
+            columns: ["respondido_por"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      diagnostico_scores: {
+        Row: {
+          atualizado_em: string
+          cliente_id: string
+          fonte: Database["public"]["Enums"]["fonte_diagnostico"]
+          id: string
+          respondidas: number
+          score: number | null
+          total: number
+        }
+        Insert: {
+          atualizado_em?: string
+          cliente_id: string
+          fonte: Database["public"]["Enums"]["fonte_diagnostico"]
+          id?: string
+          respondidas?: number
+          score?: number | null
+          total?: number
+        }
+        Update: {
+          atualizado_em?: string
+          cliente_id?: string
+          fonte?: Database["public"]["Enums"]["fonte_diagnostico"]
+          id?: string
+          respondidas?: number
+          score?: number | null
+          total?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "diagnostico_scores_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       entregas: {
         Row: {
           atualizado_em: string
@@ -478,6 +664,71 @@ export type Database = {
             columns: ["lead_id"]
             isOneToOne: false
             referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      oportunidades_b2b: {
+        Row: {
+          atualizado_em: string
+          cac: number | null
+          canal: string | null
+          cidade: string | null
+          criado_em: string
+          email: string | null
+          especialidade: string | null
+          id: string
+          nome: string
+          observacoes: string | null
+          origem: string | null
+          responsavel_id: string | null
+          roi: number | null
+          status: string
+          telefone: string | null
+          ticket: number | null
+        }
+        Insert: {
+          atualizado_em?: string
+          cac?: number | null
+          canal?: string | null
+          cidade?: string | null
+          criado_em?: string
+          email?: string | null
+          especialidade?: string | null
+          id?: string
+          nome: string
+          observacoes?: string | null
+          origem?: string | null
+          responsavel_id?: string | null
+          roi?: number | null
+          status?: string
+          telefone?: string | null
+          ticket?: number | null
+        }
+        Update: {
+          atualizado_em?: string
+          cac?: number | null
+          canal?: string | null
+          cidade?: string | null
+          criado_em?: string
+          email?: string | null
+          especialidade?: string | null
+          id?: string
+          nome?: string
+          observacoes?: string | null
+          origem?: string | null
+          responsavel_id?: string | null
+          roi?: number | null
+          status?: string
+          telefone?: string | null
+          ticket?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "oportunidades_b2b_responsavel_id_fkey"
+            columns: ["responsavel_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -772,6 +1023,24 @@ export type Database = {
       }
     }
     Views: {
+      vw_diagnostico_score_geral: {
+        Row: {
+          atualizado_em: string | null
+          cliente_id: string | null
+          fontes_com_resposta: number | null
+          respostas_total: number | null
+          score_geral: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "diagnostico_scores_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       vw_funil_lead_cliente: {
         Row: {
           cliente_id: string | null
@@ -788,6 +1057,15 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      vw_funil_oportunidades_b2b: {
+        Row: {
+          horas_no_estagio: number | null
+          status: string | null
+          ticket_soma: number | null
+          total: number | null
+        }
+        Relationships: []
       }
       vw_kpis_cliente_diario: {
         Row: {
@@ -809,6 +1087,17 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      vw_kpis_pipeline_b2b: {
+        Row: {
+          em_andamento: number | null
+          fechados: number | null
+          mrr: number | null
+          taxa_fechamento_pct: number | null
+          ticket_medio_b2b: number | null
+          total_oportunidades: number | null
+        }
+        Relationships: []
       }
     }
     Functions: {
@@ -863,6 +1152,13 @@ export type Database = {
         }
         Returns: string
       }
+      has_any_role: {
+        Args: {
+          _roles: Database["public"]["Enums"]["app_role"][]
+          _user_id: string
+        }
+        Returns: boolean
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -870,12 +1166,26 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_staff:
+        | { Args: never; Returns: boolean }
+        | { Args: { _user_id: string }; Returns: boolean }
       log_ticket_converted: {
         Args: { _lead_id: string; _ticket: number }
         Returns: undefined
       }
       mover_lead_status: {
         Args: { _lead_id: string; _motivo?: string; _novo: string }
+        Returns: undefined
+      }
+      mover_oportunidade_b2b_status: {
+        Args: { _id: string; _novo: string }
+        Returns: undefined
+      }
+      recalcular_diagnostico_score: {
+        Args: {
+          _cliente_id: string
+          _fonte: Database["public"]["Enums"]["fonte_diagnostico"]
+        }
         Returns: undefined
       }
       responder_conteudo: {
@@ -888,7 +1198,23 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "admin" | "cliente"
+      app_role:
+        | "admin"
+        | "cliente"
+        | "gestor_estrategico"
+        | "growth_manager"
+        | "social_media"
+        | "performance"
+        | "atendimento_cs"
+        | "financeiro"
+      fonte_diagnostico:
+        | "posicionamento"
+        | "presenca_digital"
+        | "aquisicao_pacientes"
+        | "conversao"
+        | "experiencia_paciente"
+        | "inteligencia_dados"
+        | "escala"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1016,7 +1342,25 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "cliente"],
+      app_role: [
+        "admin",
+        "cliente",
+        "gestor_estrategico",
+        "growth_manager",
+        "social_media",
+        "performance",
+        "atendimento_cs",
+        "financeiro",
+      ],
+      fonte_diagnostico: [
+        "posicionamento",
+        "presenca_digital",
+        "aquisicao_pacientes",
+        "conversao",
+        "experiencia_paciente",
+        "inteligencia_dados",
+        "escala",
+      ],
     },
   },
 } as const
