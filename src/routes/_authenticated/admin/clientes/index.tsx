@@ -12,7 +12,6 @@ import { CredentialsDialog, type AccessCredentials } from "@/components/usuarios
 import { ProvisionalPasswordField } from "@/components/usuarios/ProvisionalPasswordField";
 import { createClientWithAccess } from "@/functions/clientes/createClientWithAccess.functions";
 import { provisionalPassword } from "@/lib/provisional-password";
-import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { KpiCard } from "@/components/ui/kpi-card";
 import { Checkbox } from "@/components/ui/checkbox";

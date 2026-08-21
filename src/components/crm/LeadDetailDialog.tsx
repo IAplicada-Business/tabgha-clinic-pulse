@@ -214,7 +214,7 @@ export function LeadDetailDialog({ lead, onClose }: Props) {
           </DialogTitle>
         </DialogHeader>
 
-        <div className="flex flex-wrap gap-2 border-b border-border pb-2">
+        <div className="segmented w-full sm:w-fit">
           {(
             [
               ["dados", "Dados"],
@@ -225,13 +225,9 @@ export function LeadDetailDialog({ lead, onClose }: Props) {
             <button
               key={id}
               type="button"
+              data-active={tab === id}
               onClick={() => setTab(id)}
-              className={cn(
-                "rounded-lg px-3 py-1.5 text-xs font-semibold",
-                tab === id
-                  ? "bg-sky-100 text-sky-800"
-                  : "text-muted-foreground hover:bg-secondary",
-              )}
+              className="segmented-item"
             >
               {label}
             </button>
@@ -250,7 +246,7 @@ export function LeadDetailDialog({ lead, onClose }: Props) {
                   placeholder="Nome do lead"
                 />
               </div>
-              <div className="space-y-1">
+              <div className="space-y-1.5">
                 <Label htmlFor="lead-telefone">Telefone</Label>
                 <Input
                   id="lead-telefone"
@@ -259,7 +255,7 @@ export function LeadDetailDialog({ lead, onClose }: Props) {
                   placeholder="5511999999999"
                 />
               </div>
-              <div className="space-y-1">
+              <div className="space-y-1.5">
                 <Label htmlFor="lead-email">Email</Label>
                 <Input
                   id="lead-email"
@@ -271,7 +267,7 @@ export function LeadDetailDialog({ lead, onClose }: Props) {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-2 rounded-lg bg-secondary/40 px-3 py-2.5 text-sm">
+            <div className="grid grid-cols-2 gap-3 rounded-xl bg-secondary/40 px-3 py-2.5 text-sm">
               <div>
                 <span className="text-xs text-muted-foreground">Canal</span>
                 <p className="mt-0.5 font-medium">{lead.canal ?? "—"}</p>
@@ -295,7 +291,7 @@ export function LeadDetailDialog({ lead, onClose }: Props) {
             </div>
 
             {hasMetaAttribution(lead) ? (
-              <div className="space-y-2 rounded-lg border border-sky-200/70 bg-sky-50/50 px-3 py-2.5">
+              <div className="space-y-2 rounded-xl border border-sky-200/70 bg-sky-50/50 px-3 py-2.5">
                 <p className="text-[11px] font-semibold uppercase tracking-wide text-sky-800">
                   Origem Meta (formulário / anúncio)
                 </p>
@@ -341,7 +337,7 @@ export function LeadDetailDialog({ lead, onClose }: Props) {
                 ) : null}
               </div>
             ) : (lead.utm_source || lead.utm_medium || lead.utm_campaign) ? (
-              <div className="rounded-lg bg-secondary/40 px-3 py-2.5 text-sm">
+              <div className="rounded-xl bg-secondary/40 px-3 py-2.5 text-sm">
                 <span className="text-xs text-muted-foreground">UTM</span>
                 <p className="mt-0.5 break-all font-medium">
                   {[lead.utm_source, lead.utm_medium, lead.utm_campaign]
@@ -351,7 +347,7 @@ export function LeadDetailDialog({ lead, onClose }: Props) {
               </div>
             ) : null}
 
-            <div className="space-y-1">
+            <div className="space-y-1.5">
               <Label htmlFor="lead-status">Estágio no funil</Label>
               <select
                 id="lead-status"
@@ -361,7 +357,7 @@ export function LeadDetailDialog({ lead, onClose }: Props) {
                   setStatus(next);
                   if (next !== "perdido") setMotivo("");
                 }}
-                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm"
               >
                 {PIPELINE.map((s) => (
                   <option key={s} value={s}>
@@ -372,13 +368,13 @@ export function LeadDetailDialog({ lead, onClose }: Props) {
             </div>
 
             {status === "perdido" ? (
-              <div className="space-y-1">
+              <div className="space-y-1.5">
                 <Label htmlFor="lead-motivo">Motivo da perda</Label>
                 <select
                   id="lead-motivo"
                   value={motivo}
                   onChange={(e) => setMotivo(e.target.value)}
-                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                  className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm"
                 >
                   <option value="">Selecione…</option>
                   {Object.entries(MOTIVO_LABELS).map(([v, l]) => (
@@ -391,7 +387,7 @@ export function LeadDetailDialog({ lead, onClose }: Props) {
             ) : null}
 
             {status === "convertido" ? (
-              <div className="space-y-1">
+              <div className="space-y-1.5">
                 <Label htmlFor="lead-ticket">Ticket (R$)</Label>
                 <Input
                   id="lead-ticket"
@@ -404,7 +400,7 @@ export function LeadDetailDialog({ lead, onClose }: Props) {
               </div>
             ) : null}
 
-            <div className="space-y-1">
+            <div className="space-y-1.5">
               <Label htmlFor="lead-obs">Observações</Label>
               <Textarea
                 id="lead-obs"
@@ -512,10 +508,10 @@ export function LeadDetailDialog({ lead, onClose }: Props) {
                 <div
                   key={msg.id}
                   className={cn(
-                    "rounded-xl px-3 py-2 text-sm",
+                    "px-3.5 py-2.5 text-sm shadow-[var(--shadow-xs)]",
                     msg.direction === "outbound"
-                      ? "ml-8 bg-emerald-50 text-emerald-900"
-                      : "mr-8 border border-border bg-card",
+                      ? "ml-8 rounded-2xl rounded-br-md bg-emerald-50 text-emerald-900"
+                      : "mr-8 rounded-2xl rounded-bl-md border border-border bg-card",
                   )}
                 >
                   <p className="whitespace-pre-wrap">{msg.body}</p>

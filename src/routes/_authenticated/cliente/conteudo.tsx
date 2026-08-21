@@ -5,7 +5,7 @@ import { FileText, CheckCircle, XCircle, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { EmptyState } from "@/components/EmptyState";
-import { Badge } from "@/components/ui/badge";
+import { Badge, type BadgeProps } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
@@ -29,6 +29,14 @@ const STATUS_COLORS: Record<string, string> = {
   briefing: "bg-slate-100 text-slate-600", roteiro: "bg-blue-100 text-blue-700",
   producao: "bg-yellow-100 text-yellow-700", aprovacao: "bg-yellow-100 text-yellow-700 font-semibold",
   agendado: "bg-blue-100 text-blue-700", postado: "bg-green-100 text-green-700",
+};
+const STATUS_BADGE_VARIANT: Record<string, BadgeProps["variant"]> = {
+  briefing: "secondary", roteiro: "info", producao: "warning",
+  aprovacao: "warning", agendado: "info", postado: "success",
+};
+const STATUS_TINT: Record<string, "blue" | "sky" | "amber" | "green" | "rose" | "violet"> = {
+  briefing: "violet", roteiro: "blue", producao: "amber",
+  aprovacao: "amber", agendado: "sky", postado: "green",
 };
 
 function AprovacaoModal({ conteudo, onClose }: { conteudo: Tables<"conteudos">; onClose: () => void }) {
@@ -156,9 +164,15 @@ function ConteudoPage() {
               ))}
             </div>
           )}
-          <div className="divide-y divide-border rounded-xl border border-border">
+          <div className="grid grid-cols-1 gap-3">
             {conteudos.map((c) => (
-              <div key={c.id} className="flex items-center gap-4 px-5 py-4 hover:bg-secondary/30 transition-colors">
+              <div
+                key={c.id}
+                className="card-lift flex items-center gap-4 rounded-2xl border border-border bg-card px-5 py-4 shadow-[var(--shadow-xs)]"
+              >
+                <div className={`icon-chip icon-chip-${STATUS_TINT[c.status] ?? "blue"} h-10 w-10 shrink-0`}>
+                  <FileText className="h-4 w-4" />
+                </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium truncate">{c.titulo ?? "Sem título"}</p>
                   <p className="text-xs text-muted-foreground">
@@ -167,9 +181,9 @@ function ConteudoPage() {
                   </p>
                 </div>
                 <div className="flex items-center gap-3 shrink-0">
-                  <span className={`rounded-full px-2 py-0.5 text-xs ${STATUS_COLORS[c.status] ?? "bg-muted text-muted-foreground"}`}>
+                  <Badge variant={STATUS_BADGE_VARIANT[c.status] ?? "secondary"}>
                     {STATUS_LABELS[c.status] ?? c.status}
-                  </span>
+                  </Badge>
                   {c.status === "aprovacao" && (
                     <Button size="sm" onClick={() => setSelected(c)}>Revisar</Button>
                   )}

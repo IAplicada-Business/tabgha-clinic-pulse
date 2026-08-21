@@ -1,8 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Stethoscope, Loader2, ChevronRight } from "lucide-react";
+import { Stethoscope, Loader2, ChevronRight, Users, CheckCircle2, Clock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { EmptyState } from "@/components/EmptyState";
+import { KpiCard } from "@/components/ui/kpi-card";
 
 export const Route = createFileRoute("/_authenticated/admin/diagnosticos")({
   component: DiagnosticosPage,
@@ -30,7 +31,7 @@ function DiagnosticosPage() {
     <div className="px-6 py-6 space-y-6">
       <div>
         <span className="eyebrow-pill">Estratégia</span>
-        <h1 className="mt-2 text-xl font-bold tracking-tight">Diagnósticos</h1>
+        <h1 className="mt-2 text-2xl font-extrabold tracking-tight">Diagnósticos</h1>
         <p className="mt-0.5 text-xs text-muted-foreground">Diagnósticos estratégicos por cliente. Edite via ficha do cliente.</p>
       </div>
 
@@ -42,24 +43,39 @@ function DiagnosticosPage() {
         </p>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         {[
-          { label: "Total", value: clientes.length, color: "text-foreground", bg: "bg-secondary/60" },
-          { label: "Preenchidos", value: comDiagnostico.length, color: "text-green-700", bg: "bg-emerald-50 border-emerald-100" },
-          { label: "Pendentes", value: semDiagnostico.length, color: "text-amber-700", bg: "bg-amber-50 border-amber-100" },
-        ].map(({ label, value, color, bg }, i) => (
-          <div
-            key={label}
-            className="card-lift animate-fade-up rounded-2xl border border-border bg-card p-5 shadow-[var(--shadow-card)]"
-            style={{ animationDelay: `${i * 75}ms` }}
-          >
-            <p className="text-[10.5px] font-semibold uppercase tracking-widest text-muted-foreground">{label}</p>
-            <div className="mt-2 flex items-end justify-between">
-              <p className={`text-3xl font-extrabold tracking-tight animate-numeric-pop ${color}`} style={{ animationDelay: `${i * 75 + 120}ms` }}>{value}</p>
-              <div className={`rounded-xl px-2.5 py-1 text-[11px] font-bold ${color} ${bg}`}>
-                {label === "Pendentes" ? `${clientes.length > 0 ? Math.round((value / clientes.length) * 100) : 0}%` : label === "Preenchidos" ? `${clientes.length > 0 ? Math.round((value / clientes.length) * 100) : 0}%` : `${value} clientes`}
-              </div>
-            </div>
+          {
+            label: "Total",
+            value: clientes.length,
+            icon: Users,
+            tint: "blue" as const,
+            pct: undefined as number | undefined,
+          },
+          {
+            label: "Preenchidos",
+            value: comDiagnostico.length,
+            icon: CheckCircle2,
+            tint: "green" as const,
+            pct: clientes.length > 0 ? Math.round((comDiagnostico.length / clientes.length) * 100) : 0,
+          },
+          {
+            label: "Pendentes",
+            value: semDiagnostico.length,
+            icon: Clock,
+            tint: "amber" as const,
+            pct: clientes.length > 0 ? Math.round((semDiagnostico.length / clientes.length) * 100) : 0,
+          },
+        ].map((kpi, i) => (
+          <div key={kpi.label} className="animate-fade-up" style={{ animationDelay: `${i * 75}ms` }}>
+            <KpiCard
+              label={kpi.label}
+              value={kpi.value}
+              icon={kpi.icon}
+              tint={kpi.tint}
+              format="raw"
+              delta={kpi.pct != null ? { value: `${kpi.pct}% da base`, direction: "neutral" } : undefined}
+            />
           </div>
         ))}
       </div>
@@ -75,14 +91,14 @@ function DiagnosticosPage() {
           description="Os clientes aparecem aqui conforme forem adicionados."
         />
       ) : (
-        <div className="divide-y divide-border rounded-xl border border-border">
+        <div className="divide-y divide-border/60 overflow-hidden rounded-2xl border border-border bg-card shadow-[var(--shadow-card)]">
           {clientes.map((c) => (
             <Link
               key={c.id}
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
               to={"/admin/clientes/$id" as any}
               params={{ id: c.id } as any}
-              className="flex items-center gap-4 px-5 py-4 hover:bg-muted/40 transition-colors"
+              className="flex items-center gap-4 px-5 py-4 transition-colors hover:bg-secondary/40"
             >
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold truncate">{c.nome}</p>

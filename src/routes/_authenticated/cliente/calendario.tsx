@@ -1,11 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Loader2 } from "lucide-react";
+import { CalendarDays, Loader2 } from "lucide-react";
 import { startOfMonth, endOfMonth } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { CalendarGrid, type CalEvent } from "@/components/CalendarGrid";
+import { KpiCard } from "@/components/ui/kpi-card";
 
 export const Route = createFileRoute("/_authenticated/cliente/calendario")({
   component: CalendarioPage,
@@ -74,24 +75,14 @@ function CalendarioPage() {
     <div className="px-6 py-6 space-y-6">
       {/* Page header */}
       <header className="animate-fade-up">
-        <span className="inline-flex items-center rounded-full bg-sky-50 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-widest text-sky-700 mb-2">
-          Agenda
-        </span>
-        <h1 className="text-xl font-bold tracking-tight">Calendário</h1>
+        <span className="eyebrow-pill">Agenda</span>
+        <h1 className="mt-2 text-xl font-bold tracking-tight">Calendário</h1>
         <p className="text-xs text-muted-foreground mt-0.5">Gravações, reuniões e conteúdos agendados</p>
       </header>
 
       {/* KPI strip */}
-      <div
-        className="card-lift animate-fade-up rounded-2xl border border-border bg-card px-5 pt-5 pb-4 shadow-[var(--shadow-card)] flex flex-col"
-        style={{ animationDelay: "75ms" }}
-      >
-        <span className="text-[9px] font-black tracking-[0.16em] text-muted-foreground/40 mb-4">01</span>
-        <span className="text-[10.5px] font-semibold uppercase tracking-wide text-muted-foreground mb-1">Eventos no mês</span>
-        <span className="text-[2.4rem] font-black tracking-tight leading-none animate-numeric-pop mt-auto">
-          {isLoading ? "—" : events.length}
-        </span>
-        <div className="mt-3 h-0.5 w-full rounded-full bg-sky-500" />
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 animate-fade-up" style={{ animationDelay: "75ms" }}>
+        <KpiCard label="Eventos no mês" value={events.length} icon={CalendarDays} tint="sky" format="raw" loading={isLoading} />
       </div>
 
       {/* Calendar panel — light card, same as admin */}

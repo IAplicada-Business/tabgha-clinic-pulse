@@ -15,6 +15,10 @@ import {
   FileText,
   Upload,
   UserPlus,
+  MessageSquare,
+  Bot,
+  Gauge,
+  Radio,
 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -38,6 +42,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import { KpiCard } from "@/components/ui/kpi-card";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -337,8 +342,8 @@ function TabCadastro({ cliente }: { cliente: Cliente }) {
           onClick={() => setDiagOpen((v) => !v)}
           className="flex w-full items-center gap-3 px-5 py-4 text-left hover:bg-secondary/30 transition-colors"
         >
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-primary/10">
-            <Stethoscope className="h-4 w-4 text-primary" />
+          <div className="icon-chip icon-chip-blue h-8 w-8 shrink-0">
+            <Stethoscope className="h-4 w-4" />
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-semibold">Diagnóstico estratégico</p>
@@ -820,7 +825,7 @@ function TabDiagnostico({ cliente }: { cliente: Cliente }) {
 
       {filled ? (
         <div className="space-y-4">
-          <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+          <div className="rounded-2xl border border-border bg-card p-5 shadow-[var(--shadow-card)]">
             <div className="mb-3 flex items-center justify-between gap-2">
               <p className="text-[10.5px] font-bold uppercase tracking-widest text-sky-700">
                 Visão do cliente (publicada)
@@ -853,7 +858,7 @@ function TabDiagnostico({ cliente }: { cliente: Cliente }) {
             </div>
           </div>
 
-          <div className="overflow-hidden rounded-2xl border border-amber-200/80 bg-amber-50/40 shadow-sm">
+          <div className="overflow-hidden rounded-2xl border border-amber-200/80 bg-amber-50/40 shadow-[var(--shadow-card)]">
             <div className="flex flex-wrap items-center justify-between gap-2 border-b border-amber-200/70 px-5 py-3">
               <div>
                 <p className="text-[10.5px] font-bold uppercase tracking-widest text-amber-800">
@@ -1060,47 +1065,49 @@ function TabLeads({ clienteId }: { clienteId: string }) {
         </div>
       ) : (
         <div className="overflow-hidden rounded-xl border border-border">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="bg-secondary/60 text-[10.5px] uppercase tracking-wide text-muted-foreground">
-                {["Nome", "Contato", "Canal", "Status", "Data"].map((h) => (
-                  <th key={h} className="px-4 py-2.5 text-left font-semibold">
-                    {h}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
-              {leads.map((l) => (
-                <tr
-                  key={l.id}
-                  className="cursor-pointer transition-colors hover:bg-sky-50/70"
-                  onClick={() => setSelectedId(l.id)}
-                >
-                  <td className="px-4 py-2.5 font-medium text-sky-900">{l.nome ?? "Sem nome"}</td>
-                  <td className="px-4 py-2.5 text-xs text-muted-foreground">
-                    {l.telefone ?? l.email ?? "—"}
-                  </td>
-                  <td className="px-4 py-2.5 text-xs capitalize text-muted-foreground">
-                    {l.canal ?? "—"}
-                  </td>
-                  <td className="px-4 py-2.5">
-                    <span
-                      className={cn(
-                        "rounded-full px-2.5 py-0.5 text-[11px] font-medium",
-                        STATUS_BADGE[l.status] ?? "bg-slate-100 text-slate-600",
-                      )}
-                    >
-                      {STATUS_LABELS[l.status] ?? l.status}
-                    </span>
-                  </td>
-                  <td className="px-4 py-2.5 text-xs text-muted-foreground">
-                    {format(new Date(l.criado_em), "dd MMM yyyy", { locale: ptBR })}
-                  </td>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-border bg-secondary/40 text-[10px] font-bold uppercase tracking-[0.08em] text-muted-foreground/70">
+                  {["Nome", "Contato", "Canal", "Status", "Data"].map((h) => (
+                    <th key={h} className="px-4 py-3 text-left">
+                      {h}
+                    </th>
+                  ))}
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-border/60">
+                {leads.map((l) => (
+                  <tr
+                    key={l.id}
+                    className="cursor-pointer transition-colors hover:bg-secondary/40"
+                    onClick={() => setSelectedId(l.id)}
+                  >
+                    <td className="px-4 py-3 font-medium text-foreground">{l.nome ?? "Sem nome"}</td>
+                    <td className="px-4 py-3 text-xs text-muted-foreground">
+                      {l.telefone ?? l.email ?? "—"}
+                    </td>
+                    <td className="px-4 py-3 text-xs capitalize text-muted-foreground">
+                      {l.canal ?? "—"}
+                    </td>
+                    <td className="px-4 py-3">
+                      <span
+                        className={cn(
+                          "rounded-full px-2.5 py-0.5 text-[11px] font-medium",
+                          STATUS_BADGE[l.status] ?? "bg-slate-100 text-slate-600",
+                        )}
+                      >
+                        {STATUS_LABELS[l.status] ?? l.status}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-xs text-muted-foreground">
+                      {format(new Date(l.criado_em), "dd MMM yyyy", { locale: ptBR })}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
 
@@ -1205,47 +1212,49 @@ function TabConteudo({ clienteId }: { clienteId: string }) {
         )}
       </div>
       <div className="rounded-xl border border-border overflow-hidden">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="bg-secondary/60 text-[10.5px] uppercase tracking-wide text-muted-foreground">
-              {["Título", "Rede", "Tipo", "Status", "Postagem"].map((h) => (
-                <th key={h} className="px-4 py-2.5 text-left font-semibold">
-                  {h}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border">
-            {conteudos.map((c) => (
-              <tr key={c.id} className="hover:bg-secondary/30 transition-colors">
-                <td className="px-4 py-2.5 font-medium max-w-[260px] truncate">
-                  {c.titulo ?? "Sem título"}
-                </td>
-                <td className="px-4 py-2.5 text-muted-foreground text-xs capitalize">
-                  {c.rede ?? "—"}
-                </td>
-                <td className="px-4 py-2.5 text-muted-foreground text-xs capitalize">
-                  {c.tipo ?? "—"}
-                </td>
-                <td className="px-4 py-2.5">
-                  <span
-                    className={cn(
-                      "rounded-full px-2.5 py-0.5 text-[11px] font-medium capitalize",
-                      CONTEUDO_STATUS_BADGE[c.status] ?? "bg-slate-100 text-slate-600",
-                    )}
-                  >
-                    {CONTEUDO_STATUS_LABEL[c.status] ?? c.status}
-                  </span>
-                </td>
-                <td className="px-4 py-2.5 text-muted-foreground text-xs">
-                  {c.data_postagem
-                    ? format(new Date(c.data_postagem), "dd MMM yyyy", { locale: ptBR })
-                    : "—"}
-                </td>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-border bg-secondary/40 text-[10px] font-bold uppercase tracking-[0.08em] text-muted-foreground/70">
+                {["Título", "Rede", "Tipo", "Status", "Postagem"].map((h) => (
+                  <th key={h} className="px-4 py-3 text-left">
+                    {h}
+                  </th>
+                ))}
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="divide-y divide-border/60">
+              {conteudos.map((c) => (
+                <tr key={c.id} className="transition-colors hover:bg-secondary/40">
+                  <td className="px-4 py-3 font-medium max-w-[260px] truncate">
+                    {c.titulo ?? "Sem título"}
+                  </td>
+                  <td className="px-4 py-3 text-muted-foreground text-xs capitalize">
+                    {c.rede ?? "—"}
+                  </td>
+                  <td className="px-4 py-3 text-muted-foreground text-xs capitalize">
+                    {c.tipo ?? "—"}
+                  </td>
+                  <td className="px-4 py-3">
+                    <span
+                      className={cn(
+                        "rounded-full px-2.5 py-0.5 text-[11px] font-medium capitalize",
+                        CONTEUDO_STATUS_BADGE[c.status] ?? "bg-slate-100 text-slate-600",
+                      )}
+                    >
+                      {CONTEUDO_STATUS_LABEL[c.status] ?? c.status}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 text-muted-foreground text-xs">
+                    {c.data_postagem
+                      ? format(new Date(c.data_postagem), "dd MMM yyyy", { locale: ptBR })
+                      : "—"}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );
@@ -1575,20 +1584,25 @@ function TabConexoes({ cliente }: { cliente: Cliente }) {
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         {[
-          { label: "Conversas", value: String(ops?.conversations ?? "—") },
-          { label: "Msgs do bot", value: String(ops?.botMsgs ?? "—") },
+          { label: "Conversas", value: ops?.conversations ?? 0, icon: MessageSquare, tint: "blue" as const },
+          { label: "Msgs do bot", value: ops?.botMsgs ?? 0, icon: Bot, tint: "sky" as const },
           {
             label: "Score médio IA",
-            value: ops?.avgScore != null ? String(ops.avgScore) : "—",
+            value: ops?.avgScore != null ? ops.avgScore : "—",
+            icon: Gauge,
+            tint: "violet" as const,
           },
-          { label: "Com bot ativo", value: String(ops?.withBot ?? "—") },
+          { label: "Com bot ativo", value: ops?.withBot ?? 0, icon: Radio, tint: "green" as const },
         ].map((kpi) => (
-          <div key={kpi.label} className="rounded-xl border border-border bg-card px-3 py-3">
-            <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-              {kpi.label}
-            </p>
-            <p className="mt-1 text-xl font-bold tracking-tight">{kpi.value}</p>
-          </div>
+          <KpiCard
+            key={kpi.label}
+            label={kpi.label}
+            value={kpi.value}
+            icon={kpi.icon}
+            tint={kpi.tint}
+            format="raw"
+            loading={!ops}
+          />
         ))}
       </div>
 
