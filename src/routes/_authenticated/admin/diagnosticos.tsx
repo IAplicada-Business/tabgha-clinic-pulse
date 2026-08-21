@@ -50,7 +50,7 @@ function DiagnosticosPage() {
         ].map(({ label, value, color, bg }, i) => (
           <div
             key={label}
-            className="card-lift animate-fade-up rounded-2xl border border-border bg-card p-5 shadow-[0_1px_3px_rgba(15,27,53,0.04)]"
+            className="card-lift animate-fade-up rounded-2xl border border-border bg-card p-5 shadow-[var(--shadow-card)]"
             style={{ animationDelay: `${i * 75}ms` }}
           >
             <p className="text-[10.5px] font-semibold uppercase tracking-widest text-muted-foreground">{label}</p>

@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, Loader2, Search } from "lucide-react";
+import { Plus, Loader2, Search, Users, UserCheck, UserPlus, Layers } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -12,7 +12,9 @@ import { CredentialsDialog, type AccessCredentials } from "@/components/usuarios
 import { ProvisionalPasswordField } from "@/components/usuarios/ProvisionalPasswordField";
 import { createClientWithAccess } from "@/functions/clientes/createClientWithAccess.functions";
 import { provisionalPassword } from "@/lib/provisional-password";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { KpiCard } from "@/components/ui/kpi-card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -215,10 +217,10 @@ function ClientesAdminPage() {
   const totalLeads = clientes.reduce((acc, c) => acc + c.leads_count, 0);
 
   const kpiCards = [
-    { rank: "01", label: "Na carteira", value: totalCarteira, color: "bg-primary" },
-    { rank: "02", label: "Ativos", value: totalAtivos, color: "bg-emerald-500" },
-    { rank: "03", label: "Em Onboarding", value: totalOnboarding, color: "bg-blue-500" },
-    { rank: "04", label: "Total de Leads", value: totalLeads, color: "bg-primary" },
+    { label: "Na carteira", value: totalCarteira, icon: Users, tint: "blue" as const },
+    { label: "Ativos", value: totalAtivos, icon: UserCheck, tint: "green" as const },
+    { label: "Em Onboarding", value: totalOnboarding, icon: UserPlus, tint: "sky" as const },
+    { label: "Total de Leads", value: totalLeads, icon: Layers, tint: "violet" as const },
   ];
 
   return (
@@ -236,30 +238,17 @@ function ClientesAdminPage() {
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         {kpiCards.map((kpi, i) => (
-          <div
-            key={kpi.rank}
-            className="card-lift animate-fade-up rounded-2xl border border-border bg-card px-5 pt-5 pb-4 shadow-[0_1px_3px_rgba(15,27,53,0.04)] flex flex-col"
-            style={{ animationDelay: i * 75 + "ms" }}
-          >
-            <span className="text-[9px] font-black tracking-[0.16em] text-muted-foreground/40 mb-4">
-              {kpi.rank}
-            </span>
-            <p className="text-[10.5px] font-semibold uppercase tracking-wide text-muted-foreground mb-1">
-              {kpi.label}
-            </p>
-            <p className="text-[2.4rem] font-black tracking-tight leading-none animate-numeric-pop mt-auto">
-              {kpi.value}
-            </p>
-            <div className={`mt-3 h-0.5 w-full rounded-full ${kpi.color}`} />
+          <div key={kpi.label} className="animate-fade-up" style={{ animationDelay: `${i * 75}ms` }}>
+            <KpiCard label={kpi.label} value={kpi.value} icon={kpi.icon} tint={kpi.tint} format="raw" />
           </div>
         ))}
       </div>
 
       {/* Filters */}
       <div
-        className="rounded-2xl border border-border bg-card p-5 shadow-[0_1px_3px_rgba(15,27,53,0.04)] animate-fade-up"
+        className="rounded-2xl border border-border bg-card p-5 shadow-[var(--shadow-card)] animate-fade-up"
         style={{ animationDelay: "300ms" }}
       >
         <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-3">
@@ -275,16 +264,14 @@ function ClientesAdminPage() {
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
-          <div className="flex flex-wrap gap-1">
+          <div className="segmented">
             {["todos", "onboarding", "ativo", "pausa", "inativo"].map((s) => (
               <button
                 key={s}
+                type="button"
                 onClick={() => setFiltroStatus(s)}
-                className={`rounded-full px-3 py-1 text-xs font-medium capitalize transition-colors ${
-                  filtroStatus === s
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-secondary text-muted-foreground hover:text-foreground"
-                }`}
+                data-active={filtroStatus === s}
+                className="segmented-item capitalize"
               >
                 {s === "todos" ? "Todos" : STATUS_LABELS[s]}
               </button>
@@ -295,7 +282,7 @@ function ClientesAdminPage() {
 
       {/* Client List */}
       <div
-        className="rounded-2xl border border-border bg-card p-5 shadow-[0_1px_3px_rgba(15,27,53,0.04)] animate-fade-up"
+        className="rounded-2xl border border-border bg-card p-5 shadow-[var(--shadow-card)] animate-fade-up"
         style={{ animationDelay: "375ms" }}
       >
         <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-3">
@@ -326,9 +313,12 @@ function ClientesAdminPage() {
                 to={`/admin/clientes/${c.id}` as any}
                 className="flex items-center gap-4 px-5 py-4 hover:bg-secondary/30 transition-colors"
               >
-                <span className="text-[10px] font-black text-muted-foreground/30 tabular-nums w-5 shrink-0">
+                <span className="hidden text-[10px] font-black text-muted-foreground/30 tabular-nums w-5 shrink-0 sm:inline">
                   {String(i + 1).padStart(2, "0")}
                 </span>
+                <div className="icon-chip icon-chip-blue h-9 w-9 shrink-0 text-[11px] font-bold">
+                  {c.nome.slice(0, 2).toUpperCase()}
+                </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium truncate">{c.nome}</p>
                   <p className="text-xs text-muted-foreground">

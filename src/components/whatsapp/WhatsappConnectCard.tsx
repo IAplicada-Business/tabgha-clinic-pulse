@@ -102,7 +102,7 @@ export function WhatsappConnectCard({ clienteId, compact = false }: WhatsappConn
   const connected = status === "connected";
 
   return (
-    <div className="rounded-2xl border border-border bg-card p-5 shadow-[0_1px_3px_rgba(15,27,53,0.04)]">
+    <div className="rounded-2xl border border-border bg-card p-5 shadow-[var(--shadow-card)]">
       <div className="mb-3 flex items-start justify-between gap-3">
         <div>
           <p className="text-[10px] font-bold uppercase tracking-widest text-emerald-700">

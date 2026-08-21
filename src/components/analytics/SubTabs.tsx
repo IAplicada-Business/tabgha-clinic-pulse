@@ -16,7 +16,7 @@ export function SubTabs<T extends string>({
   onChange: (id: T) => void;
 }) {
   return (
-    <div className="flex flex-wrap gap-1 rounded-xl border border-border bg-secondary/30 p-1">
+    <div className="flex flex-wrap gap-1 rounded-2xl border border-border bg-secondary/40 p-1.5">
       {tabs.map((tab) => {
         const active = tab.id === value;
         return (
@@ -25,10 +25,10 @@ export function SubTabs<T extends string>({
             type="button"
             onClick={() => onChange(tab.id)}
             className={cn(
-              "rounded-lg px-3 py-2 text-left transition-colors",
+              "rounded-xl px-3.5 py-2 text-left transition-all duration-200",
               active
-                ? "bg-card text-foreground shadow-sm"
-                : "text-muted-foreground hover:text-foreground",
+                ? "bg-card text-primary shadow-[var(--shadow-xs)]"
+                : "text-muted-foreground hover:bg-card/60 hover:text-foreground",
             )}
           >
             <span className="block text-xs font-semibold">{tab.label}</span>

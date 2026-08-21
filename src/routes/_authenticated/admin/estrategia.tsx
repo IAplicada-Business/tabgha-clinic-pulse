@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, Loader2, Search } from "lucide-react";
+import { Plus, Loader2, Search, CheckCircle2, Clock, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useClientesOptions } from "@/hooks/useClientesOptions";
@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { KpiCard } from "@/components/ui/kpi-card";
 import type { Tables } from "@/integrations/supabase/types";
 
 export const Route = createFileRoute("/_authenticated/admin/estrategia")({
@@ -145,7 +146,7 @@ function ConteudoCard({ item, onMove }: { item: Conteudo; onMove: (id: string, s
     : null;
 
   return (
-    <div className="card-lift animate-fade-up rounded-xl border border-border bg-card p-3.5 space-y-2.5 shadow-[0_1px_3px_rgba(15,27,53,0.04)]">
+    <div className="card-lift animate-fade-up rounded-xl border border-border bg-card p-3.5 space-y-2.5 shadow-[var(--shadow-card)]">
       <p className="text-[12.5px] font-semibold leading-snug">{item.titulo ?? "(sem título)"}</p>
       <p className="text-[11px] text-muted-foreground">{item.clientes?.nome ?? "—"}</p>
       <div className="flex flex-wrap gap-1">
@@ -224,10 +225,8 @@ function EstrategiaPage() {
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-6 py-4">
         <div>
-          <span className="inline-flex items-center rounded-full bg-violet-50 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-widest text-violet-700 mb-1.5">
-            Estratégia
-          </span>
-          <h1 className="text-xl font-bold tracking-tight">Pipeline Editorial</h1>
+          <span className="eyebrow-pill">Estratégia</span>
+          <h1 className="mt-2 text-2xl font-extrabold tracking-tight">Pipeline Editorial</h1>
           <p className="text-xs text-muted-foreground mt-0.5">Acompanhe cada conteúdo por etapa</p>
         </div>
         <Button size="sm" onClick={() => setNovoOpen(true)}>
@@ -236,23 +235,14 @@ function EstrategiaPage() {
       </div>
 
       {/* KPI Summary Cards */}
-      <div className="grid grid-cols-3 gap-3 px-6 pt-4 pb-2">
+      <div className="grid grid-cols-2 gap-3 px-6 pt-4 pb-2 sm:grid-cols-3">
         {[
-          { rank: "01", label: "Postados", value: totalPostado, color: "text-emerald-600", bar: "bg-emerald-500", delay: 0 },
-          { rank: "02", label: "Em aprovação", value: totalAprovacao, color: "text-red-600", bar: "bg-red-500", delay: 75 },
-          { rank: "03", label: "Em produção", value: totalProducao, color: "text-amber-600", bar: "bg-amber-500", delay: 150 },
+          { label: "Postados", value: totalPostado, icon: CheckCircle2, tint: "green" as const, delay: 0 },
+          { label: "Em aprovação", value: totalAprovacao, icon: Clock, tint: "rose" as const, delay: 75 },
+          { label: "Em produção", value: totalProducao, icon: Pencil, tint: "amber" as const, delay: 150 },
         ].map((kpi) => (
-          <div
-            key={kpi.rank}
-            className="card-lift animate-fade-up rounded-2xl border border-border bg-card px-5 pt-5 pb-4 shadow-[0_1px_3px_rgba(15,27,53,0.04)] flex flex-col"
-            style={{ animationDelay: kpi.delay + "ms" }}
-          >
-            <span className="text-[9px] font-black tracking-[0.16em] text-muted-foreground/40 mb-4">{kpi.rank}</span>
-            <p className="text-[10.5px] font-semibold uppercase tracking-wide text-muted-foreground mb-1">{kpi.label}</p>
-            <p className={`text-[2.4rem] font-black tracking-tight leading-none animate-numeric-pop mt-auto ${kpi.color}`}>
-              {kpi.value}
-            </p>
-            <div className={`mt-3 h-0.5 w-full rounded-full ${kpi.bar}`} />
+          <div key={kpi.label} className="animate-fade-up" style={{ animationDelay: kpi.delay + "ms" }}>
+            <KpiCard label={kpi.label} value={kpi.value} icon={kpi.icon} tint={kpi.tint} format="raw" />
           </div>
         ))}
       </div>
@@ -302,7 +292,7 @@ function EstrategiaPage() {
               return (
                 <div
                   key={col.key}
-                  className="animate-fade-up flex-1 min-w-[160px] flex flex-col rounded-2xl border border-border bg-card shadow-[0_1px_3px_rgba(15,27,53,0.04)] overflow-hidden"
+                  className="animate-fade-up flex-1 min-w-[160px] flex flex-col rounded-2xl border border-border bg-card shadow-[var(--shadow-card)] overflow-hidden"
                   style={{ animationDelay: colIdx * 50 + "ms" }}
                 >
                   {/* Column header */}

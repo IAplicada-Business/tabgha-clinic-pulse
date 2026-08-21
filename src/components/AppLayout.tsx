@@ -530,9 +530,9 @@ function SidebarNav({
                               to={it.to as any}
                               onClick={onNavigate}
                               className={cn(
-                                "flex h-8 w-8 items-center justify-center rounded-md transition-all duration-150 mx-auto",
+                                "flex h-9 w-9 items-center justify-center rounded-xl transition-all duration-200 mx-auto",
                                 active
-                                  ? "bg-sidebar-accent text-sidebar-primary shadow-[inset_2px_0_0_0_var(--color-sidebar-primary)]"
+                                  ? "bg-sidebar-primary text-white shadow-[0_4px_12px_-2px_oklch(0.440_0.158_261_/_55%)]"
                                   : "text-sidebar-foreground/50 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground",
                               )}
                             >
@@ -561,16 +561,16 @@ function SidebarNav({
                               }))
                             }
                             className={cn(
-                              "mx-2 mb-px flex w-[calc(100%-16px)] items-center gap-2.5 rounded-[7px] border-0 bg-transparent px-2.5 py-1.5 text-left text-[12.5px] transition-all duration-150",
+                              "mx-2 mb-px flex w-[calc(100%-16px)] items-center gap-2.5 rounded-xl border-0 bg-transparent px-2.5 py-2 text-left text-[12.5px] transition-all duration-200",
                               active
-                                ? "bg-sidebar-accent/70 font-semibold text-sidebar-accent-foreground"
+                                ? "bg-sidebar-primary/90 font-semibold text-white shadow-[0_4px_12px_-2px_oklch(0.440_0.158_261_/_45%)]"
                                 : "text-sidebar-foreground/55 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground",
                             )}
                           >
                             <Icon
                               className={cn(
                                 "h-3.5 w-3.5 shrink-0",
-                                active ? "text-sidebar-primary opacity-100" : "opacity-50",
+                                active ? "text-white opacity-100" : "opacity-50",
                               )}
                             />
                             <span className="flex-1">{it.label}</span>
@@ -582,7 +582,7 @@ function SidebarNav({
                             />
                           </button>
                           {submenuOpen ? (
-                            <div className="mb-1 ml-4 border-l border-sidebar-border/50 pl-2">
+                            <div className="mb-1 ml-4 mt-0.5 space-y-0.5 border-l-2 border-sidebar-border/50 pl-3">
                               {it.children!.map((child) => {
                                 const exactActive = navChildActive(child, pathname, searchParams);
                                 const childKey = child.search
@@ -595,12 +595,18 @@ function SidebarNav({
                                     search={(child.search ?? {}) as any}
                                     onClick={onNavigate}
                                     className={cn(
-                                      "mx-2 mb-px flex items-center rounded-[7px] px-2.5 py-1.5 text-[12px] transition-all duration-150",
+                                      "flex items-center rounded-lg px-2.5 py-1.5 text-[12px] transition-all duration-200",
                                       exactActive
-                                        ? "bg-sidebar-accent font-semibold text-sidebar-accent-foreground shadow-[inset_3px_0_0_0_var(--color-sidebar-primary)]"
+                                        ? "bg-sidebar-accent font-semibold text-sidebar-primary"
                                         : "text-sidebar-foreground/50 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground",
                                     )}
                                   >
+                                    <span
+                                      className={cn(
+                                        "mr-2 h-1.5 w-1.5 shrink-0 rounded-full transition-colors",
+                                        exactActive ? "bg-sidebar-primary" : "bg-sidebar-foreground/20",
+                                      )}
+                                    />
                                     {child.label}
                                   </Link>
                                 );
@@ -617,16 +623,16 @@ function SidebarNav({
                         to={it.to as any}
                         onClick={onNavigate}
                         className={cn(
-                          "mx-2 mb-px flex items-center gap-2.5 rounded-[7px] px-2.5 py-1.5 text-[12.5px] transition-all duration-150",
+                          "mx-2 mb-px flex items-center gap-2.5 rounded-xl px-2.5 py-2 text-[12.5px] transition-all duration-200",
                           active
-                            ? "bg-sidebar-accent text-sidebar-accent-foreground font-semibold shadow-[inset_3px_0_0_0_var(--color-sidebar-primary)]"
+                            ? "bg-sidebar-primary text-white font-semibold shadow-[0_4px_12px_-2px_oklch(0.440_0.158_261_/_45%)]"
                             : "text-sidebar-foreground/55 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground",
                         )}
                       >
                         <Icon
                           className={cn(
                             "h-3.5 w-3.5 shrink-0",
-                            active ? "text-sidebar-primary opacity-100" : "opacity-50",
+                            active ? "text-white opacity-100" : "opacity-50",
                           )}
                         />
                         {it.label}
@@ -887,12 +893,19 @@ export function AppLayout({ children }: { children: ReactNode }) {
     <div className="flex min-h-screen w-full bg-background text-foreground">
       {/* ── Desktop sidebar ── */}
       <aside
-        className="relative hidden shrink-0 flex-col border-r border-sidebar-border bg-sidebar md:flex overflow-hidden"
+        className="relative hidden shrink-0 flex-col bg-sidebar md:flex overflow-hidden shadow-[4px_0_24px_-8px_rgba(0,0,0,0.25)]"
         style={{
           width: sidebarCollapsed ? "3.5rem" : "14rem",
           transition: "width 280ms cubic-bezier(0.4, 0, 0.2, 1)",
         }}
       >
+        <div
+          className="pointer-events-none absolute inset-0 -z-10 opacity-60"
+          style={{
+            background:
+              "radial-gradient(500px 260px at 0% 0%, oklch(0.440 0.158 261 / 22%), transparent 60%), radial-gradient(420px 240px at 100% 100%, oklch(0.770 0.160 72 / 8%), transparent 55%)",
+          }}
+        />
         <SidebarNav
           {...navProps}
           collapsed={sidebarCollapsed}

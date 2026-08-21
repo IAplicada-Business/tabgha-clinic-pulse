@@ -149,7 +149,7 @@ function ConteudoPage() {
           {pipelineCounts.length > 0 && (
             <div className="flex flex-wrap gap-2">
               {pipelineCounts.map(({ s, label, count, color }) => (
-                <div key={s} className="flex items-center gap-2 rounded-xl border border-border bg-card px-3.5 py-2 shadow-[0_1px_2px_rgba(15,27,53,0.04)]">
+                <div key={s} className="flex items-center gap-2 rounded-xl border border-border bg-card px-3.5 py-2 shadow-[var(--shadow-xs)]">
                   <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${color}`}>{label}</span>
                   <span className="text-sm font-bold">{count}</span>
                 </div>

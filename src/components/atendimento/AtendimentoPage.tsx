@@ -88,7 +88,7 @@ function ChatBubble({
     <div className={cn("flex animate-fade-up", outbound ? "justify-end" : "justify-start")}>
       <div
         className={cn(
-          "max-w-[80%] rounded-2xl px-3 py-2 text-sm shadow-[0_1px_3px_rgba(15,27,53,0.04)]",
+          "max-w-[80%] rounded-2xl px-3 py-2 text-sm shadow-[var(--shadow-card)]",
           outbound && senderType === "human" && "bg-emerald-600 text-white",
           outbound && senderType !== "human" && "bg-sky-500/10 text-sky-900 border border-sky-100",
           !outbound && "border border-border bg-card text-foreground",
@@ -185,7 +185,7 @@ export function AtendimentoPage({ isAdmin = false }: AtendimentoPageProps) {
   }
 
   return (
-    <div className="flex h-[calc(100vh-7rem)] overflow-hidden rounded-2xl border border-border bg-card shadow-[0_1px_3px_rgba(15,27,53,0.04)]">
+    <div className="flex h-[calc(100vh-7rem)] overflow-hidden rounded-2xl border border-border bg-card shadow-[var(--shadow-card)]">
       {/* Conversation list sidebar */}
       <aside
         className={cn(

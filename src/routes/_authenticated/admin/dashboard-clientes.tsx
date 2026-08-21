@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowRight, Loader2, TrendingUp } from "lucide-react";
+import { ArrowRight, Building2, Loader2, Target, TrendingUp, Users, Wallet } from "lucide-react";
 import {
   Area,
   AreaChart,
@@ -29,6 +29,7 @@ import {
   StoryBanner,
 } from "@/components/analytics/InsightPanel";
 import { SubTabs } from "@/components/analytics/SubTabs";
+import { KpiCard } from "@/components/ui/kpi-card";
 import { useClientesOptions } from "@/hooks/useClientesOptions";
 import { calcCaq } from "@/lib/analytics-range";
 import {
@@ -326,58 +327,39 @@ function DashboardClientesPage() {
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             {[
               {
-                rank: "01",
                 label: "Clínicas ativas",
                 value: data?.clientesAtivos ?? 0,
-                accent: "text-primary",
-                bar: "bg-primary",
+                icon: Building2,
+                tint: "blue" as const,
               },
               {
-                rank: "02",
                 label: "Leads no período",
                 value: data?.leadsPeriodo ?? 0,
-                accent: "text-sky-700",
-                bar: "bg-sky-500",
+                icon: Users,
+                tint: "violet" as const,
               },
               {
-                rank: "03",
                 label: "Investimento mídia",
                 value: data ? fmtMoney(data.invest) : "—",
-                accent: "text-foreground",
-                bar: "bg-slate-400",
+                icon: Wallet,
+                tint: "sky" as const,
               },
               {
-                rank: "04",
                 label: "CAQ",
                 value: data?.caq != null ? fmtMoney(data.caq) : "—",
-                accent: "text-sky-800",
-                bar: "bg-sky-600",
+                icon: Target,
+                tint: "amber" as const,
               },
             ].map((card, i) => (
-              <div
-                key={card.rank}
-                className="card-lift animate-fade-up flex flex-col rounded-2xl border border-border bg-card px-5 pb-4 pt-5 shadow-[0_1px_3px_rgba(15,27,53,0.04)]"
-                style={{ animationDelay: `${i * 70}ms` }}
-              >
-                <span className="mb-4 text-[9px] font-black tracking-[0.16em] text-muted-foreground/40">
-                  {card.rank}
-                </span>
-                <p
-                  className={cn(
-                    "text-[2rem] font-black leading-none tracking-tighter",
-                    card.accent,
-                  )}
-                >
-                  {isLoading ? (
-                    <span className="inline-block h-9 w-16 animate-pulse rounded-lg bg-secondary align-middle" />
-                  ) : (
-                    card.value
-                  )}
-                </p>
-                <p className="mt-2 text-[10.5px] font-semibold uppercase tracking-widest text-muted-foreground">
-                  {card.label}
-                </p>
-                <div className={cn("mt-4 h-0.5 w-full rounded-full", card.bar)} />
+              <div key={card.label} className="animate-fade-up" style={{ animationDelay: `${i * 70}ms` }}>
+                <KpiCard
+                  label={card.label}
+                  value={card.value}
+                  icon={card.icon}
+                  tint={card.tint}
+                  format="raw"
+                  loading={isLoading}
+                />
               </div>
             ))}
           </div>
@@ -450,7 +432,7 @@ function DashboardClientesPage() {
             </Panel>
           </div>
 
-          <div className="animate-fade-up overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-slate-50 via-white to-sky-50/70 shadow-[0_1px_3px_rgba(15,27,53,0.04)]">
+          <div className="animate-fade-up overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-slate-50 via-white to-sky-50/70 shadow-[var(--shadow-card)]">
             <div className="flex items-start justify-between px-6 pb-2 pt-5">
               <div>
                 <p className="text-base font-bold text-foreground">Novos leads</p>
@@ -562,7 +544,7 @@ function DashboardClientesPage() {
             </Panel>
           </div>
 
-          <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+          <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-[var(--shadow-card)]">
             <div className="flex items-center justify-between border-b border-border px-5 py-3.5">
               <p className="text-sm font-bold">Por clínica</p>
               <Link
@@ -576,7 +558,7 @@ function DashboardClientesPage() {
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="bg-secondary/40 text-[10px] uppercase tracking-wide text-muted-foreground">
+                  <tr className="border-b border-border bg-secondary/40 text-[10px] font-bold uppercase tracking-[0.08em] text-muted-foreground/70">
                     <th className="px-4 py-2.5 text-left">Cliente</th>
                     <th className="px-3 py-2.5 text-right">Invest.</th>
                     <th className="px-3 py-2.5 text-right">Ads</th>
@@ -586,7 +568,7 @@ function DashboardClientesPage() {
                     <th className="px-3 py-2.5 text-right">CAQ</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-border">
+                <tbody className="divide-y divide-border/60">
                   {isLoading ? (
                     <tr>
                       <td colSpan={7} className="px-4 py-10 text-center">
@@ -601,7 +583,7 @@ function DashboardClientesPage() {
                     </tr>
                   ) : (
                     data!.performance.map((row) => (
-                      <tr key={row.id} className="hover:bg-secondary/30">
+                      <tr key={row.id} className="transition-colors hover:bg-secondary/40">
                         <td className="px-4 py-3">
                           <Link
                             to={"/admin/clientes/$id" as never}

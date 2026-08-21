@@ -14,9 +14,9 @@ export type CalEvent = {
 };
 
 const TYPE_COLOR: Record<string, string> = {
-  conteudo:    "bg-blue-100 text-blue-700",
-  agendamento: "bg-yellow-100 text-yellow-700",
-  gravacao:    "bg-green-100 text-green-700",
+  conteudo:    "bg-sky-100 text-sky-700",
+  agendamento: "bg-amber-100 text-amber-700",
+  gravacao:    "bg-emerald-100 text-emerald-700",
 };
 
 const WEEKDAYS = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"];
@@ -78,18 +78,18 @@ export function CalendarGrid({ events, filters, onMonthChange }: Props) {
       </div>
 
       {/* Legend */}
-      <div className="flex items-center gap-3 text-[11px] text-muted-foreground">
-        <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-accent inline-block" />Conteúdo</span>
-        <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-yellow-100 border border-yellow-200 inline-block" />Reunião/agendamento</span>
-        <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-green-100 border border-green-200 inline-block" />Gravação</span>
+      <div className="flex flex-wrap items-center gap-3 text-[11px] text-muted-foreground">
+        <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-sky-400 inline-block" />Conteúdo</span>
+        <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-amber-400 inline-block" />Reunião/agendamento</span>
+        <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-emerald-400 inline-block" />Gravação</span>
       </div>
 
       {/* Grid */}
-      <div className="rounded-xl border border-border overflow-hidden">
+      <div className="rounded-2xl border border-border overflow-hidden shadow-[var(--shadow-card)]">
         {/* Weekday headers */}
-        <div className="grid grid-cols-7 bg-secondary">
+        <div className="grid grid-cols-7 bg-secondary/60">
           {WEEKDAYS.map((wd) => (
-            <div key={wd} className="py-2 text-center text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+            <div key={wd} className="py-2.5 text-center text-[10px] font-bold uppercase tracking-[0.08em] text-muted-foreground/70">
               {wd}
             </div>
           ))}
@@ -98,7 +98,7 @@ export function CalendarGrid({ events, filters, onMonthChange }: Props) {
         {/* Day cells */}
         <div className="grid grid-cols-7 border-t border-border">
           {Array.from({ length: leadingEmpty }).map((_, i) => (
-            <div key={`l${i}`} className="min-h-[80px] border-b border-r border-border bg-secondary/20" />
+            <div key={`l${i}`} className="min-h-[80px] border-b border-r border-border/60 bg-secondary/20" />
           ))}
 
           {days.map((day, idx) => {
@@ -109,14 +109,14 @@ export function CalendarGrid({ events, filters, onMonthChange }: Props) {
               <div
                 key={day.toISOString()}
                 className={cn(
-                  "min-h-[80px] p-1.5 border-b border-r border-border",
-                  today && "bg-primary/[0.07]",
+                  "min-h-[80px] p-1.5 border-b border-r border-border/60 transition-colors duration-150 hover:bg-secondary/30",
+                  today && "bg-gradient-to-br from-sky-50 to-transparent ring-1 ring-inset ring-primary/15",
                   isLast && "border-r-0",
                 )}
               >
                 <div className={cn(
-                  "mb-1 flex h-6 w-6 items-center justify-center rounded-full text-[12px] font-semibold",
-                  today ? "bg-primary text-primary-foreground" : "text-foreground",
+                  "mb-1 flex h-6 w-6 items-center justify-center rounded-full text-[12px] font-semibold transition-colors",
+                  today ? "bg-primary text-primary-foreground shadow-[var(--shadow-xs)]" : "text-foreground",
                 )}>
                   {format(day, "d")}
                 </div>
@@ -126,7 +126,7 @@ export function CalendarGrid({ events, filters, onMonthChange }: Props) {
                       key={ev.id}
                       title={ev.title + (ev.sub ? ` · ${ev.sub}` : "")}
                       className={cn(
-                        "truncate rounded px-1 py-0.5 text-[10px] leading-tight",
+                        "truncate rounded-md px-1.5 py-0.5 text-[10px] leading-tight font-medium",
                         TYPE_COLOR[ev.type] ?? "bg-secondary text-muted-foreground",
                       )}
                     >
@@ -134,7 +134,7 @@ export function CalendarGrid({ events, filters, onMonthChange }: Props) {
                     </div>
                   ))}
                   {dayEvents.length > 3 && (
-                    <div className="text-[10px] text-muted-foreground px-1">+{dayEvents.length - 3} mais</div>
+                    <div className="text-[10px] text-muted-foreground px-1.5">+{dayEvents.length - 3} mais</div>
                   )}
                 </div>
               </div>
@@ -142,7 +142,7 @@ export function CalendarGrid({ events, filters, onMonthChange }: Props) {
           })}
 
           {Array.from({ length: trailingEmpty }).map((_, i) => (
-            <div key={`t${i}`} className={cn("min-h-[80px] border-b border-r border-border bg-secondary/20", i === trailingEmpty - 1 && "border-r-0")} />
+            <div key={`t${i}`} className={cn("min-h-[80px] border-b border-r border-border/60 bg-secondary/20", i === trailingEmpty - 1 && "border-r-0")} />
           ))}
         </div>
       </div>

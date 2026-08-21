@@ -1,9 +1,20 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Loader2, MessageCircle, CheckCircle2, ArrowRight, Clock, Calendar } from "lucide-react";
+import {
+  Loader2,
+  MessageCircle,
+  CheckCircle2,
+  ArrowRight,
+  Clock,
+  Calendar,
+  Users,
+  UserPlus,
+  PackageOpen,
+} from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { EmptyState } from "@/components/EmptyState";
+import { KpiCard } from "@/components/ui/kpi-card";
 import { format, formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
@@ -156,26 +167,26 @@ function ClienteDashboard() {
 
   const kpiCards = [
     {
-      rank: "01",
       label: "Leads totais",
       value: counts?.leads ?? 0,
-      accent: "bg-primary",
+      icon: Users,
+      tint: "blue" as const,
       delay: 0,
       to: "/cliente/leads" as const,
     },
     {
-      rank: "02",
       label: "Novos este mês",
       value: counts?.novos_mes ?? 0,
-      accent: "bg-emerald-500",
+      icon: UserPlus,
+      tint: "green" as const,
       delay: 75,
       to: "/cliente/leads" as const,
     },
     {
-      rank: "03",
       label: "Entregas pendentes",
       value: counts?.entregas_pendentes ?? 0,
-      accent: (counts?.entregas_pendentes ?? 0) > 0 ? "bg-amber-500" : "bg-primary",
+      icon: PackageOpen,
+      tint: (counts?.entregas_pendentes ?? 0) > 0 ? ("amber" as const) : ("blue" as const),
       delay: 150,
       to: "/cliente/entregas" as const,
     },
@@ -184,15 +195,13 @@ function ClienteDashboard() {
   return (
     <div className="px-6 py-6 space-y-6">
       <header className="animate-fade-up">
-        <span className="inline-flex items-center rounded-full bg-primary/10 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-widest text-primary mb-2">
-          Portal do Cliente
-        </span>
-        <h1 className="text-xl font-bold tracking-tight">Dashboard</h1>
+        <span className="eyebrow-pill">Portal do Cliente</span>
+        <h1 className="mt-2 text-2xl font-extrabold tracking-tight">Dashboard</h1>
         <p className="text-xs text-muted-foreground mt-0.5">Visão geral da sua operação de marketing</p>
       </header>
 
       {onboarding && !onboarding.complete ? (
-        <div className="animate-fade-up rounded-2xl border border-sky-100 bg-sky-50/70 p-5 shadow-[0_1px_3px_rgba(15,27,53,0.04)]">
+        <div className="animate-fade-up rounded-2xl border border-sky-100 bg-sky-50/70 p-5 shadow-[var(--shadow-card)]">
           <div className="mb-3 flex items-center justify-between gap-2">
             <div>
               <p className="text-[10px] font-bold uppercase tracking-widest text-sky-700">Onboarding</p>
@@ -227,31 +236,22 @@ function ClienteDashboard() {
       {/* KPI cards */}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         {kpiCards.map((card) => (
-          <Link
-            key={card.rank}
-            to={card.to}
-            className="card-lift animate-fade-up rounded-2xl border border-border bg-card px-5 pt-5 pb-4 shadow-[0_1px_3px_rgba(15,27,53,0.04)] flex flex-col"
-            style={{ animationDelay: `${card.delay}ms` }}
-          >
-            <span className="text-[9px] font-black tracking-[0.16em] text-muted-foreground/40 mb-4">{card.rank}</span>
-            <p className="text-[10.5px] font-semibold uppercase tracking-wide text-muted-foreground mb-1">{card.label}</p>
-            {loadingCounts ? (
-              <div className="mt-auto flex items-center gap-2 py-2">
-                <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-              </div>
-            ) : (
-              <p className="text-[2.4rem] font-black tracking-tight leading-none animate-numeric-pop mt-auto">
-                {card.value}
-              </p>
-            )}
-            <div className={cn("mt-3 h-0.5 w-full rounded-full", card.accent)} />
+          <Link key={card.label} to={card.to} className="animate-fade-up block" style={{ animationDelay: `${card.delay}ms` }}>
+            <KpiCard
+              label={card.label}
+              value={card.value}
+              icon={card.icon}
+              tint={card.tint}
+              format="raw"
+              loading={loadingCounts}
+            />
           </Link>
         ))}
       </div>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         {/* Aprovações pendentes */}
-        <div className="animate-fade-up delay-225 card-lift rounded-2xl border border-border bg-card p-5 shadow-[0_1px_3px_rgba(15,27,53,0.04)]">
+        <div className="animate-fade-up delay-225 card-lift rounded-2xl border border-border bg-card p-5 shadow-[var(--shadow-card)]">
           <div className="mb-4 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Aprovações pendentes</p>
@@ -303,7 +303,7 @@ function ClienteDashboard() {
         </div>
 
         {/* Conversas recentes */}
-        <div className="animate-fade-up delay-300 card-lift rounded-2xl border border-border bg-card p-5 shadow-[0_1px_3px_rgba(15,27,53,0.04)]">
+        <div className="animate-fade-up delay-300 card-lift rounded-2xl border border-border bg-card p-5 shadow-[var(--shadow-card)]">
           <div className="mb-4 flex items-center justify-between">
             <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Conversas recentes</p>
             <Link to="/cliente/atendimento" className="flex items-center gap-1 text-xs text-primary hover:underline">
@@ -330,7 +330,7 @@ function ClienteDashboard() {
                   )}
                   style={{ animationDelay: `${i * 50}ms` }}
                 >
-                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[12px] font-bold text-primary">
+                  <div className="icon-chip icon-chip-blue h-8 w-8 shrink-0 rounded-full text-[12px] font-bold">
                     {(c.contact_name ?? c.contact_phone ?? "?")[0].toUpperCase()}
                   </div>
                   <div className="min-w-0 flex-1">
@@ -366,11 +366,11 @@ function ClienteDashboard() {
             {proximos!.map((ag, i) => (
               <div
                 key={ag.id}
-                className="card-lift animate-fade-up rounded-2xl border border-border bg-card p-4 shadow-[0_1px_3px_rgba(15,27,53,0.04)]"
+                className="card-lift animate-fade-up rounded-2xl border border-border bg-card p-4 shadow-[var(--shadow-card)]"
                 style={{ animationDelay: `${420 + i * 60}ms` }}
               >
                 <div className="flex items-start gap-3">
-                  <div className="flex h-11 w-11 shrink-0 flex-col items-center justify-center rounded-xl bg-primary/8 text-primary">
+                  <div className="icon-chip icon-chip-blue h-11 w-11 shrink-0 flex-col">
                     {ag.inicio ? (
                       <>
                         <span className="text-base font-extrabold leading-none">{format(new Date(ag.inicio), "dd")}</span>

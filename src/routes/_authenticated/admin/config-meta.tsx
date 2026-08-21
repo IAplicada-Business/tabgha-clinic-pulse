@@ -345,7 +345,7 @@ function ConfigMetaPage() {
         </p>
       </header>
 
-      <section className="w-full rounded-2xl border border-border bg-card p-6 shadow-sm sm:p-8">
+      <section className="w-full rounded-2xl border border-border bg-card p-6 shadow-[var(--shadow-card)] sm:p-8">
         <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
           <div>
             <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
@@ -386,13 +386,23 @@ function ConfigMetaPage() {
                       row.id === clienteId && painelAberto && "bg-sky-50/80 hover:bg-sky-50",
                     )}
                   >
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-medium text-foreground">{row.nome}</p>
-                      {row.connected_at ? (
-                        <p className="mt-0.5 text-[11px] text-muted-foreground">
-                          Conectado em {new Date(row.connected_at).toLocaleDateString("pt-BR")}
-                        </p>
-                      ) : null}
+                    <div className="flex min-w-0 items-center gap-3">
+                      <div
+                        className={cn(
+                          "icon-chip h-8 w-8 shrink-0 text-[11px] font-bold",
+                          row.connected ? "icon-chip-green" : "icon-chip-blue",
+                        )}
+                      >
+                        {row.nome.slice(0, 2).toUpperCase()}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-medium text-foreground">{row.nome}</p>
+                        {row.connected_at ? (
+                          <p className="mt-0.5 text-[11px] text-muted-foreground">
+                            Conectado em {new Date(row.connected_at).toLocaleDateString("pt-BR")}
+                          </p>
+                        ) : null}
+                      </div>
                     </div>
                     <div className="min-w-0 text-sm text-muted-foreground">
                       {row.connected ? (
@@ -434,7 +444,7 @@ function ConfigMetaPage() {
         )}
       </section>
 
-      <section className="w-full overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+      <section className="w-full overflow-hidden rounded-2xl border border-border bg-card shadow-[var(--shadow-card)]">
         <button
           type="button"
           onClick={() => setPainelAberto((v) => !v)}
@@ -634,7 +644,7 @@ function ConfigMetaPage() {
         ) : null}
       </section>
 
-      <section className="w-full overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+      <section className="w-full overflow-hidden rounded-2xl border border-border bg-card shadow-[var(--shadow-card)]">
         <button
           type="button"
           onClick={() => setSetupAberto((v) => !v)}

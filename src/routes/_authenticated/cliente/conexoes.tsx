@@ -211,7 +211,7 @@ function ConexoesPage() {
                 <div
                   key={name}
                   className={cn(
-                    "flex flex-col rounded-2xl border bg-card px-5 pb-4 pt-5 shadow-[0_1px_3px_rgba(15,27,53,0.04)]",
+                    "flex flex-col rounded-2xl border bg-card px-5 pb-4 pt-5 shadow-[var(--shadow-card)]",
                     hasValue ? "border-primary/15" : "border-border",
                   )}
                   style={{ animationDelay: `${i * 75}ms` }}

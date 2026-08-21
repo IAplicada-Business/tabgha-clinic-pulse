@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowRight, Loader2 } from "lucide-react";
+import { ArrowRight, Loader2, Users, UserPlus, Layers, PackageOpen } from "lucide-react";
 import { differenceInDays, formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -11,6 +11,7 @@ import {
   type AnalyticsFiltersValue,
 } from "@/components/analytics/AnalyticsFilters";
 import { InsightStack, Panel, StoryBanner } from "@/components/analytics/InsightPanel";
+import { KpiCard } from "@/components/ui/kpi-card";
 import { useClientesOptions } from "@/hooks/useClientesOptions";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -214,58 +215,44 @@ function DashboardTabghaPage() {
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         {[
           {
-            rank: "01",
             label: "Clientes na carteira",
             hint: "ativo + onboarding",
             value: data?.carteira ?? 0,
-            accent: "text-primary",
-            bar: "bg-primary",
+            icon: Users,
+            tint: "blue" as const,
           },
           {
-            rank: "02",
             label: "Em onboarding",
             hint: "ainda não ativados",
             value: data?.onboarding ?? 0,
-            accent: "text-sky-700",
-            bar: "bg-sky-500",
+            icon: UserPlus,
+            tint: "sky" as const,
           },
           {
-            rank: "03",
             label: "Leads no CRM",
             hint: "período filtrado",
             value: data?.leadsPeriodo ?? 0,
-            accent: "text-foreground",
-            bar: "bg-slate-400",
+            icon: Layers,
+            tint: "violet" as const,
           },
           {
-            rank: "04",
             label: "Entregas em aberto",
             hint: "pendente / revisão",
             value: data?.entregasPendentes ?? 0,
-            accent: "text-amber-700",
-            bar: "bg-amber-500",
+            icon: PackageOpen,
+            tint: "amber" as const,
           },
         ].map((card, i) => (
-          <div
-            key={card.rank}
-            className="card-lift animate-fade-up flex flex-col rounded-2xl border border-border bg-card px-5 pb-4 pt-5 shadow-[0_1px_3px_rgba(15,27,53,0.04)]"
-            style={{ animationDelay: `${i * 70}ms` }}
-          >
-            <span className="mb-4 text-[9px] font-black tracking-[0.16em] text-muted-foreground/40">
-              {card.rank}
-            </span>
-            <p className={cn("text-[2rem] font-black leading-none tracking-tighter", card.accent)}>
-              {isLoading ? (
-                <span className="inline-block h-9 w-16 animate-pulse rounded-lg bg-secondary align-middle" />
-              ) : (
-                card.value
-              )}
-            </p>
-            <p className="mt-2 text-[10.5px] font-semibold uppercase tracking-widest text-muted-foreground">
-              {card.label}
-            </p>
-            <p className="mt-1 text-[10px] text-muted-foreground/70">{card.hint}</p>
-            <div className={cn("mt-4 h-0.5 w-full rounded-full", card.bar)} />
+          <div key={card.label} className="animate-fade-up" style={{ animationDelay: `${i * 70}ms` }}>
+            <KpiCard
+              label={card.label}
+              value={card.value}
+              icon={card.icon}
+              tint={card.tint}
+              format="raw"
+              loading={isLoading}
+              delta={{ value: card.hint, direction: "neutral" }}
+            />
           </div>
         ))}
       </div>
@@ -281,7 +268,7 @@ function DashboardTabghaPage() {
       />
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_280px]">
-        <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-[0_1px_3px_rgba(15,27,53,0.04)]">
+        <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-[var(--shadow-card)]">
           <div className="flex items-center justify-between border-b border-border px-6 py-4">
             <div>
               <p className="text-sm font-bold">Saúde da carteira</p>
@@ -299,14 +286,14 @@ function DashboardTabghaPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-border bg-secondary/20 text-[9.5px] font-black uppercase tracking-[0.1em] text-muted-foreground/60">
-                  <th className="px-6 py-2.5 text-left">Cliente</th>
-                  <th className="px-4 py-2.5 text-left">Status</th>
-                  <th className="px-4 py-2.5 text-right">Leads/filtro</th>
-                  <th className="px-4 py-2.5 text-left">Último lead</th>
+                <tr className="border-b border-border bg-secondary/40 text-[10px] font-bold uppercase tracking-[0.08em] text-muted-foreground/70">
+                  <th className="px-6 py-3 text-left">Cliente</th>
+                  <th className="px-4 py-3 text-left">Status</th>
+                  <th className="px-4 py-3 text-right">Leads/filtro</th>
+                  <th className="px-4 py-3 text-left">Último lead</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-border">
+              <tbody className="divide-y divide-border/60">
                 {isLoading ? (
                   <tr>
                     <td colSpan={4} className="px-6 py-10 text-center text-muted-foreground">
@@ -326,21 +313,28 @@ function DashboardTabghaPage() {
                       <tr
                         key={c.id}
                         className={cn(
-                          "transition-colors hover:bg-secondary/30",
+                          "transition-colors hover:bg-secondary/40",
                           c.atencao && "bg-amber-50/40",
                         )}
                       >
                         <td className="px-6 py-3.5">
-                          <Link
-                            to={"/admin/clientes/$id" as never}
-                            params={{ id: c.id } as never}
-                            className="text-[13px] font-semibold hover:text-primary"
-                          >
-                            {c.nome}
-                          </Link>
-                          <p className="text-[10.5px] text-muted-foreground">
-                            {c.especialidade ?? "—"}
-                          </p>
+                          <div className="flex items-center gap-3">
+                            <div className="icon-chip icon-chip-blue h-8 w-8 shrink-0 text-[11px] font-bold">
+                              {c.nome.slice(0, 2).toUpperCase()}
+                            </div>
+                            <div className="min-w-0">
+                              <Link
+                                to={"/admin/clientes/$id" as never}
+                                params={{ id: c.id } as never}
+                                className="block truncate text-[13px] font-semibold hover:text-primary"
+                              >
+                                {c.nome}
+                              </Link>
+                              <p className="truncate text-[10.5px] text-muted-foreground">
+                                {c.especialidade ?? "—"}
+                              </p>
+                            </div>
+                          </div>
                         </td>
                         <td className="px-4 py-3.5">
                           <div className="flex items-center gap-1.5">
@@ -448,12 +442,13 @@ function DashboardTabghaPage() {
             key={card.to}
             to={card.to as never}
             search={(card.search ?? {}) as never}
-            className="rounded-2xl border border-border bg-card p-4 shadow-sm transition hover:border-primary/30 hover:shadow-md"
+            className="card-lift group rounded-2xl border border-border/70 bg-card p-4 shadow-[var(--shadow-card)] transition hover:border-primary/30"
           >
             <p className="text-sm font-bold">{card.title}</p>
             <p className="mt-1 text-[11px] text-muted-foreground">{card.body}</p>
-            <span className="mt-3 inline-flex items-center gap-1 text-[11px] font-semibold text-sky-700">
-              Abrir <ArrowRight className="h-3 w-3" />
+            <span className="mt-3 inline-flex items-center gap-1 text-[11px] font-semibold text-primary">
+              Abrir{" "}
+              <ArrowRight className="h-3 w-3 transition-transform duration-200 group-hover:translate-x-0.5" />
             </span>
           </Link>
         ))}
