@@ -46,7 +46,6 @@ import {
   insightFromGap,
 } from "@/lib/analytics-insights";
 import { calcCaq } from "@/lib/analytics-range";
-import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 
 const ROI_TABS = ["operacao", "oportunidades", "campanhas", "marketing"] as const;
@@ -525,31 +524,31 @@ function RoiPage() {
                   />
                 </Panel>
               </div>
-              <div className="overflow-hidden rounded-2xl border border-border bg-card">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="bg-secondary/50 text-[10px] uppercase tracking-wide text-muted-foreground">
-                      <th className="px-4 py-2.5 text-left">Campanha</th>
-                      <th className="px-4 py-2.5 text-right">Investimento</th>
-                      <th className="px-4 py-2.5 text-right">Leads</th>
-                      <th className="px-4 py-2.5 text-right">CAQ</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-border">
+              <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-[var(--shadow-card)]">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Campanha</TableHead>
+                      <TableHead className="text-right">Investimento</TableHead>
+                      <TableHead className="text-right">Leads</TableHead>
+                      <TableHead className="text-right">CAQ</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
                     {byCampanha.map((row) => (
-                      <tr key={row.campanha} className="hover:bg-secondary/30">
-                        <td className="px-4 py-3 font-medium">{row.campanha}</td>
-                        <td className="px-4 py-3 text-right tabular-nums">
+                      <TableRow key={row.campanha}>
+                        <TableCell className="font-medium">{row.campanha}</TableCell>
+                        <TableCell className="text-right tabular-nums">
                           {fmtCurrency(row.investimento)}
-                        </td>
-                        <td className="px-4 py-3 text-right tabular-nums">{row.leads}</td>
-                        <td className="px-4 py-3 text-right tabular-nums">
+                        </TableCell>
+                        <TableCell className="text-right tabular-nums">{row.leads}</TableCell>
+                        <TableCell className="text-right tabular-nums">
                           {row.caq != null ? fmtCurrency(row.caq) : "—"}
-                        </td>
-                      </tr>
+                        </TableCell>
+                      </TableRow>
                     ))}
-                  </tbody>
-                </table>
+                  </TableBody>
+                </Table>
               </div>
               <button
                 type="button"
