@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader2, QrCode, RefreshCw, Unplug, Wifi } from "lucide-react";
 import { toast } from "sonner";
 
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -100,43 +101,42 @@ export function WhatsappConnectCard({ clienteId, compact = false }: WhatsappConn
   const status = statusQuery.data?.status ?? "disconnected";
   const provisioned = statusQuery.data?.provisioned ?? false;
   const connected = status === "connected";
+  const statusTint = connected ? "green" : provisioned ? "amber" : "rose";
+  const StatusIcon = connected ? Wifi : provisioned ? QrCode : Unplug;
+  const badgeVariant = connected ? "success" : provisioned ? "warning" : "error";
 
   return (
-    <div className="rounded-2xl border border-border bg-card p-5 shadow-[var(--shadow-card)]">
+    <div className="card-lift rounded-2xl border border-border bg-card p-5 shadow-[var(--shadow-card)]">
       <div className="mb-3 flex items-start justify-between gap-3">
-        <div>
-          <p className="text-[10px] font-bold uppercase tracking-widest text-emerald-700">
-            WhatsApp
-          </p>
-          <p className="mt-1 text-sm font-medium">
-            {connected
-              ? `Conectado${statusQuery.data?.phone ? ` · ${statusQuery.data.phone}` : ""}`
-              : provisioned
-                ? "Pronto para escanear o QR"
-                : "Falta a Tabgha salvar as credenciais Z-API"}
-          </p>
-          {!compact ? (
-            <p className="mt-1 text-xs text-muted-foreground">
-              {connected
-                ? "Conversas novas aparecem em Atendimento. Se o agente estiver ligado, o Pietro responde sozinho."
-                : provisioned
-                  ? "Escaneie com o WhatsApp do consultório (Aparelhos conectados)."
-                  : "Peça à equipe Tabgha para preencher Instance ID + Token na ficha do cliente (Conexões)."}
+        <div className="flex items-start gap-3">
+          <div className={`icon-chip icon-chip-${statusTint} h-10 w-10 shrink-0`}>
+            <StatusIcon className="h-4 w-4" />
+          </div>
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+              WhatsApp
             </p>
-          ) : null}
+            <p className="mt-1 text-sm font-medium">
+              {connected
+                ? `Conectado${statusQuery.data?.phone ? ` · ${statusQuery.data.phone}` : ""}`
+                : provisioned
+                  ? "Pronto para escanear o QR"
+                  : "Falta a Tabgha salvar as credenciais Z-API"}
+            </p>
+            {!compact ? (
+              <p className="mt-1 text-xs text-muted-foreground">
+                {connected
+                  ? "Conversas novas aparecem em Atendimento. Se o agente estiver ligado, o Pietro responde sozinho."
+                  : provisioned
+                    ? "Escaneie com o WhatsApp do consultório (Aparelhos conectados)."
+                    : "Peça à equipe Tabgha para preencher Instance ID + Token na ficha do cliente (Conexões)."}
+              </p>
+            ) : null}
+          </div>
         </div>
-        <span
-          className={
-            connected
-              ? "inline-flex items-center gap-1.5 rounded-full bg-emerald-100 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-700"
-              : "inline-flex items-center gap-1.5 rounded-full bg-amber-100 px-2.5 py-0.5 text-[11px] font-semibold text-amber-700"
-          }
-        >
-          <span
-            className={`h-1.5 w-1.5 rounded-full ${connected ? "bg-emerald-500" : "bg-amber-500"}`}
-          />
+        <Badge variant={badgeVariant} className="shrink-0">
           {connected ? "Online" : status}
-        </span>
+        </Badge>
       </div>
 
       {!provisioned ? (

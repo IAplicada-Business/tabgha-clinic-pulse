@@ -5,6 +5,7 @@ import { Loader2, Save } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
@@ -211,7 +212,7 @@ function ConexoesPage() {
                 <div
                   key={name}
                   className={cn(
-                    "flex flex-col rounded-2xl border bg-card px-5 pb-4 pt-5 shadow-[var(--shadow-card)]",
+                    "card-lift flex flex-col rounded-2xl border bg-card px-5 pb-4 pt-5 shadow-[var(--shadow-card)]",
                     hasValue ? "border-primary/15" : "border-border",
                   )}
                   style={{ animationDelay: `${i * 75}ms` }}
@@ -220,11 +221,7 @@ function ConexoesPage() {
                     <p className="text-[10.5px] font-semibold uppercase tracking-wide text-muted-foreground">
                       {label}
                     </p>
-                    {hasValue ? (
-                      <span className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-700">
-                        Preenchido
-                      </span>
-                    ) : null}
+                    {hasValue ? <Badge variant="success">Preenchido</Badge> : null}
                   </div>
 
                   <Input

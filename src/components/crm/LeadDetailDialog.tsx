@@ -508,10 +508,10 @@ export function LeadDetailDialog({ lead, onClose }: Props) {
                 <div
                   key={msg.id}
                   className={cn(
-                    "rounded-xl px-3 py-2 text-sm",
+                    "px-3.5 py-2.5 text-sm shadow-[var(--shadow-xs)]",
                     msg.direction === "outbound"
-                      ? "ml-8 bg-emerald-50 text-emerald-900"
-                      : "mr-8 border border-border bg-card",
+                      ? "ml-8 rounded-2xl rounded-br-md bg-emerald-50 text-emerald-900"
+                      : "mr-8 rounded-2xl rounded-bl-md border border-border bg-card",
                   )}
                 >
                   <p className="whitespace-pre-wrap">{msg.body}</p>
