@@ -313,9 +313,12 @@ function ClientesAdminPage() {
                 to={`/admin/clientes/${c.id}` as any}
                 className="flex items-center gap-4 px-5 py-4 hover:bg-secondary/30 transition-colors"
               >
-                <span className="text-[10px] font-black text-muted-foreground/30 tabular-nums w-5 shrink-0">
+                <span className="hidden text-[10px] font-black text-muted-foreground/30 tabular-nums w-5 shrink-0 sm:inline">
                   {String(i + 1).padStart(2, "0")}
                 </span>
+                <div className="icon-chip icon-chip-blue h-9 w-9 shrink-0 text-[11px] font-bold">
+                  {c.nome.slice(0, 2).toUpperCase()}
+                </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium truncate">{c.nome}</p>
                   <p className="text-xs text-muted-foreground">

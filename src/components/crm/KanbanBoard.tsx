@@ -149,16 +149,16 @@ function KanbanColumn({
     <div
       ref={setNodeRef}
       className={cn(
-        "flex h-full min-h-0 w-[236px] shrink-0 flex-col rounded-2xl border p-3",
+        "flex h-full min-h-0 w-[236px] shrink-0 flex-col rounded-2xl border p-3 shadow-[var(--shadow-xs)] transition-shadow duration-200",
         style.col,
-        isOver ? "border-sky-400 ring-2 ring-sky-200" : "border-border/70",
+        isOver ? "border-sky-400 shadow-[var(--shadow-card)] ring-2 ring-sky-200" : "border-border/70",
       )}
     >
       <div className="mb-3 flex shrink-0 items-center justify-between border-b border-black/[0.06] pb-3">
         <h3 className={cn("text-[11.5px] font-bold uppercase tracking-[0.05em]", style.header)}>
           {STATUS_LABELS[status]}
         </h3>
-        <span className="rounded-full bg-white px-2.5 py-0.5 text-[11px] font-bold shadow-sm">
+        <span className="rounded-full bg-white px-2.5 py-0.5 text-[11px] font-bold shadow-[var(--shadow-xs)]">
           {leads.length}
         </span>
       </div>
@@ -398,7 +398,7 @@ export function KanbanBoard({ leads, focusLead, onFocusLeadConsumed }: KanbanBoa
         </div>
         <DragOverlay>
           {activeLead ? (
-            <div className="w-[212px] rounded-xl border border-sky-300 bg-card p-3 text-left shadow-lg">
+            <div className="w-[212px] rounded-2xl border border-sky-300 bg-card p-3 text-left shadow-[var(--shadow-float)]">
               <LeadCardContent lead={activeLead} />
             </div>
           ) : null}
