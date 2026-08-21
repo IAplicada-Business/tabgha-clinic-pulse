@@ -1,12 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { CheckCircle, ClipboardCheck, Loader2, XCircle } from "lucide-react";
+import { CheckCircle, ClipboardCheck, Clock, Eye, Loader2, XCircle } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
 
 import { EmptyState } from "@/components/EmptyState";
+import { Badge, type BadgeProps } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -34,11 +35,25 @@ const STATUS_LABELS: Record<string, string> = {
   rejeitada: "Rejeitada",
 };
 
-const STATUS_COLORS: Record<string, string> = {
-  pendente: "bg-amber-100 text-amber-700",
-  em_revisao: "bg-sky-100 text-sky-700",
-  aprovada: "bg-emerald-100 text-emerald-700",
-  rejeitada: "bg-rose-100 text-rose-700",
+const STATUS_BADGE_VARIANT: Record<string, BadgeProps["variant"]> = {
+  pendente: "warning",
+  em_revisao: "info",
+  aprovada: "success",
+  rejeitada: "error",
+};
+
+const STATUS_TINT: Record<string, "blue" | "sky" | "amber" | "green" | "rose" | "violet"> = {
+  pendente: "amber",
+  em_revisao: "sky",
+  aprovada: "green",
+  rejeitada: "rose",
+};
+
+const STATUS_ICON: Record<string, typeof Clock> = {
+  pendente: Clock,
+  em_revisao: Eye,
+  aprovada: CheckCircle,
+  rejeitada: XCircle,
 };
 
 function EntregaModal({ entrega, onClose }: { entrega: Entrega; onClose: () => void }) {
@@ -216,23 +231,23 @@ function EntregasPage() {
             </p>
           ) : null}
         </div>
-        <div className="flex items-center gap-1.5 rounded-lg border border-border bg-secondary/40 p-1">
-          <Button
-            size="sm"
-            variant={filter === "acao" ? "default" : "ghost"}
-            className="h-7 px-3 text-xs"
+        <div className="segmented">
+          <button
+            type="button"
+            data-active={filter === "acao"}
+            className="segmented-item"
             onClick={() => setFilter("acao")}
           >
             Precisam de ação
-          </Button>
-          <Button
-            size="sm"
-            variant={filter === "todas" ? "default" : "ghost"}
-            className="h-7 px-3 text-xs"
+          </button>
+          <button
+            type="button"
+            data-active={filter === "todas"}
+            className="segmented-item"
             onClick={() => setFilter("todas")}
           >
             Todas
-          </Button>
+          </button>
         </div>
       </div>
 
@@ -251,33 +266,37 @@ function EntregasPage() {
           }
         />
       ) : (
-        <div className="divide-y divide-border rounded-xl border border-border">
-          {visible.map((entrega) => (
-            <div
-              key={entrega.id}
-              className="flex items-center gap-4 px-5 py-4 transition-colors hover:bg-secondary/30"
-            >
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium">{entrega.titulo ?? "Sem título"}</p>
-                <p className="text-xs text-muted-foreground">
-                  {entrega.tipo ?? "Entrega"} ·{" "}
-                  {format(new Date(entrega.criado_em), "dd MMM yyyy", { locale: ptBR })}
-                </p>
+        <div className="grid grid-cols-1 gap-3">
+          {visible.map((entrega) => {
+            const StatusIcon = STATUS_ICON[entrega.status] ?? ClipboardCheck;
+            return (
+              <div
+                key={entrega.id}
+                className="card-lift flex items-center gap-4 rounded-2xl border border-border bg-card px-5 py-4 shadow-[var(--shadow-xs)]"
+              >
+                <div className={`icon-chip icon-chip-${STATUS_TINT[entrega.status] ?? "blue"} h-10 w-10 shrink-0`}>
+                  <StatusIcon className="h-4 w-4" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium">{entrega.titulo ?? "Sem título"}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {entrega.tipo ?? "Entrega"} ·{" "}
+                    {format(new Date(entrega.criado_em), "dd MMM yyyy", { locale: ptBR })}
+                  </p>
+                </div>
+                <div className="flex shrink-0 items-center gap-3">
+                  <Badge variant={STATUS_BADGE_VARIANT[entrega.status] ?? "secondary"}>
+                    {STATUS_LABELS[entrega.status] ?? entrega.status}
+                  </Badge>
+                  <Button size="sm" onClick={() => setSelected(entrega)}>
+                    {entrega.status === "pendente" || entrega.status === "em_revisao"
+                      ? "Revisar"
+                      : "Ver"}
+                  </Button>
+                </div>
               </div>
-              <div className="flex shrink-0 items-center gap-3">
-                <span
-                  className={`rounded-full px-2 py-0.5 text-xs ${STATUS_COLORS[entrega.status] ?? "bg-muted text-muted-foreground"}`}
-                >
-                  {STATUS_LABELS[entrega.status] ?? entrega.status}
-                </span>
-                <Button size="sm" onClick={() => setSelected(entrega)}>
-                  {entrega.status === "pendente" || entrega.status === "em_revisao"
-                    ? "Revisar"
-                    : "Ver"}
-                </Button>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 

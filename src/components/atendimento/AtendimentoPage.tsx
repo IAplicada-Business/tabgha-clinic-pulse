@@ -88,9 +88,10 @@ function ChatBubble({
     <div className={cn("flex animate-fade-up", outbound ? "justify-end" : "justify-start")}>
       <div
         className={cn(
-          "max-w-[80%] rounded-2xl px-3 py-2 text-sm shadow-[var(--shadow-card)]",
+          "max-w-[80%] px-3.5 py-2.5 text-sm shadow-[var(--shadow-card)]",
+          outbound ? "rounded-2xl rounded-br-md" : "rounded-2xl rounded-bl-md",
           outbound && senderType === "human" && "bg-emerald-600 text-white",
-          outbound && senderType !== "human" && "bg-sky-500/10 text-sky-900 border border-sky-100",
+          outbound && senderType !== "human" && "border border-sky-100 bg-sky-500/10 text-sky-900",
           !outbound && "border border-border bg-card text-foreground",
         )}
       >
@@ -232,7 +233,7 @@ export function AtendimentoPage({ isAdmin = false }: AtendimentoPageProps) {
           />
         </div>
 
-        <div className="flex-1 overflow-y-auto divide-y divide-border">
+        <div className="flex-1 overflow-y-auto py-1">
           {isLoading ? (
             <div className="space-y-2 p-3">
               <Skeleton className="h-16 w-full rounded-xl" />
@@ -242,35 +243,40 @@ export function AtendimentoPage({ isAdmin = false }: AtendimentoPageProps) {
           ) : conversations.length === 0 ? (
             <p className="p-4 text-sm text-muted-foreground">Nenhuma conversa encontrada.</p>
           ) : (
-            conversations.map((conversation, i) => (
-              <button
-                key={conversation.id}
-                type="button"
-                onClick={() => {
-                  setSelectedId(conversation.id);
-                  setMobilePane("chat");
-                }}
-                className={cn(
-                  "animate-fade-up flex w-full flex-col gap-1.5 px-4 py-3 text-left transition-colors hover:bg-secondary/40",
-                  selectedId === conversation.id
-                    ? "bg-sky-50/60 border-l-2 border-sky-500"
-                    : "border-l-2 border-transparent",
-                )}
-                style={{ animationDelay: `${i * 40}ms` }}
-              >
-                <div className="flex items-center justify-between gap-2">
-                  <span className="truncate text-sm font-semibold">
-                    {conversation.contact_name ?? conversation.contact_phone}
-                  </span>
-                  {ownerStateDot(conversation.owner_state)}
-                </div>
-                {isAdmin && conversation.clientes?.nome ? (
-                  <span className="text-[10.5px] font-medium text-muted-foreground">
-                    {conversation.clientes.nome}
-                  </span>
-                ) : null}
-              </button>
-            ))
+            conversations.map((conversation, i) => {
+              const displayName = conversation.contact_name ?? conversation.contact_phone ?? "?";
+              const isSelected = selectedId === conversation.id;
+              return (
+                <button
+                  key={conversation.id}
+                  type="button"
+                  onClick={() => {
+                    setSelectedId(conversation.id);
+                    setMobilePane("chat");
+                  }}
+                  className={cn(
+                    "animate-fade-up mx-2 my-0.5 flex w-[calc(100%-1rem)] items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-colors",
+                    isSelected ? "bg-primary/10" : "hover:bg-secondary/50",
+                  )}
+                  style={{ animationDelay: `${i * 40}ms` }}
+                >
+                  <div className="icon-chip icon-chip-blue h-9 w-9 shrink-0 text-[11px] font-bold">
+                    {displayName.slice(0, 2).toUpperCase()}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="truncate text-sm font-semibold">{displayName}</span>
+                      {ownerStateDot(conversation.owner_state)}
+                    </div>
+                    {isAdmin && conversation.clientes?.nome ? (
+                      <span className="truncate text-[10.5px] font-medium text-muted-foreground">
+                        {conversation.clientes.nome}
+                      </span>
+                    ) : null}
+                  </div>
+                </button>
+              );
+            })
           )}
         </div>
       </aside>

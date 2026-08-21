@@ -154,10 +154,8 @@ function DiagnosticoPage() {
   return (
     <div className="space-y-6 px-6 py-6">
       <header className="animate-fade-up">
-        <span className="mb-2 inline-flex items-center rounded-full bg-primary/10 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-widest text-primary">
-          Estratégia
-        </span>
-        <h1 className="text-xl font-bold tracking-tight">Diagnóstico</h1>
+        <span className="eyebrow-pill mb-2">Estratégia</span>
+        <h1 className="mt-2 text-xl font-bold tracking-tight">Diagnóstico</h1>
         <p className="mt-0.5 text-xs text-muted-foreground">
           Análise estratégica do{" "}
           {cliente?.especialidade ? `consultório de ${cliente.especialidade}` : "seu consultório"}
@@ -180,8 +178,8 @@ function DiagnosticoPage() {
             </p>
           </div>
           <div className="flex flex-col items-center justify-center px-6 py-16 text-center">
-            <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/8 ring-1 ring-primary/15">
-              <Stethoscope className="h-6 w-6 text-primary" />
+            <div className="icon-chip icon-chip-blue mb-5 h-16 w-16">
+              <Stethoscope className="h-7 w-7" />
             </div>
             <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
               Em preparação

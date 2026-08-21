@@ -198,7 +198,7 @@ function MotivoPerdaDialog({
         <select
           value={motivo}
           onChange={(e) => setMotivo(e.target.value)}
-          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+          className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm"
         >
           <option value="">Selecione…</option>
           {Object.entries(MOTIVO_LABELS).map(([value, label]) => (

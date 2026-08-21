@@ -1,11 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Loader2 } from "lucide-react";
+import { Loader2, CalendarDays } from "lucide-react";
 import { startOfMonth, endOfMonth } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { useClientesOptions } from "@/hooks/useClientesOptions";
 import { CalendarGrid, type CalEvent } from "@/components/CalendarGrid";
+import { KpiCard } from "@/components/ui/kpi-card";
 
 export const Route = createFileRoute("/_authenticated/admin/calendario")({
   component: CalendarioAdminPage,
@@ -50,26 +51,21 @@ function CalendarioAdminPage() {
     <div className="px-6 py-6 space-y-6">
       {/* Page header */}
       <header className="animate-fade-up" style={{ animationDelay: "0ms" }}>
-        <span className="inline-flex items-center rounded-full bg-violet-50 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-widest text-violet-700 mb-3">
-          Conteúdo
-        </span>
-        <h1 className="text-xl font-black tracking-tight leading-none">Calendário editorial</h1>
-        <p className="text-xs text-muted-foreground mt-1">Conteúdos agendados de todos os clientes</p>
+        <span className="eyebrow-pill">Conteúdo</span>
+        <h1 className="mt-2 text-2xl font-extrabold tracking-tight leading-none">Calendário editorial</h1>
+        <p className="text-xs text-muted-foreground mt-2">Conteúdos agendados de todos os clientes</p>
       </header>
 
       {/* KPI strip — total events for the month */}
-      <div
-        className="card-lift animate-fade-up rounded-2xl border border-border bg-card px-5 pt-5 pb-4 shadow-[var(--shadow-card)] flex flex-col"
-        style={{ animationDelay: "75ms" }}
-      >
-        <span className="text-[9px] font-black tracking-[0.16em] text-muted-foreground/40 mb-4">01</span>
-        <span className="text-[10.5px] font-semibold uppercase tracking-wide text-muted-foreground mb-1">
-          Conteúdos no mês
-        </span>
-        <span className="text-[2.4rem] font-black tracking-tight leading-none animate-numeric-pop mt-auto">
-          {isLoading ? "—" : events.length}
-        </span>
-        <div className="mt-3 h-0.5 w-full rounded-full bg-violet-500" />
+      <div className="animate-fade-up max-w-full sm:max-w-xs" style={{ animationDelay: "75ms" }}>
+        <KpiCard
+          label="Conteúdos no mês"
+          value={events.length}
+          icon={CalendarDays}
+          tint="violet"
+          format="raw"
+          loading={isLoading}
+        />
       </div>
 
       {/* Calendar panel */}
