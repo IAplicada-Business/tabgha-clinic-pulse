@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowRight, Loader2, Receipt, Target, TrendingUp, Users, Wallet } from "lucide-react";
@@ -31,7 +31,6 @@ import { MetaAdsPage } from "@/components/meta/MetaAdsPage";
 import { KpiCard } from "@/components/ui/kpi-card";
 import { useClientesOptions } from "@/hooks/useClientesOptions";
 import {
-  buildCampaignInsights,
   buildFunnelInsights,
   buildHeadline,
   buildRankingInsights,
@@ -43,13 +42,15 @@ import {
 import { calcCaq } from "@/lib/analytics-range";
 import { supabase } from "@/integrations/supabase/client";
 
-const ROI_TABS = ["operacao", "clientes", "campanhas", "marketing"] as const;
+const ROI_TABS = ["operacao", "clientes", "marketing"] as const;
 
 type TabId = (typeof ROI_TABS)[number];
 
 function resolveRoiTab(raw: unknown): TabId {
   // Legado: oportunidades foi unificado em clientes.
   if (raw === "oportunidades") return "clientes";
+  // Legado: campanhas foi unificado em Marketing pago (mesma tabela metricas_ads).
+  if (raw === "campanhas") return "marketing";
   return ROI_TABS.includes(raw as TabId) ? (raw as TabId) : "operacao";
 }
 
@@ -99,14 +100,9 @@ function fmt(v: number) {
 
 function RoiAdminPage() {
   const { tab } = Route.useSearch();
-  const navigate = useNavigate({ from: Route.fullPath });
   const [filters, setFilters] = useState<AnalyticsFiltersValue>(defaultAnalyticsFilters("30d"));
   const [showAllRows, setShowAllRows] = useState(false);
   const { data: clientesOptions = [] } = useClientesOptions();
-
-  function setTab(next: TabId) {
-    void navigate({ search: (prev) => ({ ...prev, tab: next }) });
-  }
 
   const { data: clientesFull = [] } = useQuery({
     queryKey: ["admin", "roi", "clientes-cat"],
@@ -229,22 +225,6 @@ function RoiAdminPage() {
       .sort((a, b) => b.investimento - a.investimento);
   }, [metricasFiltradas]);
 
-  const byCampanha = useMemo(() => {
-    const map = new Map<string, { campanha: string; investimento: number; leads: number }>();
-    for (const m of metricasFiltradas) {
-      const key = m.campanha ?? "Sem campanha";
-      const prev = map.get(key) ?? { campanha: key, investimento: 0, leads: 0 };
-      map.set(key, {
-        campanha: key,
-        investimento: prev.investimento + Number(m.investimento),
-        leads: prev.leads + m.leads,
-      });
-    }
-    return Array.from(map.values())
-      .map((row) => ({ ...row, caq: calcCaq(row.investimento, row.leads) }))
-      .sort((a, b) => b.investimento - a.investimento);
-  }, [metricasFiltradas]);
-
   const oportunidades = useMemo(() => {
     const map = new Map<
       string,
@@ -291,13 +271,11 @@ function RoiAdminPage() {
       caq: r.caq,
     })),
   );
-  const campaignInsights = buildCampaignInsights(byCampanha);
   const adsCrmGap = insightFromGap(kpis.totalLeadsAds, kpis.leadsCrm);
 
   const pageTitle: Record<TabId, string> = {
     operacao: "Operação",
     clientes: "Clientes",
-    campanhas: "Campanhas",
     marketing: "Marketing pago",
   };
 
@@ -663,71 +641,6 @@ function RoiAdminPage() {
               >
                 Abrir funil completo <ArrowRight className="h-3.5 w-3.5" />
               </Link>
-            </div>
-          ) : null}
-
-          {tab === "campanhas" ? (
-            <div className="space-y-4">
-              <InsightStack items={campaignInsights} />
-              <div className="grid gap-4 lg:grid-cols-2">
-                <Panel title="Budget por campanha" tone="soft">
-                  <RankedBarChart
-                    data={byCampanha.slice(0, 8).map((r) => ({
-                      name: r.campanha.length > 22 ? `${r.campanha.slice(0, 20)}…` : r.campanha,
-                      value: Math.round(r.investimento),
-                    }))}
-                    formatValue={(v) => fmtMoneyCompact(v)}
-                  />
-                </Panel>
-                <Panel title="Leads por campanha" tone="soft">
-                  <RankedBarChart
-                    data={[...byCampanha]
-                      .sort((a, b) => b.leads - a.leads)
-                      .slice(0, 8)
-                      .map((r) => ({
-                        name: r.campanha.length > 22 ? `${r.campanha.slice(0, 20)}…` : r.campanha,
-                        value: r.leads,
-                      }))}
-                    color="#0284c7"
-                  />
-                </Panel>
-              </div>
-              <div className="flex items-center justify-between">
-                <p className="text-sm font-semibold">Detalhe das campanhas</p>
-                <button
-                  type="button"
-                  onClick={() => setTab("marketing")}
-                  className="inline-flex items-center gap-1 text-xs font-semibold text-sky-700 hover:underline"
-                >
-                  Ver anúncios <ArrowRight className="h-3.5 w-3.5" />
-                </button>
-              </div>
-              <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-[var(--shadow-card)]">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-border bg-secondary/40 text-[10px] font-bold uppercase tracking-[0.08em] text-muted-foreground/70">
-                      <th className="px-4 py-2.5 text-left">Campanha</th>
-                      <th className="px-4 py-2.5 text-right">Investimento</th>
-                      <th className="px-4 py-2.5 text-right">Leads</th>
-                      <th className="px-4 py-2.5 text-right">CAQ</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-border/60">
-                    {byCampanha.slice(0, showAllRows ? undefined : 8).map((row) => (
-                      <tr key={row.campanha} className="transition-colors hover:bg-secondary/40">
-                        <td className="px-4 py-3 font-medium">{row.campanha}</td>
-                        <td className="px-4 py-3 text-right tabular-nums">
-                          {fmt(row.investimento)}
-                        </td>
-                        <td className="px-4 py-3 text-right tabular-nums">{row.leads}</td>
-                        <td className="px-4 py-3 text-right tabular-nums">
-                          {row.caq != null ? fmt(row.caq) : "—"}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
             </div>
           ) : null}
         </>

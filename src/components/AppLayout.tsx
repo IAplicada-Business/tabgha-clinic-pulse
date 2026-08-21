@@ -99,12 +99,6 @@ const ADMIN_NAV: NavGroup[] = [
           },
           {
             to: "/admin/roi",
-            label: "Campanhas",
-            perm: "admin.roi",
-            search: { tab: "campanhas" },
-          },
-          {
-            to: "/admin/roi",
             label: "Marketing pago",
             perm: "admin.meta_ads",
             search: { tab: "marketing" },
@@ -186,12 +180,6 @@ const CLIENTE_NAV: NavGroup[] = [
             label: "Oportunidades",
             perm: "cliente.roi",
             search: { tab: "oportunidades" },
-          },
-          {
-            to: "/cliente/roi",
-            label: "Campanhas",
-            perm: "cliente.roi",
-            search: { tab: "campanhas" },
           },
           {
             to: "/cliente/roi",

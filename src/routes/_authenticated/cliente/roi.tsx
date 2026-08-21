@@ -48,12 +48,18 @@ import {
 import { calcCaq } from "@/lib/analytics-range";
 import { supabase } from "@/integrations/supabase/client";
 
-const ROI_TABS = ["operacao", "oportunidades", "campanhas", "marketing"] as const;
+const ROI_TABS = ["operacao", "oportunidades", "marketing"] as const;
 type TabId = (typeof ROI_TABS)[number];
+
+function resolveRoiTab(raw: unknown): TabId {
+  // Legado: campanhas foi unificado em Marketing pago (mesma tabela metricas_ads).
+  if (raw === "campanhas") return "marketing";
+  return ROI_TABS.includes(raw as TabId) ? (raw as TabId) : "operacao";
+}
 
 export const Route = createFileRoute("/_authenticated/cliente/roi")({
   validateSearch: (search: Record<string, unknown>) => ({
-    tab: ROI_TABS.includes(search.tab as TabId) ? (search.tab as TabId) : ("operacao" as TabId),
+    tab: resolveRoiTab(search.tab),
   }),
   component: RoiPage,
   head: () => ({ meta: [{ title: "ROI — Portal" }] }),
@@ -223,7 +229,6 @@ function RoiPage() {
   const pageTitle: Record<TabId, string> = {
     operacao: "Operação",
     oportunidades: "Oportunidades",
-    campanhas: "Campanhas",
     marketing: "Marketing pago",
   };
 
@@ -503,60 +508,6 @@ function RoiPage() {
               >
                 Abrir leads <ArrowRight className="h-3.5 w-3.5" />
               </Link>
-            </div>
-          ) : null}
-
-          {tab === "campanhas" ? (
-            <div className="space-y-4">
-              <InsightStack items={campaignInsights} />
-              <div className="grid gap-4 lg:grid-cols-2">
-                <Panel title="Budget por campanha" tone="soft">
-                  <RankedBarChart
-                    data={campaignSpendChart}
-                    formatValue={(v) => fmtMoneyCompact(v)}
-                    color={["#0369a1", "#0284c7", "#0ea5e9", "#38bdf8"]}
-                  />
-                </Panel>
-                <Panel title="Leads por campanha">
-                  <RankedBarChart
-                    data={campaignLeadsChart}
-                    color={["#0f766e", "#14b8a6", "#2dd4bf", "#5eead4"]}
-                  />
-                </Panel>
-              </div>
-              <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-[var(--shadow-card)]">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Campanha</TableHead>
-                      <TableHead className="text-right">Investimento</TableHead>
-                      <TableHead className="text-right">Leads</TableHead>
-                      <TableHead className="text-right">CAQ</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {byCampanha.map((row) => (
-                      <TableRow key={row.campanha}>
-                        <TableCell className="font-medium">{row.campanha}</TableCell>
-                        <TableCell className="text-right tabular-nums">
-                          {fmtCurrency(row.investimento)}
-                        </TableCell>
-                        <TableCell className="text-right tabular-nums">{row.leads}</TableCell>
-                        <TableCell className="text-right tabular-nums">
-                          {row.caq != null ? fmtCurrency(row.caq) : "—"}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-              <button
-                type="button"
-                onClick={() => setTab("marketing")}
-                className="inline-flex items-center gap-1 text-xs font-semibold text-sky-700 hover:underline"
-              >
-                Ver métricas por anúncio <ArrowRight className="h-3.5 w-3.5" />
-              </button>
             </div>
           ) : null}
         </>
