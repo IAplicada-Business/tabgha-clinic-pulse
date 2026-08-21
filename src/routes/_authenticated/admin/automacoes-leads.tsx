@@ -1,10 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Zap, Loader2 } from "lucide-react";
+import { Zap, Loader2, Users, UserPlus, CheckCircle2, Percent } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { supabase } from "@/integrations/supabase/client";
 import { EmptyState } from "@/components/EmptyState";
+import { KpiCard } from "@/components/ui/kpi-card";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/admin/automacoes-leads")({
@@ -133,10 +134,10 @@ function AutomacoesLeadsPage() {
   }, [metricas, filterCanal]);
 
   const kpis = [
-    { rank: "01", label: "Leads totais", value: String(totais.total), color: "text-foreground" },
-    { rank: "02", label: "Novos (mês)", value: String(totais.novos), color: "text-primary" },
-    { rank: "03", label: "Convertidos", value: String(totais.conv), color: "text-emerald-700" },
-    { rank: "04", label: "% Conversão", value: `${totais.taxa}%`, color: "text-emerald-700" },
+    { label: "Leads totais", value: String(totais.total), icon: Users, tint: "blue" as const },
+    { label: "Novos (mês)", value: String(totais.novos), icon: UserPlus, tint: "sky" as const },
+    { label: "Convertidos", value: String(totais.conv), icon: CheckCircle2, tint: "green" as const },
+    { label: "% Conversão", value: `${totais.taxa}%`, icon: Percent, tint: "green" as const },
   ];
 
   return (
@@ -144,11 +145,8 @@ function AutomacoesLeadsPage() {
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-3 animate-fade-up">
         <div>
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-2.5 py-0.5 text-[10.5px] font-semibold uppercase tracking-widest text-primary mb-2">
-            <span className="h-1.5 w-1.5 rounded-full bg-primary" />
-            Leads / CRM
-          </span>
-          <h1 className="text-xl font-bold tracking-tight">Automações de leads</h1>
+          <span className="eyebrow-pill">Leads / CRM</span>
+          <h1 className="mt-2 text-2xl font-extrabold tracking-tight">Automações de leads</h1>
           <p className="text-xs text-muted-foreground mt-0.5">CPL · CPA · jornada de captação por cliente</p>
         </div>
         <div className="flex items-center gap-2">
@@ -174,29 +172,21 @@ function AutomacoesLeadsPage() {
           {/* KPI cards */}
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             {kpis.map((k, i) => (
-              <div
-                key={k.label}
-                className="card-lift animate-fade-up rounded-2xl border border-border bg-card px-5 pt-5 pb-4 shadow-[var(--shadow-card)] flex flex-col"
-                style={{ animationDelay: i * 75 + "ms" }}
-              >
-                <span className="text-[9px] font-black tracking-[0.16em] text-muted-foreground/40 mb-4">{k.rank}</span>
-                <p className="text-[10.5px] font-semibold uppercase tracking-wide text-muted-foreground mb-1">{k.label}</p>
-                <p className={cn("text-[2.4rem] font-black tracking-tight leading-none animate-numeric-pop mt-auto", k.color)}>{k.value}</p>
-                <div className="mt-3 h-0.5 w-full rounded-full bg-primary" />
+              <div key={k.label} className="animate-fade-up" style={{ animationDelay: i * 75 + "ms" }}>
+                <KpiCard label={k.label} value={k.value} icon={k.icon} tint={k.tint} format="raw" />
               </div>
             ))}
           </div>
 
           {/* Tabs */}
-          <div className="flex gap-0.5 border-b border-border animate-fade-up" style={{ animationDelay: "300ms" }}>
+          <div className="segmented animate-fade-up" style={{ animationDelay: "300ms" }}>
             {TABS.map((t) => (
               <button
                 key={t}
+                type="button"
                 onClick={() => setTab(t)}
-                className={cn(
-                  "px-4 py-2 text-sm transition-colors border-b-2 -mb-px",
-                  tab === t ? "border-primary text-foreground font-semibold" : "border-transparent text-muted-foreground hover:text-foreground",
-                )}
+                data-active={tab === t ? "true" : undefined}
+                className="segmented-item"
               >
                 {t}
               </button>
@@ -239,16 +229,16 @@ function AutomacoesLeadsPage() {
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm">
                       <thead>
-                        <tr className="bg-secondary/60 text-[10.5px] uppercase tracking-wide text-muted-foreground">
-                          <th className="px-4 py-2.5 text-left font-semibold w-8">#</th>
+                        <tr className="border-b border-border bg-secondary/40 text-[10px] font-bold uppercase tracking-[0.08em] text-muted-foreground/70">
+                          <th className="px-4 py-2.5 text-left w-8">#</th>
                           {["Cliente", "Especialidade", "Total", "Novos/mês", "Em andamento", "Convertidos", "% Conv."].map((h) => (
-                            <th key={h} className="px-4 py-2.5 text-left font-semibold">{h}</th>
+                            <th key={h} className="px-4 py-2.5 text-left">{h}</th>
                           ))}
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-border">
+                      <tbody className="divide-y divide-border/60">
                         {metricas.map((m, i) => (
-                          <tr key={m.id} className="hover:bg-secondary/30 transition-colors">
+                          <tr key={m.id} className="hover:bg-secondary/40 transition-colors">
                             <td className="px-4 py-3 text-[10px] font-black text-muted-foreground/30 tabular-nums">
                               {String(i + 1).padStart(2, "0")}
                             </td>

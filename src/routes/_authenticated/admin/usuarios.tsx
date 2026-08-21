@@ -440,7 +440,7 @@ function EditAccessDialog({
         </DialogHeader>
 
         <div className="space-y-4 py-2">
-          <div className="rounded-md border border-border bg-muted/30 px-3 py-2 space-y-2">
+          <div className="rounded-xl border border-border bg-muted/30 px-3 py-2.5 space-y-2">
             <p className="text-[11px] text-muted-foreground">
               A senha não fica salva em texto — use <strong>Redefinir senha</strong> para gerar de
               novo a provisória <strong>{provisionalPassword()}</strong> e copiar.
@@ -610,24 +610,21 @@ function UsuariosPage() {
       </div>
 
       {!isLoading && team.length > 0 && (
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           {[
-            { label: "Total de membros", value: team.length, color: "text-slate-700" },
-            { label: "Admins", value: admins.length, color: "text-primary" },
-            { label: "Portais", value: portalMembers.length, color: "text-sky-700" },
-            { label: "Admin + Portal", value: dual.length, color: "text-emerald-700" },
+            { label: "Total de membros", value: team.length, icon: Users, tint: "blue" as const },
+            { label: "Admins", value: admins.length, icon: ShieldCheck, tint: "violet" as const },
+            { label: "Portais", value: portalMembers.length, icon: UserCog, tint: "sky" as const },
+            { label: "Admin + Portal", value: dual.length, icon: Layers, tint: "green" as const },
           ].map((kpi, i) => (
-            <div
-              key={kpi.label}
-              className="rounded-2xl border border-border bg-card p-5 shadow-[var(--shadow-card)]"
-              style={{ animationDelay: i * 75 + "ms" }}
-            >
-              <p className="text-[10.5px] font-semibold uppercase tracking-widest text-muted-foreground">
-                {kpi.label}
-              </p>
-              <p className={`mt-1 text-3xl font-extrabold tracking-tight ${kpi.color}`}>
-                {kpi.value}
-              </p>
+            <div key={kpi.label} className="animate-fade-up" style={{ animationDelay: `${i * 75}ms` }}>
+              <KpiCard
+                label={kpi.label}
+                value={kpi.value}
+                icon={kpi.icon}
+                tint={kpi.tint}
+                format="raw"
+              />
             </div>
           ))}
         </div>
@@ -664,11 +661,9 @@ function UsuariosPage() {
                 <span className="w-5 shrink-0 text-[10px] font-black tabular-nums text-muted-foreground/30">
                   {String(i + 1).padStart(2, "0")}
                 </span>
-                <Avatar>
-                  <AvatarFallback className="bg-slate-100 text-xs text-slate-700">
-                    {initials(member.nome, member.email)}
-                  </AvatarFallback>
-                </Avatar>
+                <div className="icon-chip icon-chip-blue h-9 w-9 shrink-0 text-xs font-bold">
+                  {initials(member.nome, member.email)}
+                </div>
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-medium">{member.nome ?? "—"}</p>
                   <p className="truncate text-xs text-muted-foreground">{member.email}</p>

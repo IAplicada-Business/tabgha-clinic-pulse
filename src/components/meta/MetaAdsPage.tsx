@@ -27,7 +27,6 @@ import {
 } from "@/components/analytics/InsightPanel";
 import { KpiCard } from "@/components/ui/kpi-card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { cn } from "@/lib/utils";
 import {
   Table,
   TableBody,
@@ -358,67 +357,47 @@ export function MetaAdsPage({
             <h2 className="text-xl font-bold tracking-tight">Marketing pago</h2>
           </div>
         ) : (
-          <div
-            className="inline-flex items-center gap-1 text-[12px] text-muted-foreground"
-            role="tablist"
-            aria-label="Nível de mídia"
-          >
+          <div className="segmented" role="tablist" aria-label="Nível de mídia">
             {(
               [
                 ["campanhas", "Campanhas"],
                 ["anuncios", "Anúncios"],
               ] as const
-            ).map(([id, label], index) => (
-              <span key={id} className="inline-flex items-center gap-1">
-                {index > 0 ? <span className="text-border">·</span> : null}
-                <button
-                  type="button"
-                  role="tab"
-                  aria-selected={tab === id}
-                  onClick={() => setTab(id)}
-                  className={cn(
-                    "rounded px-1.5 py-0.5 transition-colors",
-                    tab === id
-                      ? "font-semibold text-foreground"
-                      : "hover:text-foreground",
-                  )}
-                >
-                  {label}
-                </button>
-              </span>
+            ).map(([id, label]) => (
+              <button
+                key={id}
+                type="button"
+                role="tab"
+                aria-selected={tab === id}
+                data-active={tab === id}
+                onClick={() => setTab(id)}
+                className="segmented-item"
+              >
+                {label}
+              </button>
             ))}
           </div>
         )}
         <div className="flex flex-wrap items-center gap-2">
           {!embedded ? (
-            <div
-              className="mr-1 inline-flex items-center gap-1 text-[12px] text-muted-foreground"
-              role="tablist"
-              aria-label="Nível de mídia"
-            >
+            <div className="segmented mr-1" role="tablist" aria-label="Nível de mídia">
               {(
                 [
                   ["campanhas", "Campanhas"],
                   ["anuncios", "Anúncios"],
                 ] as const
-              ).map(([id, label], index) => (
-                <span key={id} className="inline-flex items-center gap-1">
-                  {index > 0 ? <span className="text-border">·</span> : null}
-                  <button
-                    type="button"
-                    role="tab"
-                    aria-selected={tab === id}
-                    onClick={() => setTab(id)}
-                    className={cn(
-                      "rounded px-1.5 py-0.5 transition-colors",
-                      tab === id
-                        ? "font-semibold text-foreground"
-                        : "hover:text-foreground",
-                    )}
-                  >
-                    {label}
-                  </button>
-                </span>
+              ).map(([id, label]) => (
+                <button
+                  key={id}
+                  type="button"
+                  role="tab"
+                  aria-selected={tab === id}
+                  data-active={tab === id}
+                  onClick={() => setTab(id)}
+                  className="segmented-item"
+                >
+                  {label}
+                </button>
               ))}
             </div>
           ) : null}
@@ -434,7 +413,7 @@ export function MetaAdsPage({
             type="button"
             disabled={!activeClienteId || syncMutation.isPending}
             onClick={() => syncMutation.mutate()}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-2 text-xs font-semibold text-foreground hover:bg-secondary/60 disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-card px-3 py-2 text-xs font-semibold text-foreground shadow-[var(--shadow-xs)] transition-colors hover:bg-secondary/60 disabled:opacity-50"
           >
             {syncMutation.isPending ? (
               <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -499,7 +478,7 @@ export function MetaAdsPage({
                   <div className="h-72">
                     <ResponsiveContainer width="100%" height="100%">
                       <LineChart data={dataQuery.data?.chart ?? []}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.06)" />
+                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(15,27,53,0.06)" />
                         <XAxis
                           dataKey="data"
                           tick={{ fontSize: 10 }}
@@ -546,7 +525,7 @@ export function MetaAdsPage({
                   <div className="h-72">
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart data={dataQuery.data?.chart ?? []}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.06)" />
+                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(15,27,53,0.06)" />
                         <XAxis
                           dataKey="data"
                           tick={{ fontSize: 10 }}

@@ -1,6 +1,6 @@
+import { ShieldCheck } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
 import {
   ADMIN_PERMISSION_GROUPS,
   ADMIN_PERMISSION_LABELS,
@@ -38,32 +38,51 @@ export function PermissionPicker({ value, onChange, variant = "admin" }: Props) 
 
   return (
     <div className="space-y-3">
-      <div className="flex items-center gap-2 rounded-md border border-border bg-muted/40 p-3">
+      <div
+        className={`flex items-center gap-3 rounded-xl border p-3 transition-colors ${
+          isWildcard
+            ? "border-amber-200 bg-amber-50/70"
+            : "border-border bg-secondary/30 hover:bg-secondary/50"
+        }`}
+      >
+        <div className="icon-chip icon-chip-amber h-8 w-8 shrink-0">
+          <ShieldCheck className="h-4 w-4" />
+        </div>
+        <div className="min-w-0 flex-1">
+          <Label htmlFor={`perm-wildcard-${variant}`} className="cursor-pointer font-semibold">
+            Acesso total (*)
+          </Label>
+          <p className="text-[11px] text-muted-foreground">
+            Libera todas as telas do {isClient ? "portal" : "painel"} — ignora as opções abaixo.
+          </p>
+        </div>
         <Checkbox
           id={`perm-wildcard-${variant}`}
           checked={isWildcard}
           onCheckedChange={(c) => toggleWildcard(c === true)}
         />
-        <Label htmlFor={`perm-wildcard-${variant}`} className="font-semibold cursor-pointer">
-          Acesso total (*)
-        </Label>
       </div>
 
-      <Separator />
-
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
         {keys.map((group) => {
           const perm = groups[group as keyof typeof groups] as string;
           const label = labels[group as keyof typeof labels] as string;
+          const checked = isWildcard || value.includes(perm);
           return (
             <div
               key={group}
-              className="flex items-center gap-2 rounded-md border border-border p-2.5"
+              className={`flex items-center gap-2 rounded-xl border p-2.5 transition-colors ${
+                isWildcard
+                  ? "border-border/60 bg-muted/30"
+                  : checked
+                    ? "border-primary/25 bg-primary/5"
+                    : "border-border bg-card hover:bg-secondary/30"
+              }`}
             >
               <Checkbox
                 id={`perm-${variant}-${group}`}
                 disabled={isWildcard}
-                checked={isWildcard || value.includes(perm)}
+                checked={checked}
                 onCheckedChange={(c) => toggleGroup(group, c === true)}
               />
               <Label

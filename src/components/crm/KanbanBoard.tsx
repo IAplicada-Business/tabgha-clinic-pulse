@@ -15,7 +15,7 @@ import {
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { GripVertical, Loader2 } from "lucide-react";
+import { Clock, GripVertical, Layers, Loader2, TrendingUp, Wallet } from "lucide-react";
 import { toast } from "sonner";
 
 import { LeadDetailDialog } from "@/components/crm/LeadDetailDialog";
@@ -27,6 +27,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { KpiCard } from "@/components/ui/kpi-card";
 import { moverLeadStatus, type Lead } from "@/hooks/useLeads";
 import {
   CANAL_COLORS,
@@ -81,7 +82,7 @@ function LeadCardContent({ lead }: { lead: Lead }) {
         {lead.canal ? (
           <span
             className={cn(
-              "shrink-0 rounded px-1.5 py-0.5 text-[9.5px] font-semibold uppercase tracking-wide",
+              "shrink-0 rounded-full px-2 py-0.5 text-[9.5px] font-semibold uppercase tracking-wide",
               CANAL_COLORS[lead.canal] ?? "bg-secondary text-muted-foreground",
             )}
           >
@@ -109,8 +110,7 @@ function LeadCard({ lead, onOpen }: { lead: Lead; onOpen: () => void }) {
       ref={setNodeRef}
       style={style}
       className={cn(
-        "flex w-full overflow-hidden rounded-xl border border-border bg-card shadow-sm transition-all",
-        "hover:border-primary/20 hover:shadow-md",
+        "card-lift flex w-full overflow-hidden rounded-2xl border border-border/70 bg-card shadow-[var(--shadow-card)]",
         isDragging && "opacity-40",
         lead.status === "perdido" && "opacity-75",
       )}
@@ -125,11 +125,7 @@ function LeadCard({ lead, onOpen }: { lead: Lead; onOpen: () => void }) {
       >
         <GripVertical className="h-4 w-4" />
       </button>
-      <button
-        type="button"
-        onClick={onOpen}
-        className="min-w-0 flex-1 p-3 text-left hover:-translate-y-0.5"
-      >
+      <button type="button" onClick={onOpen} className="min-w-0 flex-1 p-3 text-left">
         <LeadCardContent lead={lead} />
         <p className="mt-1.5 text-[10px] font-medium text-sky-700/80">Toque para abrir</p>
       </button>
@@ -251,11 +247,23 @@ export function FunilHeader({ leads }: { leads: Lead[] }) {
   const tempoMedio = tempos.length > 0 ? tempos.reduce((a, b) => a + b, 0) / tempos.length : null;
 
   const cards = [
-    { label: "Total no funil", value: String(active.length) },
-    { label: "Taxa conversão", value: `${taxa}%` },
+    {
+      label: "Total no funil",
+      value: String(active.length),
+      icon: Layers,
+      tint: "blue" as const,
+      delta: {
+        value: `${novos.length} novos`,
+        label: `· ${agendados.length} avançados`,
+        direction: "neutral" as const,
+      },
+    },
+    { label: "Taxa conversão", value: `${taxa}%`, icon: TrendingUp, tint: "green" as const },
     {
       label: "Tempo médio novo→agendado",
       value: tempoMedio != null ? `${tempoMedio.toFixed(0)}h` : "—",
+      icon: Clock,
+      tint: "amber" as const,
     },
     {
       label: "Ticket médio",
@@ -263,26 +271,23 @@ export function FunilHeader({ leads }: { leads: Lead[] }) {
         ticketMedio != null
           ? ticketMedio.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })
           : "—",
+      icon: Wallet,
+      tint: "violet" as const,
     },
   ];
 
   return (
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
       {cards.map((card) => (
-        <div
+        <KpiCard
           key={card.label}
-          className="rounded-2xl border border-border bg-card px-4 py-4 shadow-sm"
-        >
-          <p className="text-[10.5px] font-semibold uppercase tracking-wide text-muted-foreground">
-            {card.label}
-          </p>
-          <p className="mt-2 text-2xl font-black tracking-tight">{card.value}</p>
-          {card.label.startsWith("Total") ? (
-            <p className="mt-1 text-[11px] text-muted-foreground">
-              {novos.length} novos · {agendados.length} avançados
-            </p>
-          ) : null}
-        </div>
+          label={card.label}
+          value={card.value}
+          icon={card.icon}
+          tint={card.tint}
+          format="raw"
+          delta={card.delta}
+        />
       ))}
     </div>
   );

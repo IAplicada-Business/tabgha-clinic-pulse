@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowRight, Loader2, TrendingUp } from "lucide-react";
+import { ArrowRight, Calculator, Loader2, Target, TrendingUp, Users, Wallet } from "lucide-react";
 import {
   Area,
   AreaChart,
@@ -26,6 +26,15 @@ import {
 } from "@/components/analytics/InsightPanel";
 import { EmptyState } from "@/components/EmptyState";
 import { MetaAdsPage } from "@/components/meta/MetaAdsPage";
+import { KpiCard } from "@/components/ui/kpi-card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { useAuth } from "@/lib/auth";
 import {
   buildCampaignInsights,
@@ -191,14 +200,15 @@ function RoiPage() {
   const adsCrmGap = insightFromGap(totais.leads, leadsCrm);
 
   const kpis = [
-    { rank: "01", label: "Investimento", value: fmtCurrency(totais.investimento) },
-    { rank: "02", label: "Leads (funil)", value: String(leadsBase) },
-    { rank: "03", label: "CPL médio", value: cpl != null ? fmtCurrency(cpl) : "—" },
+    { label: "Investimento", value: fmtCurrency(totais.investimento), icon: Wallet, tint: "blue" as const },
+    { label: "Leads (funil)", value: String(leadsBase), icon: Users, tint: "green" as const },
+    { label: "CPL médio", value: cpl != null ? fmtCurrency(cpl) : "—", icon: Target, tint: "amber" as const },
     {
-      rank: "04",
       label: "CAQ",
       value: caq != null ? fmtCurrency(caq) : "—",
-      badge: { label: "investimento ÷ leads", color: "bg-sky-100 text-sky-800" },
+      icon: Calculator,
+      tint: "violet" as const,
+      delta: { value: "investimento ÷ leads", direction: "neutral" as const },
     },
   ];
 
@@ -228,17 +238,14 @@ function RoiPage() {
           <h1 className="mt-0.5 text-xl font-bold tracking-tight">{pageTitle[tab]}</h1>
         </div>
         {tab !== "marketing" ? (
-          <div className="flex gap-1 rounded-xl border border-border bg-secondary/40 p-1">
+          <div className="segmented">
             {PERIODOS.map((p) => (
               <button
                 key={p.days}
+                type="button"
                 onClick={() => setPeriodo(p.days)}
-                className={cn(
-                  "rounded-lg px-3.5 py-1.5 text-xs font-semibold transition-all duration-150",
-                  periodo === p.days
-                    ? "bg-card text-foreground shadow-sm"
-                    : "text-muted-foreground hover:text-foreground",
-                )}
+                data-active={periodo === p.days}
+                className="segmented-item"
               >
                 {p.label}
               </button>
@@ -268,33 +275,17 @@ function RoiPage() {
                 <InsightStack items={[{ title: "Ads × funil", body: adsCrmGap, tone: "info" }]} />
               ) : null}
 
-              <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-                {kpis.map(({ rank, label, value, badge }, i) => (
-                  <div
-                    key={label}
-                    className="card-lift animate-fade-up flex flex-col rounded-2xl border border-border bg-card px-5 pb-4 pt-5 shadow-[var(--shadow-card)]"
-                    style={{ animationDelay: `${i * 75}ms` }}
-                  >
-                    <span className="mb-4 text-[9px] font-black tracking-[0.16em] text-muted-foreground/40">
-                      {rank}
-                    </span>
-                    <p className="mb-1 text-[10.5px] font-semibold uppercase tracking-wide text-muted-foreground">
-                      {label}
-                    </p>
-                    <p className="mt-auto animate-numeric-pop text-[2.4rem] font-black leading-none tracking-tight text-sky-800">
-                      {value}
-                    </p>
-                    {badge ? (
-                      <span
-                        className={cn(
-                          "mt-2 self-start rounded-full px-2.5 py-0.5 text-[11px] font-semibold",
-                          badge.color,
-                        )}
-                      >
-                        {badge.label}
-                      </span>
-                    ) : null}
-                    <div className="mt-3 h-0.5 w-full rounded-full bg-sky-500" />
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                {kpis.map((kpi, i) => (
+                  <div key={kpi.label} className="animate-fade-up" style={{ animationDelay: `${i * 75}ms` }}>
+                    <KpiCard
+                      label={kpi.label}
+                      value={kpi.value}
+                      icon={kpi.icon}
+                      tint={kpi.tint}
+                      format="raw"
+                      delta={"delta" in kpi ? kpi.delta : undefined}
+                    />
                   </div>
                 ))}
               </div>
@@ -440,45 +431,40 @@ function RoiPage() {
               </Panel>
 
               <Panel title="Registros do período" subtitle="Linhas de mídia (nível campanha)">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="bg-secondary/60 text-[10.5px] uppercase tracking-wide text-muted-foreground">
-                        <th className="w-8 px-4 py-3 text-left font-semibold">#</th>
-                        {["Data", "Plataforma", "Investimento", "Leads", "CAQ"].map((h) => (
-                          <th key={h} className="px-4 py-3 text-left font-semibold">
-                            {h}
-                          </th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-border">
-                      {metricas.slice(0, 5).map((m, idx) => {
-                        const rowCaq =
-                          Number(m.leads) > 0 ? Number(m.investimento) / Number(m.leads) : null;
-                        return (
-                          <tr
-                            key={m.data + m.plataforma + idx}
-                            className="transition-colors hover:bg-secondary/30"
-                          >
-                            <td className="px-4 py-2.5 text-[10px] font-black tabular-nums text-muted-foreground/30">
-                              {String(idx + 1).padStart(2, "0")}
-                            </td>
-                            <td className="px-4 py-2.5 text-xs text-muted-foreground">{m.data}</td>
-                            <td className="px-4 py-2.5 capitalize">{m.plataforma}</td>
-                            <td className="px-4 py-2.5 font-medium tabular-nums">
-                              {fmtCurrency(Number(m.investimento))}
-                            </td>
-                            <td className="px-4 py-2.5 tabular-nums">{m.leads}</td>
-                            <td className="px-4 py-2.5 font-semibold tabular-nums text-sky-800">
-                              {rowCaq != null ? fmtCurrency(rowCaq) : "—"}
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-8">#</TableHead>
+                      <TableHead>Data</TableHead>
+                      <TableHead>Plataforma</TableHead>
+                      <TableHead>Investimento</TableHead>
+                      <TableHead>Leads</TableHead>
+                      <TableHead>CAQ</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {metricas.slice(0, 5).map((m, idx) => {
+                      const rowCaq =
+                        Number(m.leads) > 0 ? Number(m.investimento) / Number(m.leads) : null;
+                      return (
+                        <TableRow key={m.data + m.plataforma + idx}>
+                          <TableCell className="text-[10px] font-black tabular-nums text-muted-foreground/30">
+                            {String(idx + 1).padStart(2, "0")}
+                          </TableCell>
+                          <TableCell className="text-xs text-muted-foreground">{m.data}</TableCell>
+                          <TableCell className="capitalize">{m.plataforma}</TableCell>
+                          <TableCell className="font-medium tabular-nums">
+                            {fmtCurrency(Number(m.investimento))}
+                          </TableCell>
+                          <TableCell className="tabular-nums">{m.leads}</TableCell>
+                          <TableCell className="font-semibold tabular-nums text-sky-700">
+                            {rowCaq != null ? fmtCurrency(rowCaq) : "—"}
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
                 {metricas.length > 5 ? (
                   <div className="mt-3 flex items-center justify-between text-xs text-muted-foreground">
                     <span>+{metricas.length - 5} registros</span>
