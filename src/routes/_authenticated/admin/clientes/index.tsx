@@ -240,7 +240,7 @@ function ClientesAdminPage() {
         {kpiCards.map((kpi, i) => (
           <div
             key={kpi.rank}
-            className="card-lift animate-fade-up rounded-2xl border border-border bg-card px-5 pt-5 pb-4 shadow-[0_1px_3px_rgba(15,27,53,0.04)] flex flex-col"
+            className="card-lift animate-fade-up rounded-2xl border border-border bg-card px-5 pt-5 pb-4 shadow-[var(--shadow-card)] flex flex-col"
             style={{ animationDelay: i * 75 + "ms" }}
           >
             <span className="text-[9px] font-black tracking-[0.16em] text-muted-foreground/40 mb-4">
@@ -259,7 +259,7 @@ function ClientesAdminPage() {
 
       {/* Filters */}
       <div
-        className="rounded-2xl border border-border bg-card p-5 shadow-[0_1px_3px_rgba(15,27,53,0.04)] animate-fade-up"
+        className="rounded-2xl border border-border bg-card p-5 shadow-[var(--shadow-card)] animate-fade-up"
         style={{ animationDelay: "300ms" }}
       >
         <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-3">
@@ -295,7 +295,7 @@ function ClientesAdminPage() {
 
       {/* Client List */}
       <div
-        className="rounded-2xl border border-border bg-card p-5 shadow-[0_1px_3px_rgba(15,27,53,0.04)] animate-fade-up"
+        className="rounded-2xl border border-border bg-card p-5 shadow-[var(--shadow-card)] animate-fade-up"
         style={{ animationDelay: "375ms" }}
       >
         <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-3">

@@ -82,7 +82,7 @@ function Section({
     <div
       className={cn(
         "card-lift animate-fade-up overflow-hidden rounded-2xl border border-border bg-card",
-        "shadow-[0_1px_3px_rgba(15,27,53,0.04)]",
+        "shadow-[var(--shadow-card)]",
         className,
       )}
       style={{ animationDelay: `${delay}ms` }}
@@ -170,7 +170,7 @@ function DiagnosticoPage() {
         </div>
       ) : !ready ? (
         <div
-          className="card-lift animate-fade-up overflow-hidden rounded-2xl border border-border bg-card shadow-[0_1px_3px_rgba(15,27,53,0.04)]"
+          className="card-lift animate-fade-up overflow-hidden rounded-2xl border border-border bg-card shadow-[var(--shadow-card)]"
           style={{ animationDelay: "75ms" }}
         >
           <div className="flex items-center gap-2.5 border-b border-primary/15 bg-primary/5 px-5 py-3">

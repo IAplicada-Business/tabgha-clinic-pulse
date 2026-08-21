@@ -52,7 +52,7 @@ function ClientesPage() {
       {/* KPI Card */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div
-          className="card-lift animate-fade-up rounded-2xl border border-border bg-card px-5 pt-5 pb-4 shadow-[0_1px_3px_rgba(15,27,53,0.04)] flex flex-col"
+          className="card-lift animate-fade-up rounded-2xl border border-border bg-card px-5 pt-5 pb-4 shadow-[var(--shadow-card)] flex flex-col"
           style={{ animationDelay: "75ms" }}
         >
           <span className="text-[9px] font-black tracking-[0.16em] text-muted-foreground/40 mb-4">01</span>
@@ -64,7 +64,7 @@ function ClientesPage() {
         </div>
 
         <div
-          className="card-lift animate-fade-up rounded-2xl border border-border bg-card px-5 pt-5 pb-4 shadow-[0_1px_3px_rgba(15,27,53,0.04)] flex flex-col"
+          className="card-lift animate-fade-up rounded-2xl border border-border bg-card px-5 pt-5 pb-4 shadow-[var(--shadow-card)] flex flex-col"
           style={{ animationDelay: "150ms" }}
         >
           <span className="text-[9px] font-black tracking-[0.16em] text-muted-foreground/40 mb-4">02</span>
@@ -95,7 +95,7 @@ function ClientesPage() {
         />
       ) : (
         <div
-          className="animate-fade-up rounded-2xl border border-border bg-card shadow-[0_1px_3px_rgba(15,27,53,0.04)] overflow-hidden"
+          className="animate-fade-up rounded-2xl border border-border bg-card shadow-[var(--shadow-card)] overflow-hidden"
           style={{ animationDelay: "300ms" }}
         >
           <div className="px-5 pt-4 pb-2">

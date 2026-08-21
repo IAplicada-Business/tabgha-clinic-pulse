@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowRight, Loader2, TrendingUp } from "lucide-react";
+import { ArrowRight, Building2, Loader2, Target, TrendingUp, Users, Wallet } from "lucide-react";
 import {
   Area,
   AreaChart,
@@ -356,7 +356,7 @@ function DashboardClientesPage() {
             ].map((card, i) => (
               <div
                 key={card.rank}
-                className="card-lift animate-fade-up flex flex-col rounded-2xl border border-border bg-card px-5 pb-4 pt-5 shadow-[0_1px_3px_rgba(15,27,53,0.04)]"
+                className="card-lift animate-fade-up flex flex-col rounded-2xl border border-border bg-card px-5 pb-4 pt-5 shadow-[var(--shadow-card)]"
                 style={{ animationDelay: `${i * 70}ms` }}
               >
                 <span className="mb-4 text-[9px] font-black tracking-[0.16em] text-muted-foreground/40">
@@ -450,7 +450,7 @@ function DashboardClientesPage() {
             </Panel>
           </div>
 
-          <div className="animate-fade-up overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-slate-50 via-white to-sky-50/70 shadow-[0_1px_3px_rgba(15,27,53,0.04)]">
+          <div className="animate-fade-up overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-slate-50 via-white to-sky-50/70 shadow-[var(--shadow-card)]">
             <div className="flex items-start justify-between px-6 pb-2 pt-5">
               <div>
                 <p className="text-base font-bold text-foreground">Novos leads</p>

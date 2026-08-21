@@ -145,7 +145,7 @@ function ConteudoCard({ item, onMove }: { item: Conteudo; onMove: (id: string, s
     : null;
 
   return (
-    <div className="card-lift animate-fade-up rounded-xl border border-border bg-card p-3.5 space-y-2.5 shadow-[0_1px_3px_rgba(15,27,53,0.04)]">
+    <div className="card-lift animate-fade-up rounded-xl border border-border bg-card p-3.5 space-y-2.5 shadow-[var(--shadow-card)]">
       <p className="text-[12.5px] font-semibold leading-snug">{item.titulo ?? "(sem título)"}</p>
       <p className="text-[11px] text-muted-foreground">{item.clientes?.nome ?? "—"}</p>
       <div className="flex flex-wrap gap-1">
@@ -244,7 +244,7 @@ function EstrategiaPage() {
         ].map((kpi) => (
           <div
             key={kpi.rank}
-            className="card-lift animate-fade-up rounded-2xl border border-border bg-card px-5 pt-5 pb-4 shadow-[0_1px_3px_rgba(15,27,53,0.04)] flex flex-col"
+            className="card-lift animate-fade-up rounded-2xl border border-border bg-card px-5 pt-5 pb-4 shadow-[var(--shadow-card)] flex flex-col"
             style={{ animationDelay: kpi.delay + "ms" }}
           >
             <span className="text-[9px] font-black tracking-[0.16em] text-muted-foreground/40 mb-4">{kpi.rank}</span>
@@ -302,7 +302,7 @@ function EstrategiaPage() {
               return (
                 <div
                   key={col.key}
-                  className="animate-fade-up flex-1 min-w-[160px] flex flex-col rounded-2xl border border-border bg-card shadow-[0_1px_3px_rgba(15,27,53,0.04)] overflow-hidden"
+                  className="animate-fade-up flex-1 min-w-[160px] flex flex-col rounded-2xl border border-border bg-card shadow-[var(--shadow-card)] overflow-hidden"
                   style={{ animationDelay: colIdx * 50 + "ms" }}
                 >
                   {/* Column header */}

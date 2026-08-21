@@ -6,21 +6,22 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * TABGHA OS Design System — Light Professional Palette
+ * TABGHA OS Design System 2.0 — Modern Soft Palette
  *
- * Interior da aplicação: branco/cinza claro.
+ * Interior da aplicação: branco/cinza claro com cantos generosos,
+ * elevação suave em camadas e chips de cor por contexto (marca Tabgha).
  * Sidebar mantém dark navy (tokens --sidebar-*).
  * Login page usa dark navy via classe ou bg inline.
  */
 
 @theme inline {
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 6px);
+  --radius-md: calc(var(--radius) - 3px);
   --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
-  --radius-2xl: calc(var(--radius) + 8px);
-  --radius-3xl: calc(var(--radius) + 12px);
-  --radius-4xl: calc(var(--radius) + 16px);
+  --radius-xl: calc(var(--radius) + 6px);
+  --radius-2xl: calc(var(--radius) + 10px);
+  --radius-3xl: calc(var(--radius) + 14px);
+  --radius-4xl: calc(var(--radius) + 20px);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -71,14 +72,41 @@
   --color-slate-600: var(--slate-600);
   --color-red-100: var(--red-100);
   --color-red-700: var(--red-700);
+  /* Soft tint chips */
+  --color-tint-blue-bg: var(--tint-blue-bg);
+  --color-tint-blue-fg: var(--tint-blue-fg);
+  --color-tint-sky-bg: var(--tint-sky-bg);
+  --color-tint-sky-fg: var(--tint-sky-fg);
+  --color-tint-amber-bg: var(--tint-amber-bg);
+  --color-tint-amber-fg: var(--tint-amber-fg);
+  --color-tint-green-bg: var(--tint-green-bg);
+  --color-tint-green-fg: var(--tint-green-fg);
+  --color-tint-rose-bg: var(--tint-rose-bg);
+  --color-tint-rose-fg: var(--tint-rose-fg);
+  --color-tint-violet-bg: var(--tint-violet-bg);
+  --color-tint-violet-fg: var(--tint-violet-fg);
 }
 
 :root {
-  --radius: 0.625rem;
+  --radius: 1.125rem;
 
-  /* ── TABGHA OS — Light Professional Base ── */
+  /* ── TABGHA OS — Modern Soft Base ── */
   --background: oklch(0.975 0.004 264);        /* #F7F9FC very light blue-gray */
   --foreground: oklch(0.14 0.044 264);          /* #0B1A2B brand navy */
+
+  /* Elevation scale — soft, layered, brand-navy tinted shadows */
+  --shadow-xs: 0 1px 2px oklch(0.14 0.044 264 / 5%);
+  --shadow-card: 0 1px 2px oklch(0.14 0.044 264 / 4%), 0 8px 20px -10px oklch(0.14 0.044 264 / 10%);
+  --shadow-lift: 0 2px 4px oklch(0.14 0.044 264 / 5%), 0 16px 32px -12px oklch(0.14 0.044 264 / 16%);
+  --shadow-float: 0 4px 8px oklch(0.14 0.044 264 / 6%), 0 24px 48px -16px oklch(0.14 0.044 264 / 22%);
+
+  /* Soft tint chips — icon badges, categorical accents (derivados da marca) */
+  --tint-blue-bg: oklch(0.920 0.045 261);   --tint-blue-fg: oklch(0.440 0.158 261);
+  --tint-sky-bg:  oklch(0.930 0.045 215);   --tint-sky-fg:  oklch(0.500 0.110 215);
+  --tint-amber-bg: oklch(0.945 0.070 72);   --tint-amber-fg: oklch(0.500 0.140 72);
+  --tint-green-bg: oklch(0.930 0.060 155);  --tint-green-fg: oklch(0.440 0.150 155);
+  --tint-rose-bg:  oklch(0.935 0.045 17);   --tint-rose-fg:  oklch(0.500 0.170 17);
+  --tint-violet-bg: oklch(0.925 0.045 300); --tint-violet-fg: oklch(0.470 0.150 300);
 
   --card: oklch(1 0 0);                         /* pure white */
   --card-foreground: oklch(0.14 0.044 264);
@@ -157,6 +185,10 @@
 
   body {
     background-color: var(--color-background);
+    background-image:
+      radial-gradient(1100px 520px at 100% -8%, oklch(0.440 0.158 261 / 6%), transparent 60%),
+      radial-gradient(900px 480px at -6% 12%, oklch(0.770 0.160 72 / 5%), transparent 55%);
+    background-attachment: fixed;
     color: var(--color-foreground);
     font-family: 'Poppins', -apple-system, system-ui, sans-serif;
     font-size: 14px;
@@ -219,15 +251,15 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: oklch(0.14 0.044 264 / 6%);
-  border: 1px solid oklch(0.14 0.044 264 / 10%);
-  border-radius: 4px;
-  padding: 4px 10px;
+  background: linear-gradient(135deg, oklch(0.440 0.158 261 / 10%), oklch(0.770 0.160 72 / 10%));
+  border: 1px solid oklch(0.14 0.044 264 / 8%);
+  border-radius: 999px;
+  padding: 5px 12px;
   font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 0.08em;
+  font-weight: 600;
+  letter-spacing: 0.07em;
   text-transform: uppercase;
-  color: oklch(0.45 0.018 264);
+  color: var(--brand-blue);
 }
 .eyebrow-pill::before {
   content: '';
@@ -237,6 +269,47 @@
   border-radius: 50%;
   background: oklch(0.463 0.170 264);
   flex-shrink: 0;
+}
+
+/* Icon chip — badge colorido para KPIs, nav items e listas (paleta da marca) */
+.icon-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-lg);
+  flex-shrink: 0;
+}
+.icon-chip-blue   { background: var(--tint-blue-bg);   color: var(--tint-blue-fg); }
+.icon-chip-sky    { background: var(--tint-sky-bg);    color: var(--tint-sky-fg); }
+.icon-chip-amber  { background: var(--tint-amber-bg);  color: var(--tint-amber-fg); }
+.icon-chip-green  { background: var(--tint-green-bg);  color: var(--tint-green-fg); }
+.icon-chip-rose   { background: var(--tint-rose-bg);   color: var(--tint-rose-fg); }
+.icon-chip-violet { background: var(--tint-violet-bg); color: var(--tint-violet-fg); }
+
+/* Segmented control — toggle de período em pílula (Weekly/Monthly/Yearly-style) */
+.segmented {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  background: var(--secondary);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 3px;
+}
+.segmented-item {
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--muted-foreground);
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.segmented-item[data-active="true"] {
+  background: var(--card);
+  color: var(--primary);
+  box-shadow: var(--shadow-xs);
 }
 
 /* Skeleton shimmer — light theme */
@@ -294,13 +367,13 @@
 
 /* Card hover lift — shared utility */
 .card-lift {
-  transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1),
-              box-shadow 0.18s cubic-bezier(0.16, 1, 0.3, 1),
-              border-color 0.18s ease;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.2s ease;
 }
 .card-lift:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px -8px oklch(0.14 0.044 264 / 14%);
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-lift);
   border-color: oklch(0.440 0.158 261 / 20%);
 }
 

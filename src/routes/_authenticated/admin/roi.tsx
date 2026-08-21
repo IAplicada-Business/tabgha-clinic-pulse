@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowDown, ArrowRight, ArrowUp, Loader2, TrendingUp } from "lucide-react";
+import { ArrowRight, Loader2, Receipt, Target, TrendingUp, Users, Wallet } from "lucide-react";
 import {
   Bar,
   BarChart,
@@ -28,6 +28,7 @@ import {
 } from "@/components/analytics/InsightPanel";
 import { EmptyState } from "@/components/EmptyState";
 import { MetaAdsPage } from "@/components/meta/MetaAdsPage";
+import { KpiCard } from "@/components/ui/kpi-card";
 import { useClientesOptions } from "@/hooks/useClientesOptions";
 import {
   buildCampaignInsights,
@@ -40,7 +41,6 @@ import {
   insightFromGap,
 } from "@/lib/analytics-insights";
 import { calcCaq } from "@/lib/analytics-range";
-import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 
 const ROI_TABS = ["operacao", "clientes", "campanhas", "marketing"] as const;
@@ -95,54 +95,6 @@ type LeadRow = {
 function fmt(v: number) {
   if (v >= 1000) return `R$ ${(v / 1000).toFixed(1)}k`;
   return `R$ ${v.toLocaleString("pt-BR", { minimumFractionDigits: 0 })}`;
-}
-
-function KpiCard({
-  rank,
-  label,
-  value,
-  sub,
-  up,
-  delay,
-}: {
-  rank: string;
-  label: string;
-  value: string;
-  sub?: string;
-  up?: boolean;
-  delay: number;
-}) {
-  return (
-    <div
-      className="card-lift animate-fade-up flex flex-col rounded-2xl border border-border bg-card px-5 pb-4 pt-5 shadow-[0_1px_3px_rgba(15,27,53,0.04)]"
-      style={{ animationDelay: `${delay}ms` }}
-    >
-      <span className="mb-4 text-[9px] font-black tracking-[0.16em] text-muted-foreground/40">
-        {rank}
-      </span>
-      <p className="mb-1 text-[10.5px] font-semibold uppercase tracking-wide text-muted-foreground">
-        {label}
-      </p>
-      <p className="mt-auto text-[2.2rem] font-black leading-none tracking-tight">{value}</p>
-      {sub ? (
-        <p
-          className={cn(
-            "mt-2 flex items-center gap-1 text-[11px] font-medium",
-            up === true
-              ? "text-emerald-700"
-              : up === false
-                ? "text-red-600"
-                : "text-muted-foreground",
-          )}
-        >
-          {up === true && <ArrowUp className="h-3 w-3" />}
-          {up === false && <ArrowDown className="h-3 w-3" />}
-          {sub}
-        </p>
-      ) : null}
-      <div className="mt-3 h-0.5 w-full rounded-full bg-sky-500/80" />
-    </div>
-  );
 }
 
 function RoiAdminPage() {
@@ -353,10 +305,8 @@ function RoiAdminPage() {
     <div className="space-y-5 px-6 py-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-            ROI da operação
-          </p>
-          <h1 className="mt-0.5 text-xl font-bold tracking-tight">{pageTitle[tab]}</h1>
+          <span className="eyebrow-pill">ROI da operação</span>
+          <h1 className="mt-2 text-2xl font-extrabold tracking-tight">{pageTitle[tab]}</h1>
         </div>
         {tab !== "marketing" ? (
           <AnalyticsFilters
@@ -392,31 +342,50 @@ function RoiAdminPage() {
                 <InsightStack items={[{ title: "Ads × funil", body: adsCrmGap, tone: "info" }]} />
               ) : null}
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                <KpiCard
-                  rank="01"
-                  label="CAQ"
-                  value={kpis.caq != null ? fmt(kpis.caq) : "—"}
-                  sub="quanto custa cada lead"
-                  delay={0}
-                />
-                <KpiCard rank="02" label="Investido" value={fmt(kpis.totalInvest)} delay={60} />
-                <KpiCard
-                  rank="03"
-                  label="Leads"
-                  value={String(kpis.leadsBase)}
-                  sub={
-                    kpis.leadsCrm > 0
-                      ? `${kpis.leadsCrm} no CRM · ${kpis.totalLeadsAds} Ads`
-                      : `${kpis.totalLeadsAds} via Ads`
-                  }
-                  delay={120}
-                />
-                <KpiCard
-                  rank="04"
-                  label="CPL médio"
-                  value={kpis.cplMed != null ? fmt(kpis.cplMed) : "—"}
-                  delay={180}
-                />
+                <div className="animate-fade-up">
+                  <KpiCard
+                    label="CAQ"
+                    value={kpis.caq != null ? fmt(kpis.caq) : "—"}
+                    icon={Target}
+                    tint="blue"
+                    format="raw"
+                    delta={{ value: "quanto custa cada lead", direction: "neutral" }}
+                  />
+                </div>
+                <div className="animate-fade-up" style={{ animationDelay: "60ms" }}>
+                  <KpiCard
+                    label="Investido"
+                    value={fmt(kpis.totalInvest)}
+                    icon={Wallet}
+                    tint="sky"
+                    format="raw"
+                  />
+                </div>
+                <div className="animate-fade-up" style={{ animationDelay: "120ms" }}>
+                  <KpiCard
+                    label="Leads"
+                    value={String(kpis.leadsBase)}
+                    icon={Users}
+                    tint="violet"
+                    format="raw"
+                    delta={{
+                      value:
+                        kpis.leadsCrm > 0
+                          ? `${kpis.leadsCrm} no CRM · ${kpis.totalLeadsAds} Ads`
+                          : `${kpis.totalLeadsAds} via Ads`,
+                      direction: "neutral",
+                    }}
+                  />
+                </div>
+                <div className="animate-fade-up" style={{ animationDelay: "180ms" }}>
+                  <KpiCard
+                    label="CPL médio"
+                    value={kpis.cplMed != null ? fmt(kpis.cplMed) : "—"}
+                    icon={Receipt}
+                    tint="amber"
+                    format="raw"
+                  />
+                </div>
               </div>
 
               <div className="grid gap-4 lg:grid-cols-2">
@@ -429,7 +398,7 @@ function RoiAdminPage() {
               </div>
 
               {byCliente.length > 0 ? (
-                <div className="animate-fade-up rounded-2xl border border-border bg-gradient-to-br from-slate-50 to-sky-50/60 p-5 shadow-[0_1px_3px_rgba(15,27,53,0.04)]">
+                <div className="animate-fade-up rounded-2xl border border-border bg-gradient-to-br from-slate-50 to-sky-50/60 p-5 shadow-[var(--shadow-card)]">
                   <p className="mt-1 text-base font-bold text-foreground">
                     Investimento × Leads por cliente
                   </p>
@@ -491,7 +460,7 @@ function RoiAdminPage() {
                 </div>
               ) : null}
 
-              <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-[0_1px_3px_rgba(15,27,53,0.04)]">
+              <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-[var(--shadow-card)]">
                 <div className="flex items-center justify-between border-b border-border px-5 py-4">
                   <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
                     Registros do período
@@ -503,21 +472,21 @@ function RoiAdminPage() {
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
-                      <tr className="bg-secondary/60 text-[10.5px] uppercase tracking-wide text-muted-foreground">
-                        <th className="px-4 py-2.5 text-left font-semibold">#</th>
-                        <th className="px-4 py-2.5 text-left font-semibold">Cliente</th>
-                        <th className="px-4 py-2.5 text-left font-semibold">Data</th>
-                        <th className="px-4 py-2.5 text-left font-semibold">Plataforma</th>
-                        <th className="px-4 py-2.5 text-right font-semibold">Investimento</th>
-                        <th className="px-4 py-2.5 text-right font-semibold">Leads</th>
-                        <th className="px-4 py-2.5 text-right font-semibold">CAQ</th>
+                      <tr className="border-b border-border bg-secondary/40 text-[10px] font-bold uppercase tracking-[0.08em] text-muted-foreground/70">
+                        <th className="px-4 py-2.5 text-left">#</th>
+                        <th className="px-4 py-2.5 text-left">Cliente</th>
+                        <th className="px-4 py-2.5 text-left">Data</th>
+                        <th className="px-4 py-2.5 text-left">Plataforma</th>
+                        <th className="px-4 py-2.5 text-right">Investimento</th>
+                        <th className="px-4 py-2.5 text-right">Leads</th>
+                        <th className="px-4 py-2.5 text-right">CAQ</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-border">
+                    <tbody className="divide-y divide-border/60">
                       {rowsVisible.map((m, idx) => {
                         const caq = calcCaq(Number(m.investimento), m.leads);
                         return (
-                          <tr key={m.id} className="transition-colors hover:bg-secondary/30">
+                          <tr key={m.id} className="transition-colors hover:bg-secondary/40">
                             <td className="px-4 py-2.5 text-[10px] font-black tabular-nums text-muted-foreground/30">
                               {String(idx + 1).padStart(2, "0")}
                             </td>
@@ -601,10 +570,10 @@ function RoiAdminPage() {
                 </Panel>
               </div>
 
-              <div className="overflow-hidden rounded-2xl border border-border bg-card">
+              <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-[var(--shadow-card)]">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="bg-secondary/50 text-[10px] uppercase tracking-wide text-muted-foreground">
+                    <tr className="border-b border-border bg-secondary/40 text-[10px] font-bold uppercase tracking-[0.08em] text-muted-foreground/70">
                       <th className="px-4 py-2.5 text-left">Cliente</th>
                       <th className="px-3 py-2.5 text-right">Invest.</th>
                       <th className="px-3 py-2.5 text-right">Leads Ads</th>
@@ -615,7 +584,7 @@ function RoiAdminPage() {
                       <th className="px-3 py-2.5 text-right" />
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-border">
+                  <tbody className="divide-y divide-border/60">
                     {(() => {
                       const oppById = new Map(oportunidades.map((o) => [o.id, o]));
                       const ids = new Set([
@@ -655,7 +624,7 @@ function RoiAdminPage() {
                         );
                       }
                       return rows.map((row) => (
-                        <tr key={row.id} className="hover:bg-secondary/30">
+                        <tr key={row.id} className="transition-colors hover:bg-secondary/40">
                           <td className="px-4 py-3 font-medium">{row.nome}</td>
                           <td className="px-3 py-3 text-right tabular-nums">
                             {row.investimento > 0 ? fmt(row.investimento) : "—"}
@@ -733,19 +702,19 @@ function RoiAdminPage() {
                   Ver anúncios <ArrowRight className="h-3.5 w-3.5" />
                 </button>
               </div>
-              <div className="overflow-hidden rounded-2xl border border-border bg-card">
+              <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-[var(--shadow-card)]">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="bg-secondary/50 text-[10px] uppercase tracking-wide text-muted-foreground">
+                    <tr className="border-b border-border bg-secondary/40 text-[10px] font-bold uppercase tracking-[0.08em] text-muted-foreground/70">
                       <th className="px-4 py-2.5 text-left">Campanha</th>
                       <th className="px-4 py-2.5 text-right">Investimento</th>
                       <th className="px-4 py-2.5 text-right">Leads</th>
                       <th className="px-4 py-2.5 text-right">CAQ</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-border">
+                  <tbody className="divide-y divide-border/60">
                     {byCampanha.slice(0, showAllRows ? undefined : 8).map((row) => (
-                      <tr key={row.campanha} className="hover:bg-secondary/30">
+                      <tr key={row.campanha} className="transition-colors hover:bg-secondary/40">
                         <td className="px-4 py-3 font-medium">{row.campanha}</td>
                         <td className="px-4 py-3 text-right tabular-nums">
                           {fmt(row.investimento)}

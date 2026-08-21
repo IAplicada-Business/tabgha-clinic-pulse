@@ -272,7 +272,7 @@ function RoiPage() {
                 {kpis.map(({ rank, label, value, badge }, i) => (
                   <div
                     key={label}
-                    className="card-lift animate-fade-up flex flex-col rounded-2xl border border-border bg-card px-5 pb-4 pt-5 shadow-[0_1px_3px_rgba(15,27,53,0.04)]"
+                    className="card-lift animate-fade-up flex flex-col rounded-2xl border border-border bg-card px-5 pb-4 pt-5 shadow-[var(--shadow-card)]"
                     style={{ animationDelay: `${i * 75}ms` }}
                   >
                     <span className="mb-4 text-[9px] font-black tracking-[0.16em] text-muted-foreground/40">

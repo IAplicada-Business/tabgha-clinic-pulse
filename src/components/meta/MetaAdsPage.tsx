@@ -12,7 +12,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { ArrowRight, Loader2, RefreshCw } from "lucide-react";
+import { ArrowRight, Eye, Loader2, RefreshCw, Target, Users, Wallet } from "lucide-react";
 
 import {
   AnalyticsFilters,
@@ -25,6 +25,7 @@ import {
   RankedBarChart,
   StoryBanner,
 } from "@/components/analytics/InsightPanel";
+import { KpiCard } from "@/components/ui/kpi-card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import {
@@ -290,15 +291,24 @@ export function MetaAdsPage({
     const current = dataQuery.data?.current;
     if (!current) return [];
     return [
-      { label: "Investimento", value: formatCurrency(current.investimento) },
-      { label: "Leads (Ads)", value: String(current.leadsAds) },
+      {
+        label: "Investimento",
+        value: formatCurrency(current.investimento),
+        icon: Wallet,
+        tint: "blue" as const,
+      },
+      { label: "Leads (Ads)", value: String(current.leadsAds), icon: Users, tint: "sky" as const },
       {
         label: "CAQ",
         value: current.caq != null ? formatCurrency(current.caq) : "—",
+        icon: Target,
+        tint: "amber" as const,
       },
       {
         label: "Impressões",
         value: current.impressoes > 0 ? current.impressoes.toLocaleString("pt-BR") : "—",
+        icon: Eye,
+        tint: "violet" as const,
       },
     ];
   }, [dataQuery.data]);
@@ -464,15 +474,14 @@ export function MetaAdsPage({
         <>
           <div className="grid gap-3 md:grid-cols-4">
             {cards.map((card, i) => (
-              <div
-                key={card.label}
-                className="animate-fade-up rounded-2xl border border-border bg-card px-5 pb-4 pt-5 shadow-[0_1px_3px_rgba(15,27,53,0.04)]"
-                style={{ animationDelay: `${i * 60}ms` }}
-              >
-                <p className="text-[10.5px] font-semibold uppercase tracking-wide text-muted-foreground">
-                  {card.label}
-                </p>
-                <p className="mt-3 text-3xl font-black tracking-tight text-sky-800">{card.value}</p>
+              <div key={card.label} className="animate-fade-up" style={{ animationDelay: `${i * 60}ms` }}>
+                <KpiCard
+                  label={card.label}
+                  value={card.value}
+                  icon={card.icon}
+                  tint={card.tint}
+                  format="raw"
+                />
               </div>
             ))}
           </div>

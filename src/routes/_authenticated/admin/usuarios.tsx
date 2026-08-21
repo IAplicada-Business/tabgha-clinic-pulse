@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { KeyRound, Pencil, UserPlus, Users, Loader2 } from "lucide-react";
+import { KeyRound, Pencil, UserPlus, Users, Loader2, ShieldCheck, UserCog, Layers } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -37,7 +37,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { KpiCard } from "@/components/ui/kpi-card";
 
 export const Route = createFileRoute("/_authenticated/admin/usuarios")({
   component: UsuariosPage,
@@ -595,10 +595,8 @@ function UsuariosPage() {
     <div className="px-6 py-6 space-y-6">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <span className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-widest text-slate-600 mb-2">
-            Configurações
-          </span>
-          <h1 className="text-xl font-bold tracking-tight">Usuários & acessos</h1>
+          <span className="eyebrow-pill">Configurações</span>
+          <h1 className="mt-2 text-xl font-bold tracking-tight">Usuários & acessos</h1>
           <p className="mt-0.5 text-xs text-muted-foreground max-w-xl">
             Aqui ficam os <strong>logins</strong>. Um mesmo email pode ter Admin e Portal: marque os
             dois perfis e a pessoa troca de área no menu. A senha provisória só aparece na criação
@@ -621,7 +619,7 @@ function UsuariosPage() {
           ].map((kpi, i) => (
             <div
               key={kpi.label}
-              className="rounded-2xl border border-border bg-card p-5 shadow-[0_1px_3px_rgba(15,27,53,0.04)]"
+              className="rounded-2xl border border-border bg-card p-5 shadow-[var(--shadow-card)]"
               style={{ animationDelay: i * 75 + "ms" }}
             >
               <p className="text-[10.5px] font-semibold uppercase tracking-widest text-muted-foreground">
@@ -651,7 +649,7 @@ function UsuariosPage() {
           action={{ label: "Adicionar membro", onClick: () => setShowAdd(true) }}
         />
       ) : (
-        <div className="rounded-2xl border border-border bg-card p-5 shadow-[0_1px_3px_rgba(15,27,53,0.04)]">
+        <div className="rounded-2xl border border-border bg-card p-5 shadow-[var(--shadow-card)]">
           <div className="mb-3 flex items-center justify-between">
             <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
               Membros {isFetching ? "· atualizando…" : ""}

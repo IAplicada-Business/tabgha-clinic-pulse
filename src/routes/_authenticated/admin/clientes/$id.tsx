@@ -187,7 +187,7 @@ function TabCadastro({ cliente }: { cliente: Cliente }) {
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_268px]">
         {/* ── Campos em card estilizado ── */}
         <form onSubmit={form.handleSubmit(() => save.mutate())}>
-          <div className="rounded-2xl border border-border bg-card shadow-[0_1px_3px_rgba(15,27,53,0.04)] overflow-hidden">
+          <div className="rounded-2xl border border-border bg-card shadow-[var(--shadow-card)] overflow-hidden">
             {/* Identificação */}
             <div className="px-5 pt-5 pb-4">
               <p className="mb-3 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
@@ -263,7 +263,7 @@ function TabCadastro({ cliente }: { cliente: Cliente }) {
 
         {/* ── Sidebar de resumo ── */}
         <div className="space-y-4 lg:sticky lg:top-6 lg:self-start">
-          <div className="rounded-2xl border border-border bg-card p-4 shadow-[0_1px_3px_rgba(15,27,53,0.04)]">
+          <div className="rounded-2xl border border-border bg-card p-4 shadow-[var(--shadow-card)]">
             <p className="mb-3 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
               Resumo da conta
             </p>
@@ -300,7 +300,7 @@ function TabCadastro({ cliente }: { cliente: Cliente }) {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-border bg-card p-4 shadow-[0_1px_3px_rgba(15,27,53,0.04)]">
+          <div className="rounded-2xl border border-border bg-card p-4 shadow-[var(--shadow-card)]">
             <p className="mb-3 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
               Informações
             </p>
@@ -331,7 +331,7 @@ function TabCadastro({ cliente }: { cliente: Cliente }) {
       </div>
 
       {/* ── Diagnóstico colapsável ── */}
-      <div className="rounded-2xl border border-border bg-card shadow-[0_1px_3px_rgba(15,27,53,0.04)] overflow-hidden">
+      <div className="rounded-2xl border border-border bg-card shadow-[var(--shadow-card)] overflow-hidden">
         <button
           type="button"
           onClick={() => setDiagOpen((v) => !v)}
@@ -1036,7 +1036,7 @@ function TabLeads({ clienteId }: { clienteId: string }) {
             {funnelStats.map(({ s, label, count, color }) => (
               <div
                 key={s}
-                className="flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-1.5 shadow-[0_1px_2px_rgba(15,27,53,0.04)]"
+                className="flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-1.5 shadow-[var(--shadow-xs)]"
               >
                 <span className={cn("rounded-full px-2 py-0.5 text-[10px] font-semibold", color)}>
                   {label}
@@ -1193,7 +1193,7 @@ function TabConteudo({ clienteId }: { clienteId: string }) {
             {pipelineStats.map(({ s, label, count, color }) => (
               <div
                 key={s}
-                className="flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-1.5 shadow-[0_1px_2px_rgba(15,27,53,0.04)]"
+                className="flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-1.5 shadow-[var(--shadow-xs)]"
               >
                 <span className={cn("rounded-full px-2 py-0.5 text-[10px] font-semibold", color)}>
                   {label}
