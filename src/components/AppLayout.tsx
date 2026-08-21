@@ -398,19 +398,41 @@ function SidebarNav({
   activeArea: "admin" | "cliente" | null;
   onSwitchArea: (area: "admin" | "cliente") => void;
 }) {
-  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
+  function findActiveGroup(list: NavGroup[]) {
+    return list.find((g) =>
+      g.items.some(
+        (i) =>
+          pathname === i.to ||
+          pathname.startsWith(i.to + "/") ||
+          (i.children?.some((c) => navChildActive(c, pathname, searchParams)) ?? false),
+      ),
+    )?.group;
+  }
+
+  // Grupos ficam recolhidos por padrão — só o grupo da rota atual abre sozinho.
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(() => {
+    const active = findActiveGroup(groups);
+    return active ? { [active]: true } : {};
+  });
   const [openSubmenus, setOpenSubmenus] = useState<Record<string, boolean>>({
     "/admin/dashboard": true,
     "/admin/roi": true,
     "/cliente/roi": true,
   });
 
+  useEffect(() => {
+    const active = findActiveGroup(groups);
+    if (!active) return;
+    setOpenGroups((prev) => (prev[active] ? prev : { ...prev, [active]: true }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pathname]);
+
   function toggleGroup(group: string) {
     setOpenGroups((prev) => ({ ...prev, [group]: !prev[group] }));
   }
 
   function isGroupOpen(key: string): boolean {
-    return openGroups[key] !== false;
+    return openGroups[key] === true;
   }
 
   function isSubmenuOpen(key: string, forceOpen?: boolean): boolean {
@@ -458,7 +480,7 @@ function SidebarNav({
 
       {/* ── Nav groups ── */}
       <nav className="flex-1 overflow-y-auto py-2">
-        {groups.map((g) => {
+        {groups.map((g, groupIndex) => {
           const key = g.group;
           const isOpen = isGroupOpen(key);
           const hasActive = g.items.some(
@@ -470,28 +492,36 @@ function SidebarNav({
           const isAdminGroup = key === "Administração";
 
           return (
-            <div key={key} className={cn("mb-1", collapsed ? "px-1.5" : "")}>
+            <div
+              key={key}
+              className={cn(
+                "mb-1",
+                collapsed ? "px-1.5" : "",
+                groupIndex > 0 && !collapsed && "mt-2 border-t border-sidebar-border/50 pt-2",
+              )}
+            >
               {/* Group header */}
               {!collapsed && (
                 <button
                   onClick={() => toggleGroup(key)}
                   className={cn(
-                    "flex w-[calc(100%-16px)] items-center justify-between mx-2 px-2.5 py-1.5 rounded-md border-0 bg-transparent cursor-pointer transition-colors",
-                    "text-[9.5px] font-semibold tracking-[0.14em] uppercase",
+                    "flex w-[calc(100%-16px)] items-center justify-between mx-2 rounded-lg border-0 px-2.5 py-2 cursor-pointer transition-colors",
+                    "text-[11px] font-bold tracking-[0.05em] uppercase",
                     hasActive
-                      ? "text-sidebar-primary"
-                      : isAdminGroup
-                        ? "text-sidebar-foreground/50 hover:text-sidebar-foreground/70"
-                        : "text-sidebar-foreground/35 hover:text-sidebar-foreground/60",
+                      ? "bg-sidebar-primary/25 text-white"
+                      : "bg-white/[0.04] text-sidebar-foreground/80 hover:bg-white/[0.08] hover:text-sidebar-foreground",
                   )}
                 >
                   <span className="flex items-center gap-1.5">
-                    {isAdminGroup && <ShieldCheck className="h-3 w-3 opacity-60" />}
+                    {hasActive && (
+                      <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-sidebar-primary" />
+                    )}
+                    {isAdminGroup && <ShieldCheck className="h-3.5 w-3.5 opacity-80" />}
                     {key}
                   </span>
                   <ChevronRight
                     className={cn(
-                      "h-3 w-3 opacity-55 transition-transform duration-200",
+                      "h-3.5 w-3.5 opacity-80 transition-transform duration-200",
                       isOpen && "rotate-90",
                     )}
                   />
