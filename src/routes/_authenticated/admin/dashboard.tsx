@@ -15,7 +15,6 @@ import { KpiCard } from "@/components/ui/kpi-card";
 import { useClientesOptions } from "@/hooks/useClientesOptions";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
-import { FinanceiroCards } from "@/components/financeiro/FinanceiroCards";
 
 export const Route = createFileRoute("/_authenticated/admin/dashboard")({
   component: DashboardTabghaPage,
@@ -186,8 +185,6 @@ function DashboardTabghaPage() {
           Crescimento da agência e gestão da carteira. Mídia e CAQ ficam em ROI e Marketing Pago.
         </p>
       </header>
-      <FinanceiroCards />
-
       <AnalyticsFilters
         value={filters}
         onChange={setFilters}

@@ -148,34 +148,6 @@ export function proximoVencimento(c: Pick<Contrato, "dia_vencimento" | "status">
 
 // ── Resumo dos 4 cards ──────────────────────────────────────────────────────
 
-export type FinanceiroResumo = {
-  mrr_ativo: number;
-  mrr_mes_anterior: number;
-  recebido_mes: number;
-  previsto_mes: number;
-  cobrancas_abertas: number;
-  cobrancas_abertas_qtd: number;
-  inadimplencia: number;
-  inadimplentes_qtd: number;
-};
-
-export const RESUMO_VAZIO: FinanceiroResumo = {
-  mrr_ativo: 0,
-  mrr_mes_anterior: 0,
-  recebido_mes: 0,
-  previsto_mes: 0,
-  cobrancas_abertas: 0,
-  cobrancas_abertas_qtd: 0,
-  inadimplencia: 0,
-  inadimplentes_qtd: 0,
-};
-
-/** Variação % do MRR contra o mês anterior. null quando não há base. */
-export function variacaoMrr(r: FinanceiroResumo): number | null {
-  if (!r.mrr_mes_anterior) return null;
-  return ((r.mrr_ativo - r.mrr_mes_anterior) / r.mrr_mes_anterior) * 100;
-}
-
 export const FINANCEIRO_TABS = ["contratos", "cobrancas", "mrr", "inadimplencia"] as const;
 export type FinanceiroTab = (typeof FINANCEIRO_TABS)[number];
 

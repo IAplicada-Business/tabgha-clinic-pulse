@@ -96,7 +96,7 @@ function DadosDemo() {
   const ocupado = popular.isPending || limpar.isPending;
 
   return (
-    <div className="animate-fade-up max-w-2xl overflow-hidden rounded-2xl border border-border bg-card">
+    <div className="animate-fade-up overflow-hidden rounded-2xl border border-border bg-card">
       <div className="border-b border-border bg-secondary/30 px-5 py-3">
         <p className="flex items-center gap-2 text-[10.5px] font-bold uppercase tracking-widest text-muted-foreground">
           <Database className="h-3.5 w-3.5" />
@@ -104,91 +104,97 @@ function DadosDemo() {
         </p>
       </div>
 
-      <div className="space-y-4 p-5">
-        <p className="text-sm leading-relaxed text-muted-foreground">
-          Popula o ambiente de um cliente com uma operação completa para demonstração: 13 leads no
-          funil, 6 conversas de WhatsApp (incluindo passagem para humano e nutrição rodando), 5
-          conteúdos em estágios diferentes, 3 eventos no calendário, 30 dias de métricas Meta e o
-          Diagnóstico 7 Fontes preenchido.
-        </p>
-
-        <div className="flex items-start gap-3 rounded-xl border border-amber-100 bg-amber-50/60 px-4 py-3">
-          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
-          <p className="text-xs leading-relaxed text-amber-900">
-            Todo registro criado leva o prefixo <strong>[Demo]</strong> e a marca{" "}
-            <code className="rounded bg-amber-100 px-1 py-0.5 text-[11px]">is_demo</code>. Popular
-            de novo apaga a demonstração anterior antes de recriar. Nada que não esteja marcado é
-            tocado.
+      {/* Contexto à esquerda, ação à direita: o card ocupa a largura da página
+          em vez de uma coluna estreita com metade da tela vazia. */}
+      <div className="grid gap-5 p-5 lg:grid-cols-2">
+        <div className="space-y-4">
+          <p className="text-sm leading-relaxed text-muted-foreground">
+            Popula o ambiente de um cliente com uma operação completa para demonstração: 13 leads no
+            funil, 6 conversas de WhatsApp (incluindo passagem para humano e nutrição rodando), 5
+            conteúdos em estágios diferentes, 3 eventos no calendário, 30 dias de métricas Meta e o
+            Diagnóstico 7 Fontes preenchido.
           </p>
+
+          <div className="flex items-start gap-3 rounded-xl border border-amber-100 bg-amber-50/60 px-4 py-3">
+            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
+            <p className="text-xs leading-relaxed text-amber-900">
+              Todo registro criado leva o prefixo <strong>[Demo]</strong> e a marca{" "}
+              <code className="rounded bg-amber-100 px-1 py-0.5 text-[11px]">is_demo</code>. Popular
+              de novo apaga a demonstração anterior antes de recriar. Nada que não esteja marcado é
+              tocado.
+            </p>
+          </div>
         </div>
 
-        <div className="space-y-1.5">
-          <Label>Cliente</Label>
-          <Select value={clienteId} onValueChange={setClienteId}>
-            <SelectTrigger className="max-w-sm">
-              <SelectValue placeholder="Escolha o cliente que recebe a demonstração" />
-            </SelectTrigger>
-            <SelectContent>
-              {clientes.map((c) => (
-                <SelectItem key={c.id} value={c.id}>
-                  {c.nome}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+        <div className="space-y-4">
+          <div className="space-y-1.5">
+            <Label>Cliente</Label>
+            <Select value={clienteId} onValueChange={setClienteId}>
+              <SelectTrigger>
+                <SelectValue placeholder="Escolha o cliente que recebe a demonstração" />
+              </SelectTrigger>
+              <SelectContent>
+                {clientes.map((c) => (
+                  <SelectItem key={c.id} value={c.id}>
+                    {c.nome}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
-        {resultado ? (
-          <p className="rounded-lg bg-secondary/50 px-3 py-2 text-xs text-muted-foreground">
-            {resultado}
-          </p>
-        ) : null}
+          {resultado ? (
+            <p className="rounded-lg bg-secondary/50 px-3 py-2 text-xs text-muted-foreground">
+              {resultado}
+            </p>
+          ) : null}
 
-        <div className="flex flex-wrap gap-2">
-          <Button
-            className="gap-2"
-            disabled={!clienteId || ocupado}
-            onClick={() => popular.mutate()}
-          >
-            {popular.isPending ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <Sparkles className="h-4 w-4" />
-            )}
-            Popular dados demo
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button
+              className="gap-2"
+              disabled={!clienteId || ocupado}
+              onClick={() => popular.mutate()}
+            >
+              {popular.isPending ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Sparkles className="h-4 w-4" />
+              )}
+              Popular dados demo
+            </Button>
 
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button
-                variant="outline"
-                className="gap-2 border-rose-200 text-rose-700 hover:bg-rose-50"
-                disabled={ocupado}
-              >
-                {limpar.isPending ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Trash2 className="h-4 w-4" />
-                )}
-                Remover todos os registros marcados como demo
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Remover os dados de demonstração?</AlertDialogTitle>
-                <AlertDialogDescription>
-                  Apaga todos os registros com is_demo = true, em qualquer cliente: leads,
-                  conversas, mensagens, conteúdos, eventos, métricas, contratos, faturas e o
-                  diagnóstico de demonstração. Registros reais não são tocados. Não dá para
-                  desfazer.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                <AlertDialogAction onClick={() => limpar.mutate()}>Remover</AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="gap-2 border-rose-200 text-rose-700 hover:bg-rose-50"
+                  disabled={ocupado}
+                >
+                  {limpar.isPending ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Trash2 className="h-4 w-4" />
+                  )}
+                  Remover todos os registros marcados como demo
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Remover os dados de demonstração?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Apaga todos os registros com is_demo = true, em qualquer cliente: leads,
+                    conversas, mensagens, conteúdos, eventos, métricas, contratos, faturas e o
+                    diagnóstico de demonstração. Registros reais não são tocados. Não dá para
+                    desfazer.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                  <AlertDialogAction onClick={() => limpar.mutate()}>Remover</AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
         </div>
       </div>
     </div>

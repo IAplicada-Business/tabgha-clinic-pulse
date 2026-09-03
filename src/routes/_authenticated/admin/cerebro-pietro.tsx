@@ -1,32 +1,20 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Brain, Loader2, Save, Radio, Bot, MessageSquare, Gauge } from "lucide-react";
+import { Loader2, Save, Radio, Bot, MessageSquare, Gauge } from "lucide-react";
 import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { KpiCard } from "@/components/ui/kpi-card";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import {
-  PIETRO_FALLBACK,
-  PIETRO_MODEL_OPTIONS,
   loadPietroDefaults,
   readAgenteAtivo,
   saveAgenteAtivo,
   savePietroDefaults,
-  type PietroDefaults,
 } from "@/lib/pietro";
 
 export const Route = createFileRoute("/_authenticated/admin/cerebro-pietro")({
@@ -44,13 +32,10 @@ function CerebroPietroPage() {
     <div className="space-y-6 px-6 py-6">
       <div className="animate-fade-up">
         <span className="eyebrow-pill">Atendimento · IA</span>
-        <h1 className="mt-2 flex items-center gap-2 text-2xl font-extrabold tracking-tight">
-          <Brain className="h-6 w-6 text-sky-700" />
-          Cérebro Pietro
-        </h1>
+        <h1 className="mt-2 text-2xl font-extrabold tracking-tight">Cérebro Pietro</h1>
         <p className="mt-0.5 max-w-2xl text-xs text-muted-foreground">
-          Prompt e parâmetros globais do agente de WhatsApp (Método 7 Fontes). O liga/desliga é por
-          cliente — o mesmo switch que existe na ficha do cliente, aba Conexões.
+          Prompt global do agente de WhatsApp (Método 7 Fontes). O liga/desliga é por cliente — o
+          mesmo switch que existe na ficha do cliente, aba Conexões.
         </p>
       </div>
 
@@ -73,7 +58,11 @@ function CerebroPietroPage() {
   );
 }
 
-// ── Aba Agente: prompt + parâmetros globais ───────────────────────────────────
+// ── Aba Agente: o prompt global ───────────────────────────────────────────────
+// Só o prompt fica editável aqui. Os parâmetros técnicos (modelo, janela,
+// temperatura, tokens, reengajamento, score de handoff, mensagem de passagem)
+// continuam em app_config.pietro_brain_defaults e são lidos pelo backend —
+// savePietroDefaults faz merge raso, então salvar o prompt não os apaga.
 
 function TabAgente() {
   const qc = useQueryClient();
@@ -83,45 +72,14 @@ function TabAgente() {
   });
 
   const [systemPrompt, setSystemPrompt] = useState("");
-  const [model, setModel] = useState<string>(PIETRO_FALLBACK.model);
-  const [maxHistory, setMaxHistory] = useState(String(PIETRO_FALLBACK.max_history));
-  const [temperature, setTemperature] = useState(String(PIETRO_FALLBACK.temperature));
-  const [maxTokens, setMaxTokens] = useState(String(PIETRO_FALLBACK.max_tokens));
-  const [reengageHours, setReengageHours] = useState(String(PIETRO_FALLBACK.reengage_hours));
-  const [handoffScore, setHandoffScore] = useState(String(PIETRO_FALLBACK.handoff_score));
-  const [handoffMessage, setHandoffMessage] = useState(PIETRO_FALLBACK.handoff_message);
 
   useEffect(() => {
     if (!data) return;
     setSystemPrompt(data.system_prompt ?? "");
-    setModel(data.model ?? PIETRO_FALLBACK.model);
-    setMaxHistory(String(data.max_history ?? PIETRO_FALLBACK.max_history));
-    setTemperature(String(data.temperature ?? PIETRO_FALLBACK.temperature));
-    setMaxTokens(String(data.max_tokens ?? PIETRO_FALLBACK.max_tokens));
-    setReengageHours(String(data.reengage_hours ?? PIETRO_FALLBACK.reengage_hours));
-    setHandoffScore(String(data.handoff_score ?? PIETRO_FALLBACK.handoff_score));
-    setHandoffMessage(data.handoff_message ?? PIETRO_FALLBACK.handoff_message);
   }, [data]);
 
   const save = useMutation({
-    mutationFn: async () => {
-      const num = (raw: string, min: number, max: number, fallback: number) => {
-        const n = Number(raw);
-        if (!Number.isFinite(n)) return fallback;
-        return Math.max(min, Math.min(max, n));
-      };
-      const patch: PietroDefaults = {
-        system_prompt: systemPrompt.trim() || null,
-        model,
-        max_history: Math.round(num(maxHistory, 6, 60, PIETRO_FALLBACK.max_history)),
-        temperature: num(temperature, 0, 1, PIETRO_FALLBACK.temperature),
-        max_tokens: Math.round(num(maxTokens, 100, 2000, PIETRO_FALLBACK.max_tokens)),
-        reengage_hours: num(reengageHours, 0, 72, PIETRO_FALLBACK.reengage_hours),
-        handoff_score: Math.round(num(handoffScore, 0, 100, PIETRO_FALLBACK.handoff_score)),
-        handoff_message: handoffMessage.trim() || PIETRO_FALLBACK.handoff_message,
-      };
-      await savePietroDefaults(patch);
-    },
+    mutationFn: () => savePietroDefaults({ system_prompt: systemPrompt.trim() || null }),
     onSuccess: () => {
       toast.success("Cérebro Pietro salvo. Vale para todas as próximas respostas.");
       void qc.invalidateQueries({ queryKey: ["admin", "pietro-defaults"] });
@@ -140,136 +98,33 @@ function TabAgente() {
   const promptEmpty = !systemPrompt.trim();
 
   return (
-    <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
-      <div className="overflow-hidden rounded-2xl border border-border bg-card">
-        <div className="border-b border-sky-100 bg-sky-50/60 px-5 py-3">
-          <p className="text-[10.5px] font-bold uppercase tracking-widest text-sky-700">
-            Prompt do sistema · global
-          </p>
-        </div>
-        <div className="space-y-3 p-5">
-          <Textarea
-            value={systemPrompt}
-            onChange={(e) => setSystemPrompt(e.target.value)}
-            rows={26}
-            className="resize-y font-mono text-[12px] leading-relaxed"
-            placeholder="Cole aqui o prompt do agente (identidade, tom, Método 7 Fontes, fluxo, regras de passagem para humano)…"
-          />
-          <p className="text-[11px] text-muted-foreground">
-            O formato de saída (JSON com reply, score, fontes tocadas, maturidade etc.) é
-            acrescentado automaticamente pelo backend — não precisa incluir aqui.{" "}
-            {promptEmpty
-              ? "Vazio = modo legado (nome/tom/metodologia por cliente, prompt genérico intenção·urgência·fit·capacidade)."
-              : "Um cliente pode ter prompt próprio na ficha (Conexões), que sobrepõe este."}
-          </p>
-        </div>
+    <div className="overflow-hidden rounded-2xl border border-border bg-card">
+      <div className="border-b border-sky-100 bg-sky-50/60 px-5 py-3">
+        <p className="text-[10.5px] font-bold uppercase tracking-widest text-sky-700">
+          Prompt do sistema · global
+        </p>
       </div>
-
-      <div className="space-y-4">
-        <div className="space-y-3 rounded-2xl border border-border bg-card p-5">
-          <p className="text-[10.5px] font-bold uppercase tracking-widest text-muted-foreground">
-            Parâmetros técnicos
-          </p>
-
-          <div className="space-y-1">
-            <Label>Modelo</Label>
-            <Select value={model} onValueChange={setModel}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {PIETRO_MODEL_OPTIONS.map((m) => (
-                  <SelectItem key={m.value} value={m.value}>
-                    {m.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1">
-              <Label htmlFor="max-history">Janela (msgs)</Label>
-              <Input
-                id="max-history"
-                type="number"
-                min={6}
-                max={60}
-                value={maxHistory}
-                onChange={(e) => setMaxHistory(e.target.value)}
-              />
-            </div>
-            <div className="space-y-1">
-              <Label htmlFor="temperature">Temperatura</Label>
-              <Input
-                id="temperature"
-                type="number"
-                min={0}
-                max={1}
-                step={0.1}
-                value={temperature}
-                onChange={(e) => setTemperature(e.target.value)}
-              />
-            </div>
-            <div className="space-y-1">
-              <Label htmlFor="max-tokens">Máx. tokens</Label>
-              <Input
-                id="max-tokens"
-                type="number"
-                min={100}
-                max={2000}
-                value={maxTokens}
-                onChange={(e) => setMaxTokens(e.target.value)}
-              />
-            </div>
-            <div className="space-y-1">
-              <Label htmlFor="reengage">Reengajar após (h)</Label>
-              <Input
-                id="reengage"
-                type="number"
-                min={0}
-                max={72}
-                step={0.5}
-                value={reengageHours}
-                onChange={(e) => setReengageHours(e.target.value)}
-              />
-            </div>
-            <div className="space-y-1">
-              <Label htmlFor="handoff-score">Score p/ handoff</Label>
-              <Input
-                id="handoff-score"
-                type="number"
-                min={0}
-                max={100}
-                value={handoffScore}
-                onChange={(e) => setHandoffScore(e.target.value)}
-              />
-            </div>
-          </div>
-
-          <div className="space-y-1">
-            <Label htmlFor="handoff-message">Mensagem de passagem p/ humano</Label>
-            <Input
-              id="handoff-message"
-              value={handoffMessage}
-              onChange={(e) => setHandoffMessage(e.target.value)}
-            />
-          </div>
-
-          <ul className="list-disc space-y-1 pl-4 text-[11px] text-muted-foreground">
-            <li>Janela: últimas N mensagens enviadas ao modelo (6–60).</li>
-            <li>Reengajar: lead em silêncio há N horas recebe 1 mensagem do bot (0 desliga).</li>
-            <li>Score p/ handoff: a partir da 3ª mensagem, score ≥ N passa para humano.</li>
-            <li>
-              Gatilhos de emergência/humano/cancelamento passam sempre, independente do prompt.
-            </li>
-          </ul>
-
+      <div className="space-y-3 p-5">
+        <Textarea
+          value={systemPrompt}
+          onChange={(e) => setSystemPrompt(e.target.value)}
+          rows={26}
+          className="resize-y font-mono text-[12px] leading-relaxed"
+          placeholder="Cole aqui o prompt do agente (identidade, tom, Método 7 Fontes, fluxo, regras de passagem para humano)…"
+        />
+        <p className="text-[11px] text-muted-foreground">
+          O formato de saída (JSON com reply, score, fontes tocadas, maturidade etc.) é acrescentado
+          automaticamente pelo backend — não precisa incluir aqui.{" "}
+          {promptEmpty
+            ? "Vazio = modo legado (nome/tom/metodologia por cliente, prompt genérico intenção·urgência·fit·capacidade)."
+            : "Um cliente pode ter prompt próprio na ficha (Conexões), que sobrepõe este."}
+        </p>
+        <div className="flex justify-end">
           <Button
             size="sm"
             onClick={() => save.mutate()}
             disabled={save.isPending}
-            className="w-full gap-2"
+            className="gap-2"
           >
             {save.isPending ? (
               <Loader2 className="h-4 w-4 animate-spin" />
