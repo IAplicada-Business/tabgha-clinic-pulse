@@ -177,21 +177,16 @@ function NutricaoPage() {
         </div>
       </div>
 
-      <div
-        className="animate-fade-up grid grid-cols-1 gap-4 xl:grid-cols-[320px_minmax(0,1fr)]"
-        style={{ animationDelay: "150ms" }}
-      >
-        <div className="space-y-4">
-          <GatilhoCard seq={seq} config={atual} onChange={patch} />
-          <TesteCard seq={seq} textos={atual.mensagens.map((m) => m.texto)} clientes={clientes} />
-        </div>
-
-        <div className="space-y-4">
-          <MensagensCard seq={seq} config={atual} onChange={patch} />
-        </div>
+      {/* Blocos em largura cheia, do mais enxuto para o mais denso: gatilho (uma
+          faixa), mensagens (o editor, que é o miolo da tela), teste (uma faixa)
+          e clientes. Duas colunas de alturas diferentes deixavam metade da
+          página vazia. */}
+      <div className="animate-fade-up space-y-4" style={{ animationDelay: "150ms" }}>
+        <GatilhoCard seq={seq} config={atual} onChange={patch} />
+        <MensagensCard seq={seq} config={atual} onChange={patch} />
+        <TesteCard seq={seq} textos={atual.mensagens.map((m) => m.texto)} clientes={clientes} />
+        <ClientesCard clientes={clientes} config={rascunho} />
       </div>
-
-      <ClientesCard clientes={clientes} config={rascunho} />
     </div>
   );
 }
@@ -207,90 +202,101 @@ function GatilhoCard({
   config: NutricaoConfig["sequencias"][SequenciaKey];
   onChange: (p: Partial<NutricaoConfig["sequencias"][SequenciaKey]>) => void;
 }) {
+  const temCampoExtra = seq === "seq_a" || seq === "seq_b";
+
   return (
-    <div className="space-y-3 rounded-2xl border border-border bg-card p-5">
-      <div className="flex items-start justify-between gap-3">
-        <div>
+    <div className="overflow-hidden rounded-2xl border border-border bg-card">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border bg-secondary/30 px-5 py-3">
+        <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
           <p className="text-[10.5px] font-bold uppercase tracking-widest text-muted-foreground">
             Sequência {SEQUENCIA_LETRA[seq]}
           </p>
-          <p className="mt-1 text-sm font-semibold">{SEQUENCIA_NOME[seq]}</p>
-          <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
-            {SEQUENCIA_RESUMO[seq]}
-          </p>
+          <p className="text-sm font-semibold">{SEQUENCIA_NOME[seq]}</p>
+          <p className="text-[11px] text-muted-foreground">{SEQUENCIA_RESUMO[seq]}</p>
         </div>
-        <Switch checked={config.ativo} onCheckedChange={(v) => onChange({ ativo: v })} />
+        <label className="flex shrink-0 items-center gap-2">
+          <span className="text-[11px] font-semibold text-muted-foreground">
+            {config.ativo ? "Ativa" : "Desligada"}
+          </span>
+          <Switch checked={config.ativo} onCheckedChange={(v) => onChange({ ativo: v })} />
+        </label>
       </div>
 
-      <div className="space-y-1 border-t border-border pt-3">
-        <Label>Status disparador</Label>
-        <Select
-          value={config.gatilho_status}
-          onValueChange={(v) => onChange({ gatilho_status: v })}
-        >
-          <SelectTrigger>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {PIPELINE.map((s) => (
-              <SelectItem key={s} value={s}>
-                {STATUS_LABELS[s]}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
-      {seq === "seq_a" ? (
-        <div className="space-y-1">
-          <Label>Motivo da perda</Label>
+      {/* flex-1 faz os campos dividirem a linha inteira — sem coluna sobrando */}
+      <div className="flex flex-wrap items-start gap-4 p-5">
+        <div className="min-w-[200px] flex-1 space-y-1">
+          <Label>Status disparador</Label>
           <Select
-            value={config.gatilho_motivo_perda ?? "__todos"}
-            onValueChange={(v) => onChange({ gatilho_motivo_perda: v === "__todos" ? null : v })}
+            value={config.gatilho_status}
+            onValueChange={(v) => onChange({ gatilho_status: v })}
           >
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="__todos">Qualquer motivo</SelectItem>
-              {Object.entries(MOTIVO_LABELS).map(([k, label]) => (
-                <SelectItem key={k} value={k}>
-                  {label}
+              {PIPELINE.map((st) => (
+                <SelectItem key={st} value={st}>
+                  {STATUS_LABELS[st]}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
-          <p className="text-[11px] text-muted-foreground">
-            É assim que o briefing chamava de “perdido sem plano”: status Perdido + motivo Sem
-            plano.
-          </p>
         </div>
-      ) : null}
 
-      {seq === "seq_b" ? (
-        <div className="space-y-1">
-          <Label htmlFor="idle-dias">Dias parado antes de entrar</Label>
-          <Input
-            id="idle-dias"
-            type="number"
-            min={1}
-            max={90}
-            value={String(config.gatilho_idle_dias ?? 5)}
-            onChange={(e) =>
-              onChange({ gatilho_idle_dias: Math.max(1, Number(e.target.value) || 1) })
-            }
-          />
-          <p className="text-[11px] text-muted-foreground">
-            O card precisa ficar esse tanto de dias sem interação no status escolhido. A contagem
-            D+3/D+7/D+15 começa quando a inatividade é detectada.
-          </p>
-        </div>
-      ) : null}
+        {seq === "seq_a" ? (
+          <div className="min-w-[200px] flex-1 space-y-1">
+            <Label>Motivo da perda</Label>
+            <Select
+              value={config.gatilho_motivo_perda ?? "__todos"}
+              onValueChange={(v) => onChange({ gatilho_motivo_perda: v === "__todos" ? null : v })}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__todos">Qualquer motivo</SelectItem>
+                {Object.entries(MOTIVO_LABELS).map(([k, label]) => (
+                  <SelectItem key={k} value={k}>
+                    {label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-[11px] text-muted-foreground">
+              O “perdido sem plano” do briefing: status Perdido + motivo Sem plano.
+            </p>
+          </div>
+        ) : null}
 
-      <p className="rounded-lg bg-secondary/40 px-3 py-2 text-[11px] leading-relaxed text-muted-foreground">
-        A sequência só roda para clientes com WhatsApp conectado e com o toggle ligado. Se o lead
-        avançar no funil, o restante das mensagens é cancelado.
-      </p>
+        {seq === "seq_b" ? (
+          <div className="min-w-[200px] flex-1 space-y-1">
+            <Label htmlFor="idle-dias">Dias parado antes de entrar</Label>
+            <Input
+              id="idle-dias"
+              type="number"
+              min={1}
+              max={90}
+              value={String(config.gatilho_idle_dias ?? 5)}
+              onChange={(e) =>
+                onChange({ gatilho_idle_dias: Math.max(1, Number(e.target.value) || 1) })
+              }
+            />
+            <p className="text-[11px] text-muted-foreground">
+              D+3/D+7/D+15 começam quando a inatividade é detectada.
+            </p>
+          </div>
+        ) : null}
+
+        <p
+          className={cn(
+            "min-w-[260px] rounded-lg bg-secondary/40 px-3 py-2 text-[11px] leading-relaxed text-muted-foreground",
+            temCampoExtra ? "flex-1" : "flex-[2]",
+          )}
+        >
+          A sequência só roda para clientes com WhatsApp conectado e com o toggle ligado. Se o lead
+          avançar no funil, o restante das mensagens é cancelado.
+        </p>
+      </div>
     </div>
   );
 }
@@ -459,75 +465,80 @@ function TesteCard({
   const podeEnviar = Boolean(clienteId && telefone.replace(/\D/g, "").length >= 10 && texto.trim());
 
   return (
-    <div className="space-y-3 rounded-2xl border border-border bg-card p-5">
-      <p className="text-[10.5px] font-bold uppercase tracking-widest text-muted-foreground">
-        Enviar agora para número de teste
-      </p>
-
-      <div className="space-y-1">
-        <Label>Cliente (de quem sai a mensagem)</Label>
-        <Select value={clienteId} onValueChange={setClienteId}>
-          <SelectTrigger>
-            <SelectValue placeholder="Escolha o cliente" />
-          </SelectTrigger>
-          <SelectContent>
-            {conectados.map((c) => (
-              <SelectItem key={c.id} value={c.id}>
-                {c.nome}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        {conectados.length === 0 ? (
-          <p className="text-[11px] text-amber-700">
-            Nenhum cliente com WhatsApp conectado — não há de onde enviar.
-          </p>
-        ) : null}
+    <div className="overflow-hidden rounded-2xl border border-border bg-card">
+      <div className="border-b border-border bg-secondary/30 px-5 py-3">
+        <p className="text-[10.5px] font-bold uppercase tracking-widest text-muted-foreground">
+          Enviar agora para número de teste
+        </p>
       </div>
 
-      {textos.length > 1 ? (
-        <div className="space-y-1">
-          <Label>Mensagem</Label>
-          <Select value={String(indice)} onValueChange={(v) => setIndice(Number(v))}>
+      {/* Uma faixa só: os campos dividem a linha e o botão fecha à direita */}
+      <div className="flex flex-wrap items-end gap-3 px-5 pt-5">
+        <div className="min-w-[220px] flex-[2] space-y-1">
+          <Label>Cliente (de quem sai a mensagem)</Label>
+          <Select value={clienteId} onValueChange={setClienteId}>
             <SelectTrigger>
-              <SelectValue />
+              <SelectValue placeholder="Escolha o cliente" />
             </SelectTrigger>
             <SelectContent>
-              {textos.map((_, i) => (
-                <SelectItem key={i} value={String(i)}>
-                  Mensagem {i + 1}
+              {conectados.map((c) => (
+                <SelectItem key={c.id} value={c.id}>
+                  {c.nome}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
         </div>
-      ) : null}
 
-      <div className="space-y-1">
-        <Label htmlFor="tel-teste">Telefone</Label>
-        <Input
-          id="tel-teste"
-          value={telefone}
-          onChange={(e) => setTelefone(e.target.value)}
-          placeholder="5511999999999"
-          inputMode="tel"
-        />
+        {textos.length > 1 ? (
+          <div className="min-w-[150px] flex-1 space-y-1">
+            <Label>Mensagem</Label>
+            <Select value={String(indice)} onValueChange={(v) => setIndice(Number(v))}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {textos.map((_, i) => (
+                  <SelectItem key={i} value={String(i)}>
+                    Mensagem {i + 1}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        ) : null}
+
+        <div className="min-w-[180px] flex-1 space-y-1">
+          <Label htmlFor="tel-teste">Telefone</Label>
+          <Input
+            id="tel-teste"
+            value={telefone}
+            onChange={(e) => setTelefone(e.target.value)}
+            placeholder="5511999999999"
+            inputMode="tel"
+          />
+        </div>
+
+        <Button
+          className="shrink-0 gap-2"
+          disabled={!podeEnviar || enviar.isPending}
+          onClick={() => enviar.mutate()}
+        >
+          {enviar.isPending ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <Send className="h-4 w-4" />
+          )}
+          Enviar teste
+        </Button>
       </div>
 
-      <Button
-        size="sm"
-        className="w-full gap-2"
-        disabled={!podeEnviar || enviar.isPending}
-        onClick={() => enviar.mutate()}
-      >
-        {enviar.isPending ? (
-          <Loader2 className="h-4 w-4 animate-spin" />
-        ) : (
-          <Send className="h-4 w-4" />
-        )}
-        Enviar teste
-      </Button>
-      <p className="text-[11px] leading-relaxed text-muted-foreground">
+      <p className="px-5 pb-5 pt-3 text-[11px] leading-relaxed text-muted-foreground">
+        {conectados.length === 0 ? (
+          <span className="font-semibold text-amber-700">
+            Nenhum cliente com WhatsApp conectado — não há de onde enviar.{" "}
+          </span>
+        ) : null}
         As variáveis são resolvidas com os dados reais do cliente escolhido. O texto usado é o que
         está no editor salvo — salve antes de testar uma alteração.
       </p>
