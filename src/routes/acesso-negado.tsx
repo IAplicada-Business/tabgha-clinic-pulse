@@ -3,32 +3,41 @@ import { ShieldAlert } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { TabghaLogo } from "@/components/TabghaLogo";
-import { useAuth } from "@/lib/auth";
+import { signOutTabgha } from "@/lib/auth";
+import { resolveAuthAccess } from "@/lib/auth-access";
 import { isStaff } from "@/lib/roles";
 import { firstAllowedAdminPath, firstAllowedClientePath } from "@/lib/route-permissions";
 
 /**
  * Destino do middleware de rota quando o perfil não tem a permissão exigida.
  * A rota tentada chega em ?de= só para dar contexto na tela.
+ *
+ * Esta rota mora fora de /_authenticated, então NÃO existe AuthProvider acima
+ * dela — usar useAuth() aqui derruba a tela inteira. O perfil vem do mesmo
+ * cache que os guards já usam (resolveAuthAccess), sem segunda fonte de dados.
  */
 export const Route = createFileRoute("/acesso-negado")({
   ssr: false,
   validateSearch: (search: Record<string, unknown>) => ({
     de: typeof search.de === "string" ? search.de : "",
   }),
+  loader: async () => {
+    const access = await resolveAuthAccess();
+    return {
+      permissoes: access?.permissoes ?? [],
+      staff: isStaff(access?.roles),
+    };
+  },
   component: AcessoNegadoPage,
   head: () => ({ meta: [{ title: "Acesso negado · Tabgha OS" }] }),
 });
 
 function AcessoNegadoPage() {
   const { de } = Route.useSearch();
-  const { profile, roles, signOut } = useAuth();
+  const { permissoes, staff } = Route.useLoaderData();
   const navigate = useNavigate();
 
-  const permissoes = profile?.permissoes ?? [];
-  const destino = isStaff(roles)
-    ? firstAllowedAdminPath(permissoes)
-    : firstAllowedClientePath(permissoes);
+  const destino = staff ? firstAllowedAdminPath(permissoes) : firstAllowedClientePath(permissoes);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-6">
@@ -58,7 +67,7 @@ function AcessoNegadoPage() {
           <Button
             variant="outline"
             onClick={async () => {
-              await signOut();
+              await signOutTabgha();
               void navigate({ to: "/login", replace: true });
             }}
           >

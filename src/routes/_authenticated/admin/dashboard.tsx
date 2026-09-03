@@ -97,7 +97,7 @@ function DashboardTabghaPage() {
           supabase
             .from("conteudos")
             .select("id, titulo, status, clientes(nome)")
-            .in("status", ["briefing", "roteiro", "producao"])
+            .in("status", ["rascunho", "pendente_aprovacao", "pedir_ajuste"])
             .order("criado_em", { ascending: false })
             .limit(8),
           supabase
@@ -157,9 +157,9 @@ function DashboardTabghaPage() {
       const convertidos = leads.filter((l) => l.status === "convertido").length;
 
       const stageCounts = {
-        briefing: (conteudosRes.data ?? []).filter((c) => c.status === "briefing").length,
-        roteiro: (conteudosRes.data ?? []).filter((c) => c.status === "roteiro").length,
-        producao: (conteudosRes.data ?? []).filter((c) => c.status === "producao").length,
+        rascunho: (conteudosRes.data ?? []).filter((c) => c.status === "rascunho").length,
+        pendente: (conteudosRes.data ?? []).filter((c) => c.status === "pendente_aprovacao").length,
+        ajuste: (conteudosRes.data ?? []).filter((c) => c.status === "pedir_ajuste").length,
       };
 
       return {
@@ -172,7 +172,7 @@ function DashboardTabghaPage() {
         atencao,
         saudeCarteira,
         stageCounts,
-        stageTotal: stageCounts.briefing + stageCounts.roteiro + stageCounts.producao,
+        stageTotal: stageCounts.rascunho + stageCounts.pendente + stageCounts.ajuste,
         conteudosPendentes: conteudosRes.data ?? [],
       };
     },
@@ -374,21 +374,21 @@ function DashboardTabghaPage() {
           <div className="space-y-4">
             {[
               {
-                key: "briefing",
-                label: "Briefing",
-                count: data?.stageCounts.briefing ?? 0,
+                key: "rascunho",
+                label: "Rascunho",
+                count: data?.stageCounts.rascunho ?? 0,
                 color: "bg-slate-400",
               },
               {
-                key: "roteiro",
-                label: "Roteiro",
-                count: data?.stageCounts.roteiro ?? 0,
+                key: "pendente_aprovacao",
+                label: "Pendente aprovação",
+                count: data?.stageCounts.pendente ?? 0,
                 color: "bg-primary",
               },
               {
-                key: "producao",
-                label: "Produção",
-                count: data?.stageCounts.producao ?? 0,
+                key: "pedir_ajuste",
+                label: "Pedir ajuste",
+                count: data?.stageCounts.ajuste ?? 0,
                 color: "bg-amber-400",
               },
             ].map(({ key, label, count, color }) => {
