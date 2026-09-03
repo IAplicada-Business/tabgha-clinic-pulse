@@ -71,6 +71,9 @@ export const Route = createFileRoute("/login")({
 
 function LoginPage() {
   const navigate = useNavigate();
+  // A logo oficial já traz "Health Growth Operating System"; o subtítulo só
+  // entra quando o arquivo não existe e o lockup tipográfico assume.
+  const [logoFallback, setLogoFallback] = useState(false);
   const [access, setAccess] = useState<AccessType>("cliente");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -151,10 +154,12 @@ function LoginPage() {
           }}
         />
         <div className="relative z-10 flex flex-col items-center text-center">
-          <TabghaLogo tone="claro" altura={72} className="md:!h-24" />
-          <p className="mt-5 text-[11px] font-semibold uppercase tracking-[0.28em] text-white/55 sm:text-[13px]">
-            Health Growth Operating System
-          </p>
+          <TabghaLogo tone="claro" altura={72} className="md:!h-24" onFallback={setLogoFallback} />
+          {logoFallback ? (
+            <p className="mt-5 text-[11px] font-semibold uppercase tracking-[0.28em] text-white/55 sm:text-[13px]">
+              Health Growth Operating System
+            </p>
+          ) : null}
           <span
             className="mt-6 h-[3px] w-16 rounded-full"
             style={{ background: "var(--accent-orange)" }}
