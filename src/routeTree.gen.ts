@@ -26,6 +26,7 @@ import { Route as AuthenticatedAdminDashboardRouteImport } from './routes/_authe
 import { Route as AuthenticatedAdminDashboardClientesRouteImport } from './routes/_authenticated/admin/dashboard-clientes'
 import { Route as AuthenticatedAdminDiagnosticosRouteImport } from './routes/_authenticated/admin/diagnosticos'
 import { Route as AuthenticatedAdminEstrategiaRouteImport } from './routes/_authenticated/admin/estrategia'
+import { Route as AuthenticatedAdminFinanceiroRouteImport } from './routes/_authenticated/admin/financeiro'
 import { Route as AuthenticatedAdminLeadsRouteImport } from './routes/_authenticated/admin/leads'
 import { Route as AuthenticatedAdminMetaAdsRouteImport } from './routes/_authenticated/admin/meta-ads'
 import { Route as AuthenticatedAdminNutricaoRouteImport } from './routes/_authenticated/admin/nutricao'
@@ -138,6 +139,12 @@ const AuthenticatedAdminEstrategiaRoute =
   AuthenticatedAdminEstrategiaRouteImport.update({
     id: '/estrategia',
     path: '/estrategia',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
+const AuthenticatedAdminFinanceiroRoute =
+  AuthenticatedAdminFinanceiroRouteImport.update({
+    id: '/financeiro',
+    path: '/financeiro',
     getParentRoute: () => AuthenticatedAdminRouteRoute,
   } as any)
 const AuthenticatedAdminLeadsRoute = AuthenticatedAdminLeadsRouteImport.update({
@@ -269,6 +276,7 @@ export interface FileRoutesByFullPath {
   '/admin/dashboard-clientes': typeof AuthenticatedAdminDashboardClientesRoute
   '/admin/diagnosticos': typeof AuthenticatedAdminDiagnosticosRoute
   '/admin/estrategia': typeof AuthenticatedAdminEstrategiaRoute
+  '/admin/financeiro': typeof AuthenticatedAdminFinanceiroRoute
   '/admin/leads': typeof AuthenticatedAdminLeadsRoute
   '/admin/meta-ads': typeof AuthenticatedAdminMetaAdsRoute
   '/admin/nutricao': typeof AuthenticatedAdminNutricaoRoute
@@ -306,6 +314,7 @@ export interface FileRoutesByTo {
   '/admin/dashboard-clientes': typeof AuthenticatedAdminDashboardClientesRoute
   '/admin/diagnosticos': typeof AuthenticatedAdminDiagnosticosRoute
   '/admin/estrategia': typeof AuthenticatedAdminEstrategiaRoute
+  '/admin/financeiro': typeof AuthenticatedAdminFinanceiroRoute
   '/admin/leads': typeof AuthenticatedAdminLeadsRoute
   '/admin/meta-ads': typeof AuthenticatedAdminMetaAdsRoute
   '/admin/nutricao': typeof AuthenticatedAdminNutricaoRoute
@@ -345,6 +354,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/dashboard-clientes': typeof AuthenticatedAdminDashboardClientesRoute
   '/_authenticated/admin/diagnosticos': typeof AuthenticatedAdminDiagnosticosRoute
   '/_authenticated/admin/estrategia': typeof AuthenticatedAdminEstrategiaRoute
+  '/_authenticated/admin/financeiro': typeof AuthenticatedAdminFinanceiroRoute
   '/_authenticated/admin/leads': typeof AuthenticatedAdminLeadsRoute
   '/_authenticated/admin/meta-ads': typeof AuthenticatedAdminMetaAdsRoute
   '/_authenticated/admin/nutricao': typeof AuthenticatedAdminNutricaoRoute
@@ -384,6 +394,7 @@ export interface FileRouteTypes {
     | '/admin/dashboard-clientes'
     | '/admin/diagnosticos'
     | '/admin/estrategia'
+    | '/admin/financeiro'
     | '/admin/leads'
     | '/admin/meta-ads'
     | '/admin/nutricao'
@@ -421,6 +432,7 @@ export interface FileRouteTypes {
     | '/admin/dashboard-clientes'
     | '/admin/diagnosticos'
     | '/admin/estrategia'
+    | '/admin/financeiro'
     | '/admin/leads'
     | '/admin/meta-ads'
     | '/admin/nutricao'
@@ -459,6 +471,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/dashboard-clientes'
     | '/_authenticated/admin/diagnosticos'
     | '/_authenticated/admin/estrategia'
+    | '/_authenticated/admin/financeiro'
     | '/_authenticated/admin/leads'
     | '/_authenticated/admin/meta-ads'
     | '/_authenticated/admin/nutricao'
@@ -610,6 +623,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminEstrategiaRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
     }
+    '/_authenticated/admin/financeiro': {
+      id: '/_authenticated/admin/financeiro'
+      path: '/financeiro'
+      fullPath: '/admin/financeiro'
+      preLoaderRoute: typeof AuthenticatedAdminFinanceiroRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
     '/_authenticated/admin/leads': {
       id: '/_authenticated/admin/leads'
       path: '/leads'
@@ -756,6 +776,7 @@ interface AuthenticatedAdminRouteRouteChildren {
   AuthenticatedAdminDashboardClientesRoute: typeof AuthenticatedAdminDashboardClientesRoute
   AuthenticatedAdminDiagnosticosRoute: typeof AuthenticatedAdminDiagnosticosRoute
   AuthenticatedAdminEstrategiaRoute: typeof AuthenticatedAdminEstrategiaRoute
+  AuthenticatedAdminFinanceiroRoute: typeof AuthenticatedAdminFinanceiroRoute
   AuthenticatedAdminLeadsRoute: typeof AuthenticatedAdminLeadsRoute
   AuthenticatedAdminMetaAdsRoute: typeof AuthenticatedAdminMetaAdsRoute
   AuthenticatedAdminNutricaoRoute: typeof AuthenticatedAdminNutricaoRoute
@@ -779,6 +800,7 @@ const AuthenticatedAdminRouteRouteChildren: AuthenticatedAdminRouteRouteChildren
       AuthenticatedAdminDashboardClientesRoute,
     AuthenticatedAdminDiagnosticosRoute: AuthenticatedAdminDiagnosticosRoute,
     AuthenticatedAdminEstrategiaRoute: AuthenticatedAdminEstrategiaRoute,
+    AuthenticatedAdminFinanceiroRoute: AuthenticatedAdminFinanceiroRoute,
     AuthenticatedAdminLeadsRoute: AuthenticatedAdminLeadsRoute,
     AuthenticatedAdminMetaAdsRoute: AuthenticatedAdminMetaAdsRoute,
     AuthenticatedAdminNutricaoRoute: AuthenticatedAdminNutricaoRoute,

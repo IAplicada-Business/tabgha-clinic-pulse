@@ -215,6 +215,62 @@ export type Database = {
           },
         ]
       }
+      contratos: {
+        Row: {
+          atualizado_em: string
+          cliente_id: string
+          criado_em: string
+          data_assinatura: string
+          dia_vencimento: number
+          id: string
+          metadados: Json
+          observacoes: string | null
+          plano: string
+          status: string
+          valor_mensal: number
+          vigencia_fim: string | null
+          vigencia_inicio: string
+        }
+        Insert: {
+          atualizado_em?: string
+          cliente_id: string
+          criado_em?: string
+          data_assinatura?: string
+          dia_vencimento?: number
+          id?: string
+          metadados?: Json
+          observacoes?: string | null
+          plano?: string
+          status?: string
+          valor_mensal?: number
+          vigencia_fim?: string | null
+          vigencia_inicio?: string
+        }
+        Update: {
+          atualizado_em?: string
+          cliente_id?: string
+          criado_em?: string
+          data_assinatura?: string
+          dia_vencimento?: number
+          id?: string
+          metadados?: Json
+          observacoes?: string | null
+          plano?: string
+          status?: string
+          valor_mensal?: number
+          vigencia_fim?: string | null
+          vigencia_inicio?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contratos_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       diagnostico_frases_por_faixa: {
         Row: {
           atualizado_em: string
@@ -469,6 +525,75 @@ export type Database = {
             columns: ["cliente_id"]
             isOneToOne: false
             referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      faturas: {
+        Row: {
+          atualizado_em: string
+          cliente_id: string
+          contrato_id: string | null
+          criado_em: string
+          data_pagamento: string | null
+          descricao: string
+          id: string
+          link_pagamento: string | null
+          metodo: string
+          notificada_em: string | null
+          recorrencia: string
+          status: string
+          valor: number
+          valor_pago: number | null
+          vencimento: string
+        }
+        Insert: {
+          atualizado_em?: string
+          cliente_id: string
+          contrato_id?: string | null
+          criado_em?: string
+          data_pagamento?: string | null
+          descricao?: string
+          id?: string
+          link_pagamento?: string | null
+          metodo?: string
+          notificada_em?: string | null
+          recorrencia?: string
+          status?: string
+          valor: number
+          valor_pago?: number | null
+          vencimento: string
+        }
+        Update: {
+          atualizado_em?: string
+          cliente_id?: string
+          contrato_id?: string | null
+          criado_em?: string
+          data_pagamento?: string | null
+          descricao?: string
+          id?: string
+          link_pagamento?: string | null
+          metodo?: string
+          notificada_em?: string | null
+          recorrencia?: string
+          status?: string
+          valor?: number
+          valor_pago?: number | null
+          vencimento?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "faturas_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "faturas_contrato_id_fkey"
+            columns: ["contrato_id"]
+            isOneToOne: false
+            referencedRelation: "contratos"
             referencedColumns: ["id"]
           },
         ]
@@ -1099,6 +1224,28 @@ export type Database = {
           },
         ]
       }
+      vw_financeiro_resumo: {
+        Row: {
+          cobrancas_abertas: number | null
+          cobrancas_abertas_qtd: number | null
+          inadimplencia: number | null
+          inadimplentes_qtd: number | null
+          mrr_ativo: number | null
+          mrr_mes_anterior: number | null
+          previsto_mes: number | null
+          recebido_mes: number | null
+        }
+        Relationships: []
+      }
+      vw_mrr_mensal: {
+        Row: {
+          churn: number | null
+          mes: string | null
+          mrr: number | null
+          novo: number | null
+        }
+        Relationships: []
+      }
       vw_funil_lead_cliente: {
         Row: {
           cliente_id: string | null
@@ -1227,6 +1374,16 @@ export type Database = {
       is_staff: { Args: { _user_id: string }; Returns: boolean }
       log_ticket_converted: {
         Args: { _lead_id: string; _ticket: number }
+        Returns: undefined
+      }
+      marcar_fatura_paga: {
+        Args: { _id: string; _valor?: number }
+        Returns: undefined
+      }
+      pode_ver_financeiro: { Args: { _user_id: string }; Returns: boolean }
+      reativar_contrato: { Args: { _contrato_id: string }; Returns: undefined }
+      suspender_contrato: {
+        Args: { _contrato_id: string; _motivo?: string }
         Returns: undefined
       }
       mover_lead_status: {

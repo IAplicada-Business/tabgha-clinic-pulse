@@ -34,6 +34,7 @@ import {
   Brain,
   Briefcase,
   Megaphone,
+  DollarSign,
 } from "lucide-react";
 
 type NavChild = {
@@ -171,6 +172,33 @@ const ADMIN_ITEMS = {
     icon: Briefcase,
     perm: "admin.pipeline",
   },
+  financeiro: {
+    to: "/admin/financeiro",
+    label: "Financeiro",
+    icon: DollarSign,
+    perm: "admin.financeiro",
+    children: [
+      {
+        to: "/admin/financeiro",
+        label: "Contratos",
+        perm: "admin.financeiro",
+        search: { tab: "contratos" },
+      },
+      {
+        to: "/admin/financeiro",
+        label: "Cobranças",
+        perm: "admin.financeiro",
+        search: { tab: "cobrancas" },
+      },
+      { to: "/admin/financeiro", label: "MRR", perm: "admin.financeiro", search: { tab: "mrr" } },
+      {
+        to: "/admin/financeiro",
+        label: "Inadimplência",
+        perm: "admin.financeiro",
+        search: { tab: "inadimplencia" },
+      },
+    ],
+  },
   usuarios: {
     to: "/admin/usuarios",
     label: "Usuários & acessos",
@@ -205,14 +233,14 @@ const ADMIN_NAV_BY_ROLE: Record<StaffRole, NavGroup[]> = {
       ],
     },
     { group: "Conteúdo", items: [ADMIN_ITEMS.estrategia, ADMIN_ITEMS.calendario] },
-    { group: "Comercial Tabgha", items: [ADMIN_ITEMS.pipelineB2b] },
+    { group: "Comercial Tabgha", items: [ADMIN_ITEMS.pipelineB2b, ADMIN_ITEMS.financeiro] },
     { group: "Administração", items: [ADMIN_ITEMS.usuarios, ADMIN_ITEMS.conexoesMeta] },
   ],
   gestor_estrategico: [
     { group: "Visão estratégica", items: [ADMIN_ITEMS.dashboard, ADMIN_ITEMS.roi] },
     { group: "Clientes", items: [ADMIN_ITEMS.clientes, ADMIN_ITEMS.diagnosticos] },
     { group: "Aquisição de pacientes", items: [ADMIN_ITEMS.funilPacientes] },
-    { group: "Comercial Tabgha", items: [ADMIN_ITEMS.pipelineB2b] },
+    { group: "Comercial Tabgha", items: [ADMIN_ITEMS.pipelineB2b, ADMIN_ITEMS.financeiro] },
   ],
   growth_manager: [
     { group: "Visão", items: [ADMIN_ITEMS.dashboard, ADMIN_ITEMS.roi] },
@@ -249,6 +277,7 @@ const ADMIN_NAV_BY_ROLE: Record<StaffRole, NavGroup[]> = {
     { group: "Visão", items: [ADMIN_ITEMS.dashboard] },
   ],
   financeiro: [
+    { group: "Financeiro", items: [ADMIN_ITEMS.financeiro] },
     { group: "Visão", items: [ADMIN_ITEMS.dashboard] },
     { group: "Carteira", items: [ADMIN_ITEMS.clientes] },
   ],
