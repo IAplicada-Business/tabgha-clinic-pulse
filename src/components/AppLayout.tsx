@@ -35,6 +35,7 @@ import {
   Briefcase,
   Megaphone,
   DollarSign,
+  Images,
 } from "lucide-react";
 
 type NavChild = {
@@ -144,6 +145,12 @@ const ADMIN_ITEMS = {
     icon: Calendar,
     perm: "admin.calendario",
   },
+  biblioteca: {
+    to: "/admin/biblioteca-criativa",
+    label: "Biblioteca Criativa",
+    icon: Images,
+    perm: "admin.biblioteca",
+  },
   automacoes: {
     to: "/admin/automacoes-leads",
     label: "Automações de pacientes",
@@ -232,7 +239,10 @@ const ADMIN_NAV_BY_ROLE: Record<StaffRole, NavGroup[]> = {
         ADMIN_ITEMS.metaAds,
       ],
     },
-    { group: "Conteúdo", items: [ADMIN_ITEMS.estrategia, ADMIN_ITEMS.calendario] },
+    {
+      group: "Conteúdo",
+      items: [ADMIN_ITEMS.estrategia, ADMIN_ITEMS.biblioteca, ADMIN_ITEMS.calendario],
+    },
     { group: "Comercial Tabgha", items: [ADMIN_ITEMS.pipelineB2b, ADMIN_ITEMS.financeiro] },
     { group: "Administração", items: [ADMIN_ITEMS.usuarios, ADMIN_ITEMS.conexoesMeta] },
   ],
@@ -255,10 +265,13 @@ const ADMIN_NAV_BY_ROLE: Record<StaffRole, NavGroup[]> = {
     },
     { group: "Comercial Tabgha", items: [ADMIN_ITEMS.pipelineB2b] },
     { group: "Carteira", items: [ADMIN_ITEMS.clientes] },
-    { group: "Planejamento", items: [ADMIN_ITEMS.calendario] },
+    { group: "Conteúdo", items: [ADMIN_ITEMS.biblioteca, ADMIN_ITEMS.calendario] },
   ],
   social_media: [
-    { group: "Conteúdo", items: [ADMIN_ITEMS.estrategia, ADMIN_ITEMS.calendario] },
+    {
+      group: "Conteúdo",
+      items: [ADMIN_ITEMS.estrategia, ADMIN_ITEMS.biblioteca, ADMIN_ITEMS.calendario],
+    },
     { group: "Carteira", items: [ADMIN_ITEMS.clientes] },
     { group: "Resultados", items: [ADMIN_ITEMS.roi] },
   ],

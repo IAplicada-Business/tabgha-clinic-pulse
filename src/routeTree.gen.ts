@@ -19,6 +19,7 @@ import { Route as AuthenticatedClienteRouteRouteImport } from './routes/_authent
 import { Route as DiagnosticoTokenRouteImport } from './routes/diagnostico.$token'
 import { Route as AuthenticatedAdminAtendimentoRouteImport } from './routes/_authenticated/admin/atendimento'
 import { Route as AuthenticatedAdminAutomacoesLeadsRouteImport } from './routes/_authenticated/admin/automacoes-leads'
+import { Route as AuthenticatedAdminBibliotecaCriativaRouteImport } from './routes/_authenticated/admin/biblioteca-criativa'
 import { Route as AuthenticatedAdminCalendarioRouteImport } from './routes/_authenticated/admin/calendario'
 import { Route as AuthenticatedAdminCerebroPietroRouteImport } from './routes/_authenticated/admin/cerebro-pietro'
 import { Route as AuthenticatedAdminConfigMetaRouteImport } from './routes/_authenticated/admin/config-meta'
@@ -97,6 +98,12 @@ const AuthenticatedAdminAutomacoesLeadsRoute =
   AuthenticatedAdminAutomacoesLeadsRouteImport.update({
     id: '/automacoes-leads',
     path: '/automacoes-leads',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
+const AuthenticatedAdminBibliotecaCriativaRoute =
+  AuthenticatedAdminBibliotecaCriativaRouteImport.update({
+    id: '/biblioteca-criativa',
+    path: '/biblioteca-criativa',
     getParentRoute: () => AuthenticatedAdminRouteRoute,
   } as any)
 const AuthenticatedAdminCalendarioRoute =
@@ -269,6 +276,7 @@ export interface FileRoutesByFullPath {
   '/diagnostico/$token': typeof DiagnosticoTokenRoute
   '/admin/atendimento': typeof AuthenticatedAdminAtendimentoRoute
   '/admin/automacoes-leads': typeof AuthenticatedAdminAutomacoesLeadsRoute
+  '/admin/biblioteca-criativa': typeof AuthenticatedAdminBibliotecaCriativaRoute
   '/admin/calendario': typeof AuthenticatedAdminCalendarioRoute
   '/admin/cerebro-pietro': typeof AuthenticatedAdminCerebroPietroRoute
   '/admin/config-meta': typeof AuthenticatedAdminConfigMetaRoute
@@ -307,6 +315,7 @@ export interface FileRoutesByTo {
   '/diagnostico/$token': typeof DiagnosticoTokenRoute
   '/admin/atendimento': typeof AuthenticatedAdminAtendimentoRoute
   '/admin/automacoes-leads': typeof AuthenticatedAdminAutomacoesLeadsRoute
+  '/admin/biblioteca-criativa': typeof AuthenticatedAdminBibliotecaCriativaRoute
   '/admin/calendario': typeof AuthenticatedAdminCalendarioRoute
   '/admin/cerebro-pietro': typeof AuthenticatedAdminCerebroPietroRoute
   '/admin/config-meta': typeof AuthenticatedAdminConfigMetaRoute
@@ -347,6 +356,7 @@ export interface FileRoutesById {
   '/diagnostico/$token': typeof DiagnosticoTokenRoute
   '/_authenticated/admin/atendimento': typeof AuthenticatedAdminAtendimentoRoute
   '/_authenticated/admin/automacoes-leads': typeof AuthenticatedAdminAutomacoesLeadsRoute
+  '/_authenticated/admin/biblioteca-criativa': typeof AuthenticatedAdminBibliotecaCriativaRoute
   '/_authenticated/admin/calendario': typeof AuthenticatedAdminCalendarioRoute
   '/_authenticated/admin/cerebro-pietro': typeof AuthenticatedAdminCerebroPietroRoute
   '/_authenticated/admin/config-meta': typeof AuthenticatedAdminConfigMetaRoute
@@ -387,6 +397,7 @@ export interface FileRouteTypes {
     | '/diagnostico/$token'
     | '/admin/atendimento'
     | '/admin/automacoes-leads'
+    | '/admin/biblioteca-criativa'
     | '/admin/calendario'
     | '/admin/cerebro-pietro'
     | '/admin/config-meta'
@@ -425,6 +436,7 @@ export interface FileRouteTypes {
     | '/diagnostico/$token'
     | '/admin/atendimento'
     | '/admin/automacoes-leads'
+    | '/admin/biblioteca-criativa'
     | '/admin/calendario'
     | '/admin/cerebro-pietro'
     | '/admin/config-meta'
@@ -464,6 +476,7 @@ export interface FileRouteTypes {
     | '/diagnostico/$token'
     | '/_authenticated/admin/atendimento'
     | '/_authenticated/admin/automacoes-leads'
+    | '/_authenticated/admin/biblioteca-criativa'
     | '/_authenticated/admin/calendario'
     | '/_authenticated/admin/cerebro-pietro'
     | '/_authenticated/admin/config-meta'
@@ -572,6 +585,13 @@ declare module '@tanstack/react-router' {
       path: '/automacoes-leads'
       fullPath: '/admin/automacoes-leads'
       preLoaderRoute: typeof AuthenticatedAdminAutomacoesLeadsRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
+    '/_authenticated/admin/biblioteca-criativa': {
+      id: '/_authenticated/admin/biblioteca-criativa'
+      path: '/biblioteca-criativa'
+      fullPath: '/admin/biblioteca-criativa'
+      preLoaderRoute: typeof AuthenticatedAdminBibliotecaCriativaRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
     }
     '/_authenticated/admin/calendario': {
@@ -769,6 +789,7 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedAdminRouteRouteChildren {
   AuthenticatedAdminAtendimentoRoute: typeof AuthenticatedAdminAtendimentoRoute
   AuthenticatedAdminAutomacoesLeadsRoute: typeof AuthenticatedAdminAutomacoesLeadsRoute
+  AuthenticatedAdminBibliotecaCriativaRoute: typeof AuthenticatedAdminBibliotecaCriativaRoute
   AuthenticatedAdminCalendarioRoute: typeof AuthenticatedAdminCalendarioRoute
   AuthenticatedAdminCerebroPietroRoute: typeof AuthenticatedAdminCerebroPietroRoute
   AuthenticatedAdminConfigMetaRoute: typeof AuthenticatedAdminConfigMetaRoute
@@ -792,6 +813,8 @@ const AuthenticatedAdminRouteRouteChildren: AuthenticatedAdminRouteRouteChildren
     AuthenticatedAdminAtendimentoRoute: AuthenticatedAdminAtendimentoRoute,
     AuthenticatedAdminAutomacoesLeadsRoute:
       AuthenticatedAdminAutomacoesLeadsRoute,
+    AuthenticatedAdminBibliotecaCriativaRoute:
+      AuthenticatedAdminBibliotecaCriativaRoute,
     AuthenticatedAdminCalendarioRoute: AuthenticatedAdminCalendarioRoute,
     AuthenticatedAdminCerebroPietroRoute: AuthenticatedAdminCerebroPietroRoute,
     AuthenticatedAdminConfigMetaRoute: AuthenticatedAdminConfigMetaRoute,

@@ -159,51 +159,119 @@ export type Database = {
         }
         Relationships: []
       }
+      conteudo_comentarios: {
+        Row: {
+          autor_id: string | null
+          autor_lado: string
+          autor_nome: string | null
+          conteudo_id: string
+          criado_em: string
+          id: string
+          texto: string
+        }
+        Insert: {
+          autor_id?: string | null
+          autor_lado?: string
+          autor_nome?: string | null
+          conteudo_id: string
+          criado_em?: string
+          id?: string
+          texto: string
+        }
+        Update: {
+          autor_id?: string | null
+          autor_lado?: string
+          autor_nome?: string | null
+          conteudo_id?: string
+          criado_em?: string
+          id?: string
+          texto?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conteudo_comentarios_conteudo_id_fkey"
+            columns: ["conteudo_id"]
+            isOneToOne: false
+            referencedRelation: "conteudos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       conteudos: {
         Row: {
+          arquivos: Json
           atualizado_em: string
+          autor_id: string | null
           cliente_id: string
           criado_em: string
           data_postagem: string | null
+          data_sugerida: string | null
           feedback_cliente: string | null
+          formato: string
+          historico: Json
           id: string
+          legenda: string | null
+          pilar: string
           rede: string | null
           roteiro: string | null
           status: string
+          tags: string[]
           tipo: string | null
           titulo: string | null
           url_arquivo: string | null
           url_briefing: string | null
+          versao: number
+          versao_de: string | null
         }
         Insert: {
+          arquivos?: Json
           atualizado_em?: string
+          autor_id?: string | null
           cliente_id: string
           criado_em?: string
           data_postagem?: string | null
+          data_sugerida?: string | null
           feedback_cliente?: string | null
+          formato?: string
+          historico?: Json
           id?: string
+          legenda?: string | null
+          pilar?: string
           rede?: string | null
           roteiro?: string | null
           status?: string
+          tags?: string[]
           tipo?: string | null
           titulo?: string | null
           url_arquivo?: string | null
           url_briefing?: string | null
+          versao?: number
+          versao_de?: string | null
         }
         Update: {
+          arquivos?: Json
           atualizado_em?: string
+          autor_id?: string | null
           cliente_id?: string
           criado_em?: string
           data_postagem?: string | null
+          data_sugerida?: string | null
           feedback_cliente?: string | null
+          formato?: string
+          historico?: Json
           id?: string
+          legenda?: string | null
+          pilar?: string
           rede?: string | null
           roteiro?: string | null
           status?: string
+          tags?: string[]
           tipo?: string | null
           titulo?: string | null
           url_arquivo?: string | null
           url_briefing?: string | null
+          versao?: number
+          versao_de?: string | null
         }
         Relationships: [
           {
@@ -1407,7 +1475,7 @@ export type Database = {
       }
       registrar_acesso: { Args: never; Returns: undefined }
       responder_conteudo: {
-        Args: { _aprovada: boolean; _feedback?: string; _id: string }
+        Args: { _acao?: string; _aprovada: boolean; _feedback?: string; _id: string }
         Returns: undefined
       }
       responder_entrega: {
