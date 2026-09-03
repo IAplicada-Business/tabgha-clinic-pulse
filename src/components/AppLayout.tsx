@@ -142,6 +142,10 @@ const ADMIN_ITEMS = {
     label: "Automações de pacientes",
     icon: Zap,
     perm: "admin.operacao",
+    children: [
+      { to: "/admin/automacoes-leads", label: "Desempenho", perm: "admin.operacao" },
+      { to: "/admin/nutricao", label: "Nutrição de leads", perm: "admin.operacao" },
+    ],
   },
   funilPacientes: {
     to: "/admin/leads",

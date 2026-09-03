@@ -21,6 +21,7 @@ const ADMIN_ROUTE_RULES: RouteRule[] = [
   { prefix: "/admin/roi", perm: ADMIN_PERMISSION_GROUPS.roi },
   { prefix: "/admin/pipeline-comercial", perm: ADMIN_PERMISSION_GROUPS.pipeline },
   { prefix: "/admin/automacoes-leads", perm: ADMIN_PERMISSION_GROUPS.operacao },
+  { prefix: "/admin/nutricao", perm: ADMIN_PERMISSION_GROUPS.operacao },
   { prefix: "/admin/leads", perm: ADMIN_PERMISSION_GROUPS.operacao },
   { prefix: "/admin/calendario", perm: ADMIN_PERMISSION_GROUPS.operacao },
   { prefix: "/admin/clientes", perm: ADMIN_PERMISSION_GROUPS.clientes },
@@ -77,6 +78,7 @@ export function firstAllowedAdminPath(permissoes: string[] | null | undefined): 
     "/admin/leads",
     "/admin/calendario",
     "/admin/automacoes-leads",
+    "/admin/nutricao",
     "/admin/diagnosticos",
     "/admin/pipeline-comercial",
     "/admin/usuarios",
@@ -110,10 +112,7 @@ export function firstAllowedClientePath(permissoes: string[] | null | undefined)
   return "/login";
 }
 
-export function canAccessPath(
-  pathname: string,
-  permissoes: string[] | null | undefined,
-): boolean {
+export function canAccessPath(pathname: string, permissoes: string[] | null | undefined): boolean {
   const required = requiredPermissionForPath(pathname);
   if (!required) return true;
   return hasPermission(permissoes, required);

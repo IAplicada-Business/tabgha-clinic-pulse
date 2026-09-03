@@ -638,6 +638,7 @@ export type Database = {
           atualizado_em: string
           cliente_id: string
           criado_em: string
+          enviadas: Json
           id: string
           kind: string
           last_error: string | null
@@ -652,6 +653,7 @@ export type Database = {
           atualizado_em?: string
           cliente_id: string
           criado_em?: string
+          enviadas?: Json
           id?: string
           kind: string
           last_error?: string | null
@@ -666,6 +668,7 @@ export type Database = {
           atualizado_em?: string
           cliente_id?: string
           criado_em?: string
+          enviadas?: Json
           id?: string
           kind?: string
           last_error?: string | null

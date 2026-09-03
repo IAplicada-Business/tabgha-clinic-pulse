@@ -13,9 +13,9 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as QueroSaberMaisRouteImport } from './routes/quero-saber-mais'
-import { Route as DiagnosticoTokenRouteImport } from './routes/diagnostico.$token'
 import { Route as AuthenticatedAdminRouteRouteImport } from './routes/_authenticated/admin/route'
 import { Route as AuthenticatedClienteRouteRouteImport } from './routes/_authenticated/cliente/route'
+import { Route as DiagnosticoTokenRouteImport } from './routes/diagnostico.$token'
 import { Route as AuthenticatedAdminAtendimentoRouteImport } from './routes/_authenticated/admin/atendimento'
 import { Route as AuthenticatedAdminAutomacoesLeadsRouteImport } from './routes/_authenticated/admin/automacoes-leads'
 import { Route as AuthenticatedAdminCalendarioRouteImport } from './routes/_authenticated/admin/calendario'
@@ -27,6 +27,7 @@ import { Route as AuthenticatedAdminDiagnosticosRouteImport } from './routes/_au
 import { Route as AuthenticatedAdminEstrategiaRouteImport } from './routes/_authenticated/admin/estrategia'
 import { Route as AuthenticatedAdminLeadsRouteImport } from './routes/_authenticated/admin/leads'
 import { Route as AuthenticatedAdminMetaAdsRouteImport } from './routes/_authenticated/admin/meta-ads'
+import { Route as AuthenticatedAdminNutricaoRouteImport } from './routes/_authenticated/admin/nutricao'
 import { Route as AuthenticatedAdminPipelineComercialRouteImport } from './routes/_authenticated/admin/pipeline-comercial'
 import { Route as AuthenticatedAdminRoiRouteImport } from './routes/_authenticated/admin/roi'
 import { Route as AuthenticatedAdminUsuariosRouteImport } from './routes/_authenticated/admin/usuarios'
@@ -58,11 +59,6 @@ const LoginRoute = LoginRouteImport.update({
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
-const DiagnosticoTokenRoute = DiagnosticoTokenRouteImport.update({
-  id: '/diagnostico/$token',
-  path: '/diagnostico/$token',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const QueroSaberMaisRoute = QueroSaberMaisRouteImport.update({
   id: '/quero-saber-mais',
   path: '/quero-saber-mais',
@@ -79,6 +75,11 @@ const AuthenticatedClienteRouteRoute =
     path: '/cliente',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const DiagnosticoTokenRoute = DiagnosticoTokenRouteImport.update({
+  id: '/diagnostico/$token',
+  path: '/diagnostico/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedAdminAtendimentoRoute =
   AuthenticatedAdminAtendimentoRouteImport.update({
     id: '/atendimento',
@@ -142,6 +143,12 @@ const AuthenticatedAdminMetaAdsRoute =
   AuthenticatedAdminMetaAdsRouteImport.update({
     id: '/meta-ads',
     path: '/meta-ads',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
+const AuthenticatedAdminNutricaoRoute =
+  AuthenticatedAdminNutricaoRouteImport.update({
+    id: '/nutricao',
+    path: '/nutricao',
     getParentRoute: () => AuthenticatedAdminRouteRoute,
   } as any)
 const AuthenticatedAdminPipelineComercialRoute =
@@ -242,17 +249,13 @@ const AuthenticatedAdminClientesIdRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
-  '/diagnostico/$token': typeof DiagnosticoTokenRoute
-  '/diagnostico/$token': typeof DiagnosticoTokenRoute
-  '/diagnostico/$token': typeof DiagnosticoTokenRoute
   '/quero-saber-mais': typeof QueroSaberMaisRoute
   '/admin': typeof AuthenticatedAdminRouteRouteWithChildren
   '/cliente': typeof AuthenticatedClienteRouteRouteWithChildren
+  '/diagnostico/$token': typeof DiagnosticoTokenRoute
   '/admin/atendimento': typeof AuthenticatedAdminAtendimentoRoute
   '/admin/automacoes-leads': typeof AuthenticatedAdminAutomacoesLeadsRoute
   '/admin/calendario': typeof AuthenticatedAdminCalendarioRoute
-  '/admin/cerebro-pietro': typeof AuthenticatedAdminCerebroPietroRoute
-  '/admin/cerebro-pietro': typeof AuthenticatedAdminCerebroPietroRoute
   '/admin/cerebro-pietro': typeof AuthenticatedAdminCerebroPietroRoute
   '/admin/config-meta': typeof AuthenticatedAdminConfigMetaRoute
   '/admin/dashboard': typeof AuthenticatedAdminDashboardRoute
@@ -261,6 +264,7 @@ export interface FileRoutesByFullPath {
   '/admin/estrategia': typeof AuthenticatedAdminEstrategiaRoute
   '/admin/leads': typeof AuthenticatedAdminLeadsRoute
   '/admin/meta-ads': typeof AuthenticatedAdminMetaAdsRoute
+  '/admin/nutricao': typeof AuthenticatedAdminNutricaoRoute
   '/admin/pipeline-comercial': typeof AuthenticatedAdminPipelineComercialRoute
   '/admin/roi': typeof AuthenticatedAdminRoiRoute
   '/admin/usuarios': typeof AuthenticatedAdminUsuariosRoute
@@ -284,6 +288,7 @@ export interface FileRoutesByTo {
   '/quero-saber-mais': typeof QueroSaberMaisRoute
   '/admin': typeof AuthenticatedAdminRouteRouteWithChildren
   '/cliente': typeof AuthenticatedClienteRouteRouteWithChildren
+  '/diagnostico/$token': typeof DiagnosticoTokenRoute
   '/admin/atendimento': typeof AuthenticatedAdminAtendimentoRoute
   '/admin/automacoes-leads': typeof AuthenticatedAdminAutomacoesLeadsRoute
   '/admin/calendario': typeof AuthenticatedAdminCalendarioRoute
@@ -295,6 +300,7 @@ export interface FileRoutesByTo {
   '/admin/estrategia': typeof AuthenticatedAdminEstrategiaRoute
   '/admin/leads': typeof AuthenticatedAdminLeadsRoute
   '/admin/meta-ads': typeof AuthenticatedAdminMetaAdsRoute
+  '/admin/nutricao': typeof AuthenticatedAdminNutricaoRoute
   '/admin/pipeline-comercial': typeof AuthenticatedAdminPipelineComercialRoute
   '/admin/roi': typeof AuthenticatedAdminRoiRoute
   '/admin/usuarios': typeof AuthenticatedAdminUsuariosRoute
@@ -320,10 +326,10 @@ export interface FileRoutesById {
   '/quero-saber-mais': typeof QueroSaberMaisRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteRouteWithChildren
   '/_authenticated/cliente': typeof AuthenticatedClienteRouteRouteWithChildren
+  '/diagnostico/$token': typeof DiagnosticoTokenRoute
   '/_authenticated/admin/atendimento': typeof AuthenticatedAdminAtendimentoRoute
   '/_authenticated/admin/automacoes-leads': typeof AuthenticatedAdminAutomacoesLeadsRoute
   '/_authenticated/admin/calendario': typeof AuthenticatedAdminCalendarioRoute
-  '/_authenticated/admin/cerebro-pietro': typeof AuthenticatedAdminCerebroPietroRoute
   '/_authenticated/admin/cerebro-pietro': typeof AuthenticatedAdminCerebroPietroRoute
   '/_authenticated/admin/config-meta': typeof AuthenticatedAdminConfigMetaRoute
   '/_authenticated/admin/dashboard': typeof AuthenticatedAdminDashboardRoute
@@ -332,6 +338,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/estrategia': typeof AuthenticatedAdminEstrategiaRoute
   '/_authenticated/admin/leads': typeof AuthenticatedAdminLeadsRoute
   '/_authenticated/admin/meta-ads': typeof AuthenticatedAdminMetaAdsRoute
+  '/_authenticated/admin/nutricao': typeof AuthenticatedAdminNutricaoRoute
   '/_authenticated/admin/pipeline-comercial': typeof AuthenticatedAdminPipelineComercialRoute
   '/_authenticated/admin/roi': typeof AuthenticatedAdminRoiRoute
   '/_authenticated/admin/usuarios': typeof AuthenticatedAdminUsuariosRoute
@@ -354,17 +361,13 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/login'
-    | '/diagnostico/$token'
-    | '/diagnostico/$token'
-    | '/diagnostico/$token'
     | '/quero-saber-mais'
     | '/admin'
     | '/cliente'
+    | '/diagnostico/$token'
     | '/admin/atendimento'
     | '/admin/automacoes-leads'
     | '/admin/calendario'
-    | '/admin/cerebro-pietro'
-    | '/admin/cerebro-pietro'
     | '/admin/cerebro-pietro'
     | '/admin/config-meta'
     | '/admin/dashboard'
@@ -373,6 +376,7 @@ export interface FileRouteTypes {
     | '/admin/estrategia'
     | '/admin/leads'
     | '/admin/meta-ads'
+    | '/admin/nutricao'
     | '/admin/pipeline-comercial'
     | '/admin/roi'
     | '/admin/usuarios'
@@ -396,6 +400,7 @@ export interface FileRouteTypes {
     | '/quero-saber-mais'
     | '/admin'
     | '/cliente'
+    | '/diagnostico/$token'
     | '/admin/atendimento'
     | '/admin/automacoes-leads'
     | '/admin/calendario'
@@ -407,6 +412,7 @@ export interface FileRouteTypes {
     | '/admin/estrategia'
     | '/admin/leads'
     | '/admin/meta-ads'
+    | '/admin/nutricao'
     | '/admin/pipeline-comercial'
     | '/admin/roi'
     | '/admin/usuarios'
@@ -431,10 +437,10 @@ export interface FileRouteTypes {
     | '/quero-saber-mais'
     | '/_authenticated/admin'
     | '/_authenticated/cliente'
+    | '/diagnostico/$token'
     | '/_authenticated/admin/atendimento'
     | '/_authenticated/admin/automacoes-leads'
     | '/_authenticated/admin/calendario'
-    | '/_authenticated/admin/cerebro-pietro'
     | '/_authenticated/admin/cerebro-pietro'
     | '/_authenticated/admin/config-meta'
     | '/_authenticated/admin/dashboard'
@@ -443,6 +449,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/estrategia'
     | '/_authenticated/admin/leads'
     | '/_authenticated/admin/meta-ads'
+    | '/_authenticated/admin/nutricao'
     | '/_authenticated/admin/pipeline-comercial'
     | '/_authenticated/admin/roi'
     | '/_authenticated/admin/usuarios'
@@ -465,8 +472,8 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   LoginRoute: typeof LoginRoute
-  DiagnosticoTokenRoute: typeof DiagnosticoTokenRoute
   QueroSaberMaisRoute: typeof QueroSaberMaisRoute
+  DiagnosticoTokenRoute: typeof DiagnosticoTokenRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -492,13 +499,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/diagnostico/$token': {
-      id: '/diagnostico/$token'
-      path: '/diagnostico/$token'
-      fullPath: '/diagnostico/$token'
-      preLoaderRoute: typeof DiagnosticoTokenRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/quero-saber-mais': {
       id: '/quero-saber-mais'
       path: '/quero-saber-mais'
@@ -519,6 +519,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/cliente'
       preLoaderRoute: typeof AuthenticatedClienteRouteRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/diagnostico/$token': {
+      id: '/diagnostico/$token'
+      path: '/diagnostico/$token'
+      fullPath: '/diagnostico/$token'
+      preLoaderRoute: typeof DiagnosticoTokenRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_authenticated/admin/atendimento': {
       id: '/_authenticated/admin/atendimento'
@@ -595,6 +602,13 @@ declare module '@tanstack/react-router' {
       path: '/meta-ads'
       fullPath: '/admin/meta-ads'
       preLoaderRoute: typeof AuthenticatedAdminMetaAdsRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
+    '/_authenticated/admin/nutricao': {
+      id: '/_authenticated/admin/nutricao'
+      path: '/nutricao'
+      fullPath: '/admin/nutricao'
+      preLoaderRoute: typeof AuthenticatedAdminNutricaoRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
     }
     '/_authenticated/admin/pipeline-comercial': {
@@ -717,7 +731,6 @@ interface AuthenticatedAdminRouteRouteChildren {
   AuthenticatedAdminAutomacoesLeadsRoute: typeof AuthenticatedAdminAutomacoesLeadsRoute
   AuthenticatedAdminCalendarioRoute: typeof AuthenticatedAdminCalendarioRoute
   AuthenticatedAdminCerebroPietroRoute: typeof AuthenticatedAdminCerebroPietroRoute
-  AuthenticatedAdminCerebroPietroRoute: typeof AuthenticatedAdminCerebroPietroRoute
   AuthenticatedAdminConfigMetaRoute: typeof AuthenticatedAdminConfigMetaRoute
   AuthenticatedAdminDashboardRoute: typeof AuthenticatedAdminDashboardRoute
   AuthenticatedAdminDashboardClientesRoute: typeof AuthenticatedAdminDashboardClientesRoute
@@ -725,6 +738,7 @@ interface AuthenticatedAdminRouteRouteChildren {
   AuthenticatedAdminEstrategiaRoute: typeof AuthenticatedAdminEstrategiaRoute
   AuthenticatedAdminLeadsRoute: typeof AuthenticatedAdminLeadsRoute
   AuthenticatedAdminMetaAdsRoute: typeof AuthenticatedAdminMetaAdsRoute
+  AuthenticatedAdminNutricaoRoute: typeof AuthenticatedAdminNutricaoRoute
   AuthenticatedAdminPipelineComercialRoute: typeof AuthenticatedAdminPipelineComercialRoute
   AuthenticatedAdminRoiRoute: typeof AuthenticatedAdminRoiRoute
   AuthenticatedAdminUsuariosRoute: typeof AuthenticatedAdminUsuariosRoute
@@ -747,6 +761,7 @@ const AuthenticatedAdminRouteRouteChildren: AuthenticatedAdminRouteRouteChildren
     AuthenticatedAdminEstrategiaRoute: AuthenticatedAdminEstrategiaRoute,
     AuthenticatedAdminLeadsRoute: AuthenticatedAdminLeadsRoute,
     AuthenticatedAdminMetaAdsRoute: AuthenticatedAdminMetaAdsRoute,
+    AuthenticatedAdminNutricaoRoute: AuthenticatedAdminNutricaoRoute,
     AuthenticatedAdminPipelineComercialRoute:
       AuthenticatedAdminPipelineComercialRoute,
     AuthenticatedAdminRoiRoute: AuthenticatedAdminRoiRoute,
@@ -811,8 +826,8 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   LoginRoute: LoginRoute,
-  DiagnosticoTokenRoute: DiagnosticoTokenRoute,
   QueroSaberMaisRoute: QueroSaberMaisRoute,
+  DiagnosticoTokenRoute: DiagnosticoTokenRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
