@@ -31,7 +31,7 @@ import {
 
 export const Route = createFileRoute("/_authenticated/admin/cerebro-pietro")({
   component: CerebroPietroPage,
-  head: () => ({ meta: [{ title: "Cérebro Pietro — Tabgha Admin" }] }),
+  head: () => ({ meta: [{ title: "Cérebro Pietro · Tabgha OS" }] }),
 });
 
 const TABS = ["Agente", "Clientes"] as const;

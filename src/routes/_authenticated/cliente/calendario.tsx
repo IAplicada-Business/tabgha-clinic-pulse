@@ -10,7 +10,7 @@ import { KpiCard } from "@/components/ui/kpi-card";
 
 export const Route = createFileRoute("/_authenticated/cliente/calendario")({
   component: CalendarioPage,
-  head: () => ({ meta: [{ title: "Calendário — Portal" }] }),
+  head: () => ({ meta: [{ title: "Calendário editorial · Tabgha OS" }] }),
 });
 
 function CalendarioPage() {

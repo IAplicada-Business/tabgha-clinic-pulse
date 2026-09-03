@@ -18,7 +18,7 @@ export const Route = createFileRoute("/_authenticated/admin/leads")({
     cliente: typeof search.cliente === "string" ? search.cliente : "",
     q: typeof search.q === "string" ? search.q : "",
   }),
-  head: () => ({ meta: [{ title: "Funil de leads — Admin" }] }),
+  head: () => ({ meta: [{ title: "Funil de pacientes · Tabgha OS" }] }),
 });
 
 function AdminLeadsPage() {

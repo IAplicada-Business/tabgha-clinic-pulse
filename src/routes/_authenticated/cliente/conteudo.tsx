@@ -22,7 +22,7 @@ import type { Tables } from "@/integrations/supabase/types";
 
 export const Route = createFileRoute("/_authenticated/cliente/conteudo")({
   component: ConteudoPage,
-  head: () => ({ meta: [{ title: "Conteúdo — Portal" }] }),
+  head: () => ({ meta: [{ title: "Conteúdo · Tabgha OS" }] }),
 });
 
 type ConteudoRow = Tables<"conteudos">;

@@ -62,7 +62,7 @@ export const Route = createFileRoute("/_authenticated/admin/roi")({
     tab: resolveRoiTab(search.tab),
   }),
   component: RoiAdminPage,
-  head: () => ({ meta: [{ title: "ROI da operação — Tabgha Admin" }] }),
+  head: () => ({ meta: [{ title: "Resultados & ROI · Tabgha OS" }] }),
 });
 
 type Metrica = {

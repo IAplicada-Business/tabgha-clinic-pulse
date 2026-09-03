@@ -14,7 +14,7 @@ import type { Tables } from "@/integrations/supabase/types";
 
 export const Route = createFileRoute("/_authenticated/admin/estrategia")({
   component: EstrategiaPage,
-  head: () => ({ meta: [{ title: "Estratégia Editorial — Tabgha Admin" }] }),
+  head: () => ({ meta: [{ title: "Estratégia editorial · Tabgha OS" }] }),
 });
 
 type Conteudo = Tables<"conteudos"> & { clientes?: { nome: string } | null };

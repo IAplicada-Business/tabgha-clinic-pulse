@@ -2,7 +2,7 @@ import { createFileRoute, Navigate } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/_authenticated/cliente/meta-ads")({
   component: ClienteMetaAdsRedirect,
-  head: () => ({ meta: [{ title: "Marketing pago — Tabgha" }] }),
+  head: () => ({ meta: [{ title: "Meta Ads · Tabgha OS" }] }),
 });
 
 function ClienteMetaAdsRedirect() {

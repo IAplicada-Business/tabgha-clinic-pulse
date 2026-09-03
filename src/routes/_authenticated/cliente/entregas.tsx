@@ -23,7 +23,7 @@ import type { Tables } from "@/integrations/supabase/types";
 
 export const Route = createFileRoute("/_authenticated/cliente/entregas")({
   component: EntregasPage,
-  head: () => ({ meta: [{ title: "Entregas — Portal" }] }),
+  head: () => ({ meta: [{ title: "Entregas · Tabgha OS" }] }),
 });
 
 type Entrega = Tables<"entregas">;

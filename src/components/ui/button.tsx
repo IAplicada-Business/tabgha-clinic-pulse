@@ -11,18 +11,14 @@ const buttonVariants = cva(
       variant: {
         /* btn-primary — TABGHA OS blue CTA */
         default:
-          "bg-primary text-primary-foreground shadow-[0_4px_12px_-2px_oklch(0.440_0.158_261_/_35%)] hover:bg-accent-hover hover:shadow-[0_6px_16px_-2px_oklch(0.440_0.158_261_/_42%)] hover:-translate-y-px active:translate-y-0",
-        destructive:
-          "bg-destructive text-destructive-foreground hover:bg-destructive/85",
-        /* btn-ghost — glass border on dark */
+          "bg-primary text-primary-foreground shadow-[0_4px_12px_-2px_oklch(0.524_0.126_252_/_35%)] hover:bg-accent-hover hover:shadow-[0_6px_16px_-2px_oklch(0.524_0.126_252_/_42%)] hover:-translate-y-px active:translate-y-0",
+        destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/85",
+        /* btn-secondary — outline em primary-blue, texto primary-blue */
         outline:
-          "border border-border bg-transparent text-foreground hover:bg-accent hover:text-accent-foreground",
-        secondary:
-          "bg-secondary text-secondary-foreground hover:bg-secondary/70",
-        ghost:
-          "text-foreground/80 hover:bg-accent hover:text-accent-foreground",
-        link:
-          "text-primary underline-offset-4 hover:underline",
+          "border border-primary/40 bg-transparent text-primary hover:border-primary hover:bg-accent hover:text-primary",
+        secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/70",
+        ghost: "text-foreground/80 hover:bg-accent hover:text-accent-foreground",
+        link: "text-primary underline-offset-4 hover:text-[var(--accent-orange)] hover:underline",
       },
       size: {
         default: "h-9 px-4 py-2",

@@ -49,7 +49,7 @@ import { KpiCard } from "@/components/ui/kpi-card";
 
 export const Route = createFileRoute("/_authenticated/admin/usuarios")({
   component: UsuariosPage,
-  head: () => ({ meta: [{ title: "Usuários & acessos — Tabgha Admin" }] }),
+  head: () => ({ meta: [{ title: "Usuários & acessos · Tabgha OS" }] }),
 });
 
 type TeamMember = {

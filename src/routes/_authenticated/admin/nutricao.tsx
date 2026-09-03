@@ -41,7 +41,7 @@ import {
 
 export const Route = createFileRoute("/_authenticated/admin/nutricao")({
   component: NutricaoPage,
-  head: () => ({ meta: [{ title: "Nutrição de leads — Tabgha Admin" }] }),
+  head: () => ({ meta: [{ title: "Nutrição de leads · Tabgha OS" }] }),
 });
 
 type ClienteNutricao = {

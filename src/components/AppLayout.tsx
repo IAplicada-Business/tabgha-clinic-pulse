@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { supabase } from "@/integrations/supabase/client";
+import { TabghaLogo } from "@/components/TabghaLogo";
 import {
   LayoutDashboard,
   Calendar,
@@ -68,6 +69,11 @@ function navChildActive(
     ([key, value]) => String(searchParams[key] ?? "") === String(value),
   );
 }
+
+/** Marca do item ativo na sidebar: barra de 3px em accent-orange (#F39C12). */
+const BARRA_ATIVA =
+  "relative before:absolute before:-left-2 before:top-1/2 before:h-[18px] before:w-[3px] " +
+  "before:-translate-y-1/2 before:rounded-r-full before:bg-[var(--accent-orange)] before:content-['']";
 
 type NavGroup = {
   group: string;
@@ -549,17 +555,10 @@ function SidebarNav({
           collapsed ? "justify-center px-0" : "px-3.5",
         )}
       >
-        {!collapsed && (
-          <img
-            src="https://tabghamkt.com.br/wp-content/uploads/2025/05/logo_tabgha_health_mkt_caixa_alta-04-scaled-e1747895382243.png"
-            alt="Tabgha Health Marketing"
-            className="h-6 w-auto brightness-0 invert"
-          />
-        )}
-        {collapsed && (
-          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-sidebar-primary/20">
-            <span className="text-[11px] font-bold text-sidebar-primary">T</span>
-          </div>
+        {!collapsed ? (
+          <TabghaLogo tone="claro" altura={26} />
+        ) : (
+          <TabghaLogo variante="mark" tone="claro" altura={28} />
         )}
       </div>
 
@@ -650,7 +649,7 @@ function SidebarNav({
                               className={cn(
                                 "flex h-9 w-9 items-center justify-center rounded-xl transition-all duration-200 mx-auto",
                                 active
-                                  ? "bg-sidebar-primary text-white shadow-[0_4px_12px_-2px_oklch(0.440_0.158_261_/_55%)]"
+                                  ? "bg-sidebar-primary text-white shadow-[0_4px_12px_-2px_oklch(0.524_0.126_252_/_55%)]"
                                   : "text-sidebar-foreground/50 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground",
                               )}
                             >
@@ -681,7 +680,7 @@ function SidebarNav({
                             className={cn(
                               "mx-2 mb-px flex w-[calc(100%-16px)] items-center gap-2.5 rounded-lg border-0 bg-transparent px-2.5 py-1.5 text-left text-[12.5px] transition-colors duration-200",
                               active
-                                ? "font-semibold text-sidebar-foreground"
+                                ? `font-semibold text-sidebar-foreground ${BARRA_ATIVA}`
                                 : "font-medium text-sidebar-foreground/60 hover:bg-white/[0.05] hover:text-sidebar-foreground",
                             )}
                           >
@@ -715,7 +714,7 @@ function SidebarNav({
                                     className={cn(
                                       "flex items-center rounded-lg px-2.5 py-1.5 text-[11.5px] transition-all duration-200",
                                       exactActive
-                                        ? "bg-sidebar-primary font-semibold text-white shadow-[0_4px_12px_-2px_oklch(0.440_0.158_261_/_45%)]"
+                                        ? "bg-sidebar-primary font-semibold text-white shadow-[0_4px_12px_-2px_oklch(0.524_0.126_252_/_45%)]"
                                         : "font-medium text-sidebar-foreground/55 hover:bg-white/[0.05] hover:text-sidebar-foreground",
                                     )}
                                   >
@@ -743,7 +742,8 @@ function SidebarNav({
                         className={cn(
                           "mx-2 mb-px flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-[12.5px] font-medium transition-all duration-200",
                           active
-                            ? "bg-sidebar-primary text-white font-semibold shadow-[0_4px_12px_-2px_oklch(0.440_0.158_261_/_45%)]"
+                            ? `bg-sidebar-primary text-white font-semibold ${BARRA_ATIVA} ` +
+                                "shadow-[0_4px_12px_-2px_oklch(0.524_0.126_252_/_45%)]"
                             : "bg-transparent text-sidebar-foreground/60 hover:bg-white/[0.05] hover:text-sidebar-foreground",
                         )}
                       >
@@ -1037,7 +1037,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
           className="pointer-events-none absolute inset-0 -z-10 opacity-60"
           style={{
             background:
-              "radial-gradient(500px 260px at 0% 0%, oklch(0.440 0.158 261 / 22%), transparent 60%), radial-gradient(420px 240px at 100% 100%, oklch(0.770 0.160 72 / 8%), transparent 55%)",
+              "radial-gradient(500px 260px at 0% 0%, oklch(0.524 0.126 252 / 22%), transparent 60%), radial-gradient(420px 240px at 100% 100%, oklch(0.763 0.163 69 / 8%), transparent 55%)",
           }}
         />
         <SidebarNav
@@ -1058,15 +1058,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
           >
             <Menu className="h-5 w-5" />
           </button>
-          <img
-            src="https://tabghamkt.com.br/wp-content/uploads/2025/05/logo_tabgha_health_mkt_caixa_alta-04-scaled-e1747895382243.png"
-            alt="Tabgha Health Marketing"
-            className="h-6 w-auto"
-            style={{
-              filter:
-                "brightness(0) saturate(100%) invert(18%) sepia(56%) saturate(1200%) hue-rotate(204deg) brightness(82%) contrast(97%)",
-            }}
-          />
+          <TabghaLogo altura={24} />
           {isSimulating && (
             <div className="ml-auto flex items-center gap-1.5 rounded-full border border-amber-400/30 bg-amber-400/10 px-3 py-1">
               <Eye className="h-3 w-3 text-amber-400" />
