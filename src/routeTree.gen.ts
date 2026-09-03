@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as QueroSaberMaisRouteImport } from './routes/quero-saber-mais'
+import { Route as DiagnosticoTokenRouteImport } from './routes/diagnostico.$token'
 import { Route as AuthenticatedAdminRouteRouteImport } from './routes/_authenticated/admin/route'
 import { Route as AuthenticatedClienteRouteRouteImport } from './routes/_authenticated/cliente/route'
 import { Route as AuthenticatedAdminAtendimentoRouteImport } from './routes/_authenticated/admin/atendimento'
@@ -55,6 +56,11 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DiagnosticoTokenRoute = DiagnosticoTokenRouteImport.update({
+  id: '/diagnostico/$token',
+  path: '/diagnostico/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
 const QueroSaberMaisRoute = QueroSaberMaisRouteImport.update({
@@ -236,6 +242,9 @@ const AuthenticatedAdminClientesIdRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/diagnostico/$token': typeof DiagnosticoTokenRoute
+  '/diagnostico/$token': typeof DiagnosticoTokenRoute
+  '/diagnostico/$token': typeof DiagnosticoTokenRoute
   '/quero-saber-mais': typeof QueroSaberMaisRoute
   '/admin': typeof AuthenticatedAdminRouteRouteWithChildren
   '/cliente': typeof AuthenticatedClienteRouteRouteWithChildren
@@ -345,6 +354,9 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/login'
+    | '/diagnostico/$token'
+    | '/diagnostico/$token'
+    | '/diagnostico/$token'
     | '/quero-saber-mais'
     | '/admin'
     | '/cliente'
@@ -453,6 +465,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   LoginRoute: typeof LoginRoute
+  DiagnosticoTokenRoute: typeof DiagnosticoTokenRoute
   QueroSaberMaisRoute: typeof QueroSaberMaisRoute
 }
 
@@ -477,6 +490,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/diagnostico/$token': {
+      id: '/diagnostico/$token'
+      path: '/diagnostico/$token'
+      fullPath: '/diagnostico/$token'
+      preLoaderRoute: typeof DiagnosticoTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/quero-saber-mais': {
@@ -791,6 +811,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   LoginRoute: LoginRoute,
+  DiagnosticoTokenRoute: DiagnosticoTokenRoute,
   QueroSaberMaisRoute: QueroSaberMaisRoute,
 }
 export const routeTree = rootRouteImport

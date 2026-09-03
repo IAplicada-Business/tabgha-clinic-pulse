@@ -215,6 +215,39 @@ export type Database = {
           },
         ]
       }
+      diagnostico_frases_por_faixa: {
+        Row: {
+          atualizado_em: string
+          criado_em: string
+          faixa_max: number
+          faixa_min: number
+          fonte: Database["public"]["Enums"]["fonte_diagnostico"]
+          frase: string
+          id: string
+          placeholder: boolean
+        }
+        Insert: {
+          atualizado_em?: string
+          criado_em?: string
+          faixa_max: number
+          faixa_min: number
+          fonte: Database["public"]["Enums"]["fonte_diagnostico"]
+          frase: string
+          id?: string
+          placeholder?: boolean
+        }
+        Update: {
+          atualizado_em?: string
+          criado_em?: string
+          faixa_max?: number
+          faixa_min?: number
+          fonte?: Database["public"]["Enums"]["fonte_diagnostico"]
+          frase?: string
+          id?: string
+          placeholder?: boolean
+        }
+        Relationships: []
+      }
       diagnostico_questoes: {
         Row: {
           ajuda: string | null

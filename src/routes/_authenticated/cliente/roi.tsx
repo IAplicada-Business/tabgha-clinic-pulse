@@ -207,9 +207,19 @@ function RoiPage() {
   const adsCrmGap = insightFromGap(totais.leads, leadsCrm);
 
   const kpis = [
-    { label: "Investimento", value: fmtCurrency(totais.investimento), icon: Wallet, tint: "blue" as const },
+    {
+      label: "Investimento",
+      value: fmtCurrency(totais.investimento),
+      icon: Wallet,
+      tint: "blue" as const,
+    },
     { label: "Leads (funil)", value: String(leadsBase), icon: Users, tint: "green" as const },
-    { label: "CPL médio", value: cpl != null ? fmtCurrency(cpl) : "—", icon: Target, tint: "amber" as const },
+    {
+      label: "CPL médio",
+      value: cpl != null ? fmtCurrency(cpl) : "—",
+      icon: Target,
+      tint: "amber" as const,
+    },
     {
       label: "CAQ",
       value: caq != null ? fmtCurrency(caq) : "—",
@@ -236,7 +246,6 @@ function RoiPage() {
   const pageDescription: Record<TabId, string> = {
     operacao: "Investimento em mídia e retorno da sua clínica.",
     oportunidades: "Leads gerados e convertidos no período.",
-    campanhas: "Ranking das suas campanhas por investimento e leads.",
     marketing: "Métricas detalhadas dos seus anúncios (Meta Ads).",
   };
 
@@ -265,25 +274,6 @@ function RoiPage() {
           </div>
         ) : null}
       </div>
-      {tab !== "marketing" ? (
-        <div className="flex gap-1 rounded-xl border border-border bg-secondary/40 p-1">
-          {PERIODOS.map((p) => (
-            <button
-              key={p.days}
-              onClick={() => setPeriodo(p.days)}
-              className={cn(
-                "rounded-lg px-3.5 py-1.5 text-xs font-semibold transition-all duration-150",
-                periodo === p.days
-                  ? "bg-card text-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground",
-              )}
-            >
-              {p.label}
-            </button>
-          ))}
-        </div>
-      ) : null}
-
       {tab === "marketing" ? (
         <MetaAdsPage fixedClienteId={clienteId ?? null} embedded defaultTab="anuncios" />
       ) : isLoading ? (
@@ -307,7 +297,11 @@ function RoiPage() {
 
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
                 {kpis.map((kpi, i) => (
-                  <div key={kpi.label} className="animate-fade-up" style={{ animationDelay: `${i * 75}ms` }}>
+                  <div
+                    key={kpi.label}
+                    className="animate-fade-up"
+                    style={{ animationDelay: `${i * 75}ms` }}
+                  >
                     <KpiCard
                       label={kpi.label}
                       value={kpi.value}

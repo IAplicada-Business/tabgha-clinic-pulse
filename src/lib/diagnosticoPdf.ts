@@ -9,7 +9,18 @@ const PAGE_HEIGHT = 297;
 const CONTENT_WIDTH = PAGE_WIDTH - MARGIN_X * 2;
 const BOTTOM_LIMIT = PAGE_HEIGHT - 20;
 
-type FonteRelatorio = { diagnostico?: string; oportunidades?: string[]; plano_acao?: string[] };
+/**
+ * Formato atual: as 3 Fontes mais fracas com ação de 30 dias e ferramenta Tabgha.
+ * oportunidades/plano_acao são do formato antigo e continuam sendo lidos para
+ * relatórios gerados antes da mudança.
+ */
+type FonteRelatorio = {
+  diagnostico?: string;
+  acao_30_dias?: string;
+  ferramenta_tabgha?: string;
+  oportunidades?: string[];
+  plano_acao?: string[];
+};
 
 function slugify(value: string) {
   return value
@@ -101,7 +112,7 @@ export function exportRelatorioPdf({
   }
   y += 4;
 
-  // Por Fonte: diagnóstico, oportunidades, plano de ação
+  // Prioridades: as Fontes que a IA destacou (3 mais fracas)
   const porFonte = (relatorio.por_fonte ?? {}) as Record<string, FonteRelatorio>;
   for (const f of FONTES_LIST) {
     const dado = porFonte[f.slug];
@@ -113,6 +124,30 @@ export function exportRelatorioPdf({
     if (dado.diagnostico) {
       writeParagraph(dado.diagnostico, 10, 5);
       y += 2;
+    }
+
+    if (dado.acao_30_dias) {
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(9.5);
+      doc.setTextColor("#0f172a");
+      ensureSpace(1, 5);
+      doc.text("Próximos 30 dias", MARGIN_X, y);
+      doc.setFont("helvetica", "normal");
+      y += 5;
+      writeParagraph(dado.acao_30_dias, 9.5, 4.6, "#334155");
+      y += 1;
+    }
+
+    if (dado.ferramenta_tabgha) {
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(9.5);
+      doc.setTextColor("#0f172a");
+      ensureSpace(1, 5);
+      doc.text("Tabgha OS", MARGIN_X, y);
+      doc.setFont("helvetica", "normal");
+      y += 5;
+      writeParagraph(dado.ferramenta_tabgha, 9.5, 4.6, "#334155");
+      y += 1;
     }
 
     if (dado.oportunidades?.length) {

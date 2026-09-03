@@ -284,7 +284,6 @@ function RoiAdminPage() {
   const pageDescription: Record<TabId, string> = {
     operacao: "Investimento, leads e CAQ consolidados de toda a operação.",
     clientes: "ROI por clínica: investimento, leads e conversão comparados.",
-    campanhas: "Ranking de campanhas por investimento, leads e custo por lead.",
     marketing: "Métricas detalhadas de anúncios (Meta Ads) por cliente.",
   };
 

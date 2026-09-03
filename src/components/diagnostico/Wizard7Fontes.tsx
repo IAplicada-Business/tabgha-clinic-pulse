@@ -1,10 +1,10 @@
-import { useState } from "react";
-import { AlertTriangle, ArrowLeft, ArrowRight, Check, Loader2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { ArrowLeft, ArrowRight, Check, Loader2, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { useDiagnostico7Fontes, useSalvarResposta } from "@/hooks/useDiagnostico7Fontes";
-import { ESCALA_LABELS, FONTES_LIST, TONE_CLASS, faixaScore, type FonteMeta } from "@/lib/fontes";
+import { ESCALA_OPCOES, FONTES_LIST, type FonteMeta } from "@/lib/fontes";
 import { cn } from "@/lib/utils";
 
 const ACCENT: Record<FonteMeta["accent"], { chip: string; bar: string; ring: string }> = {
@@ -21,25 +21,54 @@ const ACCENT: Record<FonteMeta["accent"], { chip: string; bar: string; ring: str
   indigo: { chip: "bg-indigo-50 text-indigo-700", bar: "bg-indigo-500", ring: "ring-indigo-200" },
 };
 
-export function Wizard7Fontes({ clienteId }: { clienteId: string | null | undefined }) {
-  const [step, setStep] = useState(0);
-  const [saving, setSaving] = useState<string | null>(null);
+type Props = {
+  clienteId: string | null | undefined;
+  /** Fonte em que o wizard abre (0-6). */
+  stepInicial?: number;
+  /** Sair salvando rascunho — as respostas já vão para o banco a cada clique. */
+  onSair?: () => void;
+  /** Disparado ao terminar a Fonte 7 com tudo respondido. */
+  onConcluir?: () => void;
+};
+
+export function Wizard7Fontes({ clienteId, stepInicial = 0, onSair, onConcluir }: Props) {
+  const [step, setStep] = useState(stepInicial);
+  const [salvando, setSalvando] = useState<string | null>(null);
+  const [salvoEm, setSalvoEm] = useState<Date | null>(null);
   const diag = useDiagnostico7Fontes(clienteId);
   const salvar = useSalvarResposta(clienteId);
 
-  const isResumo = step >= FONTES_LIST.length;
-  const meta = isResumo ? null : FONTES_LIST[step];
-  const atual = isResumo ? null : diag.porFonte[step];
+  useEffect(() => {
+    setStep(stepInicial);
+  }, [stepInicial]);
+
+  // Rola para o topo ao trocar de Fonte — senão o usuário cai no meio da lista.
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [step]);
+
+  const meta = FONTES_LIST[step];
+  const atual = diag.porFonte[step];
+  const ultima = step === FONTES_LIST.length - 1;
 
   async function responder(questaoId: string, valor: number) {
-    setSaving(questaoId);
+    setSalvando(questaoId);
     try {
       await salvar.mutateAsync({ questaoId, valorNum: valor });
+      setSalvoEm(new Date());
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Não foi possível salvar a resposta.");
     } finally {
-      setSaving(null);
+      setSalvando(null);
     }
+  }
+
+  function avancar() {
+    if (ultima) {
+      onConcluir?.();
+      return;
+    }
+    setStep((s) => s + 1);
   }
 
   if (diag.isLoading) {
@@ -58,7 +87,7 @@ export function Wizard7Fontes({ clienteId }: { clienteId: string | null | undefi
     );
   }
 
-  if (diag.totalQuestoes === 0) {
+  if (diag.totalQuestoes === 0 || !meta || !atual) {
     return (
       <p className="rounded-2xl border border-border bg-card p-6 text-sm text-muted-foreground">
         O questionário ainda não foi publicado.
@@ -67,54 +96,42 @@ export function Wizard7Fontes({ clienteId }: { clienteId: string | null | undefi
   }
 
   return (
-    <div className="space-y-4">
-      {diag.temPlaceholder ? (
-        <div className="flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50/70 px-5 py-4">
-          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
-          <div className="text-xs leading-relaxed text-amber-900">
-            <p className="font-semibold">Questionário provisório</p>
-            <p className="mt-0.5">
-              As perguntas e a régua de pontuação abaixo são uma versão de trabalho para validar o
-              fluxo. O questionário oficial das 7 Fontes ainda está em elaboração e vai substituir
-              este conteúdo — as respostas já dadas ficam preservadas.
-            </p>
-          </div>
-        </div>
-      ) : null}
-
-      <div className="rounded-2xl border border-border bg-card p-5">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
+    <div className="pb-24">
+      {/* ── Header fixo: progresso + sair ── */}
+      <div className="sticky top-0 z-20 -mx-6 border-b border-border bg-background/95 px-6 py-3 backdrop-blur">
+        <div className="flex items-center justify-between gap-4">
+          <div className="min-w-0">
             <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-              Progresso
+              Fonte {meta.numero} de {FONTES_LIST.length}
             </p>
-            <p className="mt-0.5 text-sm font-semibold">
-              {diag.totalRespondidas} de {diag.totalQuestoes} perguntas respondidas
-            </p>
+            <p className="truncate text-sm font-semibold">{meta.label}</p>
           </div>
-          {diag.scoreGeral != null ? (
-            <div className="text-right">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                Score geral
-              </p>
-              <p className="text-lg font-bold tabular-nums">{diag.scoreGeral}</p>
-            </div>
-          ) : null}
+          <div className="flex items-center gap-3">
+            <span className="hidden text-xs tabular-nums text-muted-foreground sm:inline">
+              {diag.totalRespondidas}/{diag.totalQuestoes} · {diag.percentual}%
+            </span>
+            {onSair ? (
+              <Button variant="ghost" size="sm" className="gap-1.5" onClick={onSair}>
+                <X className="h-4 w-4" />
+                Sair
+              </Button>
+            ) : null}
+          </div>
         </div>
 
-        <div className="mt-4 flex gap-1.5">
+        <div className="mt-2.5 flex gap-1.5">
           {FONTES_LIST.map((f, i) => {
             const p = diag.porFonte[i];
-            const completa = p.questoes.length > 0 && p.respondidas === p.questoes.length;
             return (
               <button
                 key={f.slug}
                 type="button"
                 onClick={() => setStep(i)}
-                title={f.label}
+                title={`${f.numero}. ${f.label}`}
+                aria-label={`Ir para Fonte ${f.numero}: ${f.label}`}
                 className={cn(
                   "h-1.5 flex-1 rounded-full transition-opacity",
-                  completa ? ACCENT[f.accent].bar : "bg-muted",
+                  p?.completa ? ACCENT[f.accent].bar : "bg-muted",
                   step === i ? "opacity-100 ring-2 ring-offset-2" : "opacity-70 hover:opacity-100",
                   step === i && ACCENT[f.accent].ring,
                 )}
@@ -124,135 +141,114 @@ export function Wizard7Fontes({ clienteId }: { clienteId: string | null | undefi
         </div>
       </div>
 
-      {isResumo ? (
-        <div className="rounded-2xl border border-border bg-card p-5">
-          <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-            Resumo
-          </p>
-          <h3 className="mt-1 text-base font-semibold">Score por Fonte</h3>
-          <div className="mt-4 space-y-3">
-            {FONTES_LIST.map((f, i) => {
-              const p = diag.porFonte[i];
-              const faixa = faixaScore(p.score);
-              return (
-                <div key={f.slug} className="space-y-1.5">
-                  <div className="flex items-center justify-between gap-3 text-sm">
-                    <span className="font-medium">
-                      {f.numero}. {f.label}
-                    </span>
-                    <span className="flex items-center gap-2">
-                      <span
+      {/* ── Título da Fonte ── */}
+      <div className="pt-6">
+        <span
+          className={cn(
+            "inline-flex rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-widest",
+            ACCENT[meta.accent].chip,
+          )}
+        >
+          Fonte {meta.numero}
+        </span>
+        <h2 className="mt-2 text-2xl font-extrabold tracking-tight">{meta.label}</h2>
+        <p className="mt-1 text-sm text-muted-foreground">{meta.descricao}</p>
+      </div>
+
+      {/* ── 5 cards de pergunta ── */}
+      <div className="mt-5 space-y-3">
+        {atual.questoes.map((q, i) => {
+          const resposta = diag.respostaPorQuestao.get(q.id);
+          const salvandoEsta = salvando === q.id;
+          return (
+            <div
+              key={q.id}
+              className="rounded-2xl border border-border bg-card p-5 shadow-[var(--shadow-xs)]"
+            >
+              <div className="flex items-start gap-3">
+                <span className="mt-0.5 text-[11px] font-black tabular-nums text-muted-foreground/40">
+                  {String(i + 1).padStart(2, "0")}
+                </span>
+                <p className="flex-1 text-[15px] font-medium leading-relaxed">{q.pergunta}</p>
+              </div>
+
+              <fieldset className="mt-4">
+                <legend className="sr-only">{q.pergunta}</legend>
+                <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
+                  {ESCALA_OPCOES.map((op) => {
+                    const ativo = resposta?.valor_num === op.valor;
+                    return (
+                      <button
+                        key={op.valor}
+                        type="button"
+                        role="radio"
+                        aria-checked={ativo}
+                        disabled={salvandoEsta}
+                        onClick={() => void responder(q.id, op.valor)}
                         className={cn(
-                          "rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide",
-                          TONE_CLASS[faixa.tone],
+                          "flex flex-col items-center gap-1 rounded-xl border px-2 py-2.5 text-center transition-colors",
+                          ativo
+                            ? "border-primary bg-primary/10 font-semibold text-primary"
+                            : "border-border hover:border-primary/40 hover:bg-muted/60",
+                          salvandoEsta && "opacity-60",
                         )}
                       >
-                        {faixa.label}
-                      </span>
-                      <span className="w-10 text-right tabular-nums text-muted-foreground">
-                        {p.score != null ? p.score : "—"}
-                      </span>
-                    </span>
-                  </div>
-                  <div className="h-1.5 overflow-hidden rounded-full bg-muted">
-                    <div
-                      className={cn("h-full rounded-full transition-all", ACCENT[f.accent].bar)}
-                      style={{ width: `${p.score ?? 0}%` }}
-                    />
-                  </div>
+                        <span
+                          className={cn(
+                            "h-2.5 w-2.5 rounded-full border",
+                            ativo ? "border-primary bg-primary" : "border-muted-foreground/30",
+                          )}
+                        />
+                        <span className="text-[11px] leading-tight">{op.label}</span>
+                      </button>
+                    );
+                  })}
                 </div>
-              );
-            })}
-          </div>
-          <Button variant="outline" className="mt-5 gap-2" onClick={() => setStep(0)}>
+              </fieldset>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* ── Rodapé fixo: anterior · auto-save · próxima ── */}
+      <div className="fixed inset-x-0 bottom-0 z-20 border-t border-border bg-background/95 backdrop-blur">
+        <div className="mx-auto flex max-w-5xl items-center justify-between gap-3 px-6 py-3">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="gap-2"
+            disabled={step === 0}
+            onClick={() => setStep((s) => Math.max(0, s - 1))}
+          >
             <ArrowLeft className="h-4 w-4" />
-            Revisar respostas
+            Anterior
+          </Button>
+
+          <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            {salvando ? (
+              <>
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                salvando…
+              </>
+            ) : salvoEm ? (
+              <>
+                <Check className="h-3.5 w-3.5 text-emerald-600" />
+                <span className="hidden sm:inline">respostas salvas automaticamente</span>
+                <span className="sm:hidden">salvo</span>
+              </>
+            ) : (
+              <span className="tabular-nums">
+                {atual.respondidas}/{atual.questoes.length} nesta Fonte
+              </span>
+            )}
+          </span>
+
+          <Button size="sm" className="gap-2" disabled={!atual.completa} onClick={avancar}>
+            {ultima ? "Ver meu diagnóstico" : "Próxima Fonte"}
+            <ArrowRight className="h-4 w-4" />
           </Button>
         </div>
-      ) : (
-        <div className="rounded-2xl border border-border bg-card">
-          <div className="border-b border-border px-5 py-4">
-            <span
-              className={cn(
-                "inline-flex rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-widest",
-                ACCENT[meta!.accent].chip,
-              )}
-            >
-              Fonte {meta!.numero} de {FONTES_LIST.length}
-            </span>
-            <h3 className="mt-2 text-base font-semibold">{meta!.label}</h3>
-            <p className="mt-0.5 text-xs text-muted-foreground">{meta!.descricao}</p>
-          </div>
-
-          <div className="divide-y divide-border">
-            {atual!.questoes.map((q) => {
-              const resposta = diag.respostaPorQuestao.get(q.id);
-              return (
-                <div key={q.id} className="px-5 py-4">
-                  <p className="text-sm leading-relaxed">{q.pergunta}</p>
-                  {q.ajuda ? <p className="mt-1 text-xs text-muted-foreground">{q.ajuda}</p> : null}
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    {[1, 2, 3, 4, 5].map((v) => {
-                      const ativo = resposta?.valor_num === v;
-                      return (
-                        <button
-                          key={v}
-                          type="button"
-                          disabled={saving === q.id}
-                          onClick={() => void responder(q.id, v)}
-                          className={cn(
-                            "flex min-w-[92px] flex-col items-center gap-0.5 rounded-xl border px-3 py-2 text-xs transition-colors",
-                            ativo
-                              ? "border-primary bg-primary/10 font-semibold text-primary"
-                              : "border-border hover:border-primary/40 hover:bg-muted/60",
-                            saving === q.id && "opacity-60",
-                          )}
-                        >
-                          <span className="text-sm font-bold tabular-nums">{v}</span>
-                          <span className="text-[10px] leading-none text-muted-foreground">
-                            {ESCALA_LABELS[v]}
-                          </span>
-                        </button>
-                      );
-                    })}
-                    {saving === q.id ? (
-                      <span className="flex items-center text-xs text-muted-foreground">
-                        <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" />
-                        salvando
-                      </span>
-                    ) : resposta?.valor_num != null ? (
-                      <span className="flex items-center text-xs text-emerald-600">
-                        <Check className="mr-1 h-3.5 w-3.5" />
-                        salvo
-                      </span>
-                    ) : null}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-          <div className="flex items-center justify-between gap-3 border-t border-border px-5 py-4">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="gap-2"
-              disabled={step === 0}
-              onClick={() => setStep((s) => Math.max(0, s - 1))}
-            >
-              <ArrowLeft className="h-4 w-4" />
-              Anterior
-            </Button>
-            <span className="text-xs text-muted-foreground">
-              {atual!.respondidas}/{atual!.questoes.length} nesta Fonte
-            </span>
-            <Button size="sm" className="gap-2" onClick={() => setStep((s) => s + 1)}>
-              {step === FONTES_LIST.length - 1 ? "Ver resumo" : "Próxima Fonte"}
-              <ArrowRight className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-      )}
+      </div>
     </div>
   );
 }
