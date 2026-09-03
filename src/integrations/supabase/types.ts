@@ -781,6 +781,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          ativo: boolean
           atualizado_em: string
           cliente_id: string | null
           criado_em: string
@@ -788,8 +789,10 @@ export type Database = {
           id: string
           nome: string | null
           permissoes: string[] | null
+          ultimo_acesso: string | null
         }
         Insert: {
+          ativo?: boolean
           atualizado_em?: string
           cliente_id?: string | null
           criado_em?: string
@@ -797,8 +800,10 @@ export type Database = {
           id: string
           nome?: string | null
           permissoes?: string[] | null
+          ultimo_acesso?: string | null
         }
         Update: {
+          ativo?: boolean
           atualizado_em?: string
           cliente_id?: string | null
           criado_em?: string
@@ -806,6 +811,7 @@ export type Database = {
           id?: string
           nome?: string | null
           permissoes?: string[] | null
+          ultimo_acesso?: string | null
         }
         Relationships: [
           {
@@ -816,6 +822,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      roles_permissoes: {
+        Row: {
+          atualizado_em: string
+          permissao: string
+          permitido: boolean
+          role: Database["public"]["Enums"]["app_role"]
+          rota: string
+        }
+        Insert: {
+          atualizado_em?: string
+          permissao: string
+          permitido?: boolean
+          role: Database["public"]["Enums"]["app_role"]
+          rota: string
+        }
+        Update: {
+          atualizado_em?: string
+          permissao?: string
+          permitido?: boolean
+          role?: Database["public"]["Enums"]["app_role"]
+          rota?: string
+        }
+        Relationships: []
       }
       user_roles: {
         Row: {
@@ -1207,6 +1237,10 @@ export type Database = {
         Args: { _id: string; _novo: string }
         Returns: undefined
       }
+      permissoes_do_perfil: {
+        Args: { _role: Database["public"]["Enums"]["app_role"] }
+        Returns: string[]
+      }
       recalcular_diagnostico_score: {
         Args: {
           _cliente_id: string
@@ -1214,6 +1248,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      registrar_acesso: { Args: never; Returns: undefined }
       responder_conteudo: {
         Args: { _aprovada: boolean; _feedback?: string; _id: string }
         Returns: undefined
@@ -1225,7 +1260,7 @@ export type Database = {
     }
     Enums: {
       app_role:
-        | "admin"
+        | "super_admin"
         | "gestor_estrategico"
         | "growth_manager"
         | "social_media"
@@ -1369,7 +1404,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: [
-        "admin",
+        "super_admin",
         "gestor_estrategico",
         "growth_manager",
         "social_media",

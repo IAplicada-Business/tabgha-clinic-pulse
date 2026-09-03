@@ -19,7 +19,7 @@ const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY") ?? Deno.env.get("SB_PUBLISHAB
 const admin = createClient(SUPABASE_URL, SERVICE_KEY);
 
 const APP_ROLES = [
-  "admin",
+  "super_admin",
   "gestor_estrategico",
   "growth_manager",
   "social_media",
@@ -136,10 +136,10 @@ async function assertCallerIsAdmin(authHeader: string) {
 
   const { data: isAdmin, error: roleErr } = await admin.rpc("has_role", {
     _user_id: userData.user.id,
-    _role: "admin",
+    _role: "super_admin",
   });
   if (roleErr || !isAdmin) {
-    return { ok: false as const, response: json({ ok: false, error: "apenas admin" }, 403) };
+    return { ok: false as const, response: json({ ok: false, error: "apenas super admin" }, 403) };
   }
 
   return { ok: true as const, userId: userData.user.id };
@@ -285,7 +285,7 @@ Deno.serve(async (req) => {
 
     // Garante profile + ao menos o primeiro papel via RPC; depois sincroniza o conjunto.
     const primaryRole: AppRole =
-      staffRoles[0] ?? (wantsCliente ? "cliente" : "admin");
+      staffRoles[0] ?? (wantsCliente ? "cliente" : "super_admin");
     const { error: rpcError } = await admin.rpc("admin_upsert_profile_role", {
       _user_id: userId,
       _role: primaryRole,

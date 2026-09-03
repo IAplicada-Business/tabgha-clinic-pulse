@@ -98,7 +98,7 @@ Deno.serve(async (req) => {
     ]);
     callerRole = roleRow?.role ?? null;
     callerClienteId = profile?.cliente_id ?? null;
-    if (callerRole !== "admin" && callerRole !== "cliente") {
+    if (callerRole !== "super_admin" && callerRole !== "cliente") {
       return json({ ok: false, error: "forbidden" }, 403);
     }
   }

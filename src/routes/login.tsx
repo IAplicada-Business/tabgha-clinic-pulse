@@ -92,6 +92,18 @@ function LoginPage() {
       setError("Sessão não criada.");
       return;
     }
+    // Conta desativada em /admin/usuarios não entra (o registro continua existindo).
+    const { data: perfil } = await supabase
+      .from("profiles")
+      .select("ativo")
+      .eq("id", userId)
+      .maybeSingle();
+    if (perfil && perfil.ativo === false) {
+      await supabase.auth.signOut();
+      setError("Este acesso está desativado. Fale com o administrador.");
+      return;
+    }
+
     const { data: roles, error: rolesError } = await supabase
       .from("user_roles")
       .select("role")
@@ -100,6 +112,9 @@ function LoginPage() {
       setError("Login realizado, mas não foi possível carregar seu perfil.");
       return;
     }
+
+    // profiles_self é SELECT-only; o carimbo entra pela função SECURITY DEFINER.
+    void supabase.rpc("registrar_acesso");
 
     const roleNames = (roles ?? []).map((r) => r.role);
     const hasStaff = isStaff(roleNames);

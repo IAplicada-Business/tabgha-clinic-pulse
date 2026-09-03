@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as AcessoNegadoRouteImport } from './routes/acesso-negado'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as QueroSaberMaisRouteImport } from './routes/quero-saber-mais'
 import { Route as AuthenticatedAdminRouteRouteImport } from './routes/_authenticated/admin/route'
@@ -52,6 +53,11 @@ const IndexRoute = IndexRouteImport.update({
 } as any)
 const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
   id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AcessoNegadoRoute = AcessoNegadoRouteImport.update({
+  id: '/acesso-negado',
+  path: '/acesso-negado',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -248,6 +254,7 @@ const AuthenticatedAdminClientesIdRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/acesso-negado': typeof AcessoNegadoRoute
   '/login': typeof LoginRoute
   '/quero-saber-mais': typeof QueroSaberMaisRoute
   '/admin': typeof AuthenticatedAdminRouteRouteWithChildren
@@ -284,6 +291,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/acesso-negado': typeof AcessoNegadoRoute
   '/login': typeof LoginRoute
   '/quero-saber-mais': typeof QueroSaberMaisRoute
   '/admin': typeof AuthenticatedAdminRouteRouteWithChildren
@@ -322,6 +330,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/acesso-negado': typeof AcessoNegadoRoute
   '/login': typeof LoginRoute
   '/quero-saber-mais': typeof QueroSaberMaisRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteRouteWithChildren
@@ -360,6 +369,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/acesso-negado'
     | '/login'
     | '/quero-saber-mais'
     | '/admin'
@@ -396,6 +406,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/acesso-negado'
     | '/login'
     | '/quero-saber-mais'
     | '/admin'
@@ -433,6 +444,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_authenticated'
+    | '/acesso-negado'
     | '/login'
     | '/quero-saber-mais'
     | '/_authenticated/admin'
@@ -471,6 +483,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  AcessoNegadoRoute: typeof AcessoNegadoRoute
   LoginRoute: typeof LoginRoute
   QueroSaberMaisRoute: typeof QueroSaberMaisRoute
   DiagnosticoTokenRoute: typeof DiagnosticoTokenRoute
@@ -490,6 +503,13 @@ declare module '@tanstack/react-router' {
       path: ''
       fullPath: '/'
       preLoaderRoute: typeof AuthenticatedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/acesso-negado': {
+      id: '/acesso-negado'
+      path: '/acesso-negado'
+      fullPath: '/acesso-negado'
+      preLoaderRoute: typeof AcessoNegadoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -825,6 +845,7 @@ const AuthenticatedRouteRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  AcessoNegadoRoute: AcessoNegadoRoute,
   LoginRoute: LoginRoute,
   QueroSaberMaisRoute: QueroSaberMaisRoute,
   DiagnosticoTokenRoute: DiagnosticoTokenRoute,

@@ -88,7 +88,7 @@ const ADMIN_ITEMS = {
     perm: "admin.dashboard",
     children: [
       { to: "/admin/dashboard", label: "Tabgha", perm: "admin.dashboard" },
-      { to: "/admin/dashboard-clientes", label: "Clientes", perm: "admin.dashboard" },
+      { to: "/admin/dashboard-clientes", label: "Clientes", perm: "admin.dashboard_executivo" },
     ],
   },
   roi: {
@@ -129,7 +129,7 @@ const ADMIN_ITEMS = {
     to: "/admin/cerebro-pietro",
     label: "Cérebro Pietro",
     icon: Brain,
-    perm: "admin.atendimento",
+    perm: "admin.cerebro",
   },
   estrategia: {
     to: "/admin/estrategia",
@@ -141,23 +141,23 @@ const ADMIN_ITEMS = {
     to: "/admin/calendario",
     label: "Calendário editorial",
     icon: Calendar,
-    perm: "admin.operacao",
+    perm: "admin.calendario",
   },
   automacoes: {
     to: "/admin/automacoes-leads",
     label: "Automações de pacientes",
     icon: Zap,
-    perm: "admin.operacao",
+    perm: "admin.nutricao",
     children: [
-      { to: "/admin/automacoes-leads", label: "Desempenho", perm: "admin.operacao" },
-      { to: "/admin/nutricao", label: "Nutrição de leads", perm: "admin.operacao" },
+      { to: "/admin/automacoes-leads", label: "Desempenho", perm: "admin.nutricao" },
+      { to: "/admin/nutricao", label: "Nutrição de leads", perm: "admin.nutricao" },
     ],
   },
   funilPacientes: {
     to: "/admin/leads",
     label: "Funil de pacientes",
     icon: UserCheck,
-    perm: "admin.operacao",
+    perm: "admin.crm",
   },
   metaAds: {
     to: "/admin/meta-ads",
@@ -185,8 +185,13 @@ const ADMIN_ITEMS = {
   },
 } satisfies Record<string, NavItem>;
 
+/**
+ * Sidebar por perfil — espelha a matriz public.roles_permissoes.
+ * O filtro de permissão ainda roda por cima (canSeeNavPermission), então um
+ * item listado aqui e sem permissão simplesmente não aparece.
+ */
 const ADMIN_NAV_BY_ROLE: Record<StaffRole, NavGroup[]> = {
-  admin: [
+  super_admin: [
     { group: "Visão geral", items: [ADMIN_ITEMS.dashboard, ADMIN_ITEMS.roi] },
     { group: "Clientes", items: [ADMIN_ITEMS.clientes, ADMIN_ITEMS.diagnosticos] },
     {
@@ -206,31 +211,28 @@ const ADMIN_NAV_BY_ROLE: Record<StaffRole, NavGroup[]> = {
   gestor_estrategico: [
     { group: "Visão estratégica", items: [ADMIN_ITEMS.dashboard, ADMIN_ITEMS.roi] },
     { group: "Clientes", items: [ADMIN_ITEMS.clientes, ADMIN_ITEMS.diagnosticos] },
-    {
-      group: "Aquisição de pacientes",
-      items: [ADMIN_ITEMS.funilPacientes, ADMIN_ITEMS.automacoes, ADMIN_ITEMS.metaAds],
-    },
-    { group: "Conteúdo", items: [ADMIN_ITEMS.estrategia, ADMIN_ITEMS.calendario] },
-    { group: "Configurações", items: [ADMIN_ITEMS.conexoesMeta] },
+    { group: "Aquisição de pacientes", items: [ADMIN_ITEMS.funilPacientes] },
+    { group: "Comercial Tabgha", items: [ADMIN_ITEMS.pipelineB2b] },
   ],
   growth_manager: [
     { group: "Visão", items: [ADMIN_ITEMS.dashboard, ADMIN_ITEMS.roi] },
     {
       group: "Aquisição de pacientes",
-      items: [ADMIN_ITEMS.funilPacientes, ADMIN_ITEMS.automacoes, ADMIN_ITEMS.metaAds],
+      items: [
+        ADMIN_ITEMS.funilPacientes,
+        ADMIN_ITEMS.atendimento,
+        ADMIN_ITEMS.cerebroPietro,
+        ADMIN_ITEMS.automacoes,
+      ],
     },
     { group: "Comercial Tabgha", items: [ADMIN_ITEMS.pipelineB2b] },
     { group: "Carteira", items: [ADMIN_ITEMS.clientes] },
     { group: "Planejamento", items: [ADMIN_ITEMS.calendario] },
-    { group: "Configurações", items: [ADMIN_ITEMS.conexoesMeta] },
   ],
   social_media: [
     { group: "Conteúdo", items: [ADMIN_ITEMS.estrategia, ADMIN_ITEMS.calendario] },
     { group: "Carteira", items: [ADMIN_ITEMS.clientes] },
-    {
-      group: "Distribuição & jornada",
-      items: [ADMIN_ITEMS.funilPacientes, ADMIN_ITEMS.automacoes],
-    },
+    { group: "Resultados", items: [ADMIN_ITEMS.roi] },
   ],
   performance: [
     { group: "Tráfego", items: [ADMIN_ITEMS.metaAds, ADMIN_ITEMS.roi] },
@@ -241,16 +243,13 @@ const ADMIN_NAV_BY_ROLE: Record<StaffRole, NavGroup[]> = {
   atendimento_cs: [
     {
       group: "Fila de pacientes",
-      items: [ADMIN_ITEMS.atendimento, ADMIN_ITEMS.cerebroPietro, ADMIN_ITEMS.funilPacientes],
+      items: [ADMIN_ITEMS.atendimento, ADMIN_ITEMS.funilPacientes],
     },
     { group: "Clientes", items: [ADMIN_ITEMS.clientes, ADMIN_ITEMS.diagnosticos] },
-    {
-      group: "Ferramentas",
-      items: [ADMIN_ITEMS.automacoes, ADMIN_ITEMS.calendario],
-    },
+    { group: "Visão", items: [ADMIN_ITEMS.dashboard] },
   ],
   financeiro: [
-    { group: "Financeiro", items: [ADMIN_ITEMS.roi, ADMIN_ITEMS.dashboard] },
+    { group: "Visão", items: [ADMIN_ITEMS.dashboard] },
     { group: "Carteira", items: [ADMIN_ITEMS.clientes] },
   ],
 };
@@ -955,7 +954,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
     isStaff(roles) && roles.includes("cliente") && Boolean(profile?.cliente_id);
   const staffRole = primaryStaffRole(roles);
 
-  const roleGroups = role === "admin" ? ADMIN_NAV_BY_ROLE[staffRole ?? "admin"] : CLIENTE_NAV;
+  const roleGroups = role === "admin" ? ADMIN_NAV_BY_ROLE[staffRole ?? "super_admin"] : CLIENTE_NAV;
   const configuredAdminPaths = new Set(
     roleGroups.flatMap((group) => group.items.map((item) => item.to)),
   );
