@@ -9,40 +9,47 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as QueroSaberMaisRouteImport } from './routes/quero-saber-mais'
-import { Route as LoginRouteImport } from './routes/login'
-import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as AuthenticatedClienteRoiRouteImport } from './routes/_authenticated/cliente/roi'
-import { Route as AuthenticatedClienteMetaAdsRouteImport } from './routes/_authenticated/cliente/meta-ads'
-import { Route as AuthenticatedClienteLeadsRouteImport } from './routes/_authenticated/cliente/leads'
-import { Route as AuthenticatedClienteEntregasRouteImport } from './routes/_authenticated/cliente/entregas'
-import { Route as AuthenticatedClienteDiagnosticoRouteImport } from './routes/_authenticated/cliente/diagnostico'
-import { Route as AuthenticatedClienteDashboardRouteImport } from './routes/_authenticated/cliente/dashboard'
-import { Route as AuthenticatedClienteConteudoRouteImport } from './routes/_authenticated/cliente/conteudo'
-import { Route as AuthenticatedClienteConexoesRouteImport } from './routes/_authenticated/cliente/conexoes'
-import { Route as AuthenticatedClienteClientesRouteImport } from './routes/_authenticated/cliente/clientes'
-import { Route as AuthenticatedClienteCalendarioRouteImport } from './routes/_authenticated/cliente/calendario'
-import { Route as AuthenticatedClienteAtendimentoRouteImport } from './routes/_authenticated/cliente/atendimento'
-import { Route as AuthenticatedAdminUsuariosRouteImport } from './routes/_authenticated/admin/usuarios'
-import { Route as AuthenticatedAdminRoiRouteImport } from './routes/_authenticated/admin/roi'
-import { Route as AuthenticatedAdminMetaAdsRouteImport } from './routes/_authenticated/admin/meta-ads'
-import { Route as AuthenticatedAdminLeadsRouteImport } from './routes/_authenticated/admin/leads'
-import { Route as AuthenticatedAdminEstrategiaRouteImport } from './routes/_authenticated/admin/estrategia'
-import { Route as AuthenticatedAdminDiagnosticosRouteImport } from './routes/_authenticated/admin/diagnosticos'
-import { Route as AuthenticatedAdminDashboardClientesRouteImport } from './routes/_authenticated/admin/dashboard-clientes'
-import { Route as AuthenticatedAdminDashboardRouteImport } from './routes/_authenticated/admin/dashboard'
-import { Route as AuthenticatedAdminConfigMetaRouteImport } from './routes/_authenticated/admin/config-meta'
-import { Route as AuthenticatedAdminCerebroPietroRouteImport } from './routes/_authenticated/admin/cerebro-pietro'
-import { Route as AuthenticatedAdminCalendarioRouteImport } from './routes/_authenticated/admin/calendario'
-import { Route as AuthenticatedAdminAutomacoesLeadsRouteImport } from './routes/_authenticated/admin/automacoes-leads'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as QueroSaberMaisRouteImport } from './routes/quero-saber-mais'
+import { Route as AuthenticatedAdminRouteRouteImport } from './routes/_authenticated/admin/route'
+import { Route as AuthenticatedClienteRouteRouteImport } from './routes/_authenticated/cliente/route'
 import { Route as AuthenticatedAdminAtendimentoRouteImport } from './routes/_authenticated/admin/atendimento'
+import { Route as AuthenticatedAdminAutomacoesLeadsRouteImport } from './routes/_authenticated/admin/automacoes-leads'
+import { Route as AuthenticatedAdminCalendarioRouteImport } from './routes/_authenticated/admin/calendario'
+import { Route as AuthenticatedAdminCerebroPietroRouteImport } from './routes/_authenticated/admin/cerebro-pietro'
+import { Route as AuthenticatedAdminConfigMetaRouteImport } from './routes/_authenticated/admin/config-meta'
+import { Route as AuthenticatedAdminDashboardRouteImport } from './routes/_authenticated/admin/dashboard'
+import { Route as AuthenticatedAdminDashboardClientesRouteImport } from './routes/_authenticated/admin/dashboard-clientes'
+import { Route as AuthenticatedAdminDiagnosticosRouteImport } from './routes/_authenticated/admin/diagnosticos'
+import { Route as AuthenticatedAdminEstrategiaRouteImport } from './routes/_authenticated/admin/estrategia'
+import { Route as AuthenticatedAdminLeadsRouteImport } from './routes/_authenticated/admin/leads'
+import { Route as AuthenticatedAdminMetaAdsRouteImport } from './routes/_authenticated/admin/meta-ads'
+import { Route as AuthenticatedAdminPipelineComercialRouteImport } from './routes/_authenticated/admin/pipeline-comercial'
+import { Route as AuthenticatedAdminRoiRouteImport } from './routes/_authenticated/admin/roi'
+import { Route as AuthenticatedAdminUsuariosRouteImport } from './routes/_authenticated/admin/usuarios'
+import { Route as AuthenticatedClienteAtendimentoRouteImport } from './routes/_authenticated/cliente/atendimento'
+import { Route as AuthenticatedClienteCalendarioRouteImport } from './routes/_authenticated/cliente/calendario'
+import { Route as AuthenticatedClienteClientesRouteImport } from './routes/_authenticated/cliente/clientes'
+import { Route as AuthenticatedClienteConexoesRouteImport } from './routes/_authenticated/cliente/conexoes'
+import { Route as AuthenticatedClienteConteudoRouteImport } from './routes/_authenticated/cliente/conteudo'
+import { Route as AuthenticatedClienteDashboardRouteImport } from './routes/_authenticated/cliente/dashboard'
+import { Route as AuthenticatedClienteDiagnosticoRouteImport } from './routes/_authenticated/cliente/diagnostico'
+import { Route as AuthenticatedClienteEntregasRouteImport } from './routes/_authenticated/cliente/entregas'
+import { Route as AuthenticatedClienteLeadsRouteImport } from './routes/_authenticated/cliente/leads'
+import { Route as AuthenticatedClienteMetaAdsRouteImport } from './routes/_authenticated/cliente/meta-ads'
+import { Route as AuthenticatedClienteRoiRouteImport } from './routes/_authenticated/cliente/roi'
 import { Route as AuthenticatedAdminClientesIndexRouteImport } from './routes/_authenticated/admin/clientes/index'
 import { Route as AuthenticatedAdminClientesIdRouteImport } from './routes/_authenticated/admin/clientes/$id'
 
-const QueroSaberMaisRoute = QueroSaberMaisRouteImport.update({
-  id: '/quero-saber-mais',
-  path: '/quero-saber-mais',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -50,176 +57,193 @@ const LoginRoute = LoginRouteImport.update({
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
-  id: '/_authenticated',
+const QueroSaberMaisRoute = QueroSaberMaisRouteImport.update({
+  id: '/quero-saber-mais',
+  path: '/quero-saber-mais',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthenticatedClienteRoiRoute = AuthenticatedClienteRoiRouteImport.update({
-  id: '/cliente/roi',
-  path: '/cliente/roi',
+const AuthenticatedAdminRouteRoute = AuthenticatedAdminRouteRouteImport.update({
+  id: '/admin',
+  path: '/admin',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedClienteMetaAdsRoute =
-  AuthenticatedClienteMetaAdsRouteImport.update({
-    id: '/cliente/meta-ads',
-    path: '/cliente/meta-ads',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedClienteLeadsRoute =
-  AuthenticatedClienteLeadsRouteImport.update({
-    id: '/cliente/leads',
-    path: '/cliente/leads',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedClienteEntregasRoute =
-  AuthenticatedClienteEntregasRouteImport.update({
-    id: '/cliente/entregas',
-    path: '/cliente/entregas',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedClienteDiagnosticoRoute =
-  AuthenticatedClienteDiagnosticoRouteImport.update({
-    id: '/cliente/diagnostico',
-    path: '/cliente/diagnostico',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedClienteDashboardRoute =
-  AuthenticatedClienteDashboardRouteImport.update({
-    id: '/cliente/dashboard',
-    path: '/cliente/dashboard',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedClienteConteudoRoute =
-  AuthenticatedClienteConteudoRouteImport.update({
-    id: '/cliente/conteudo',
-    path: '/cliente/conteudo',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedClienteConexoesRoute =
-  AuthenticatedClienteConexoesRouteImport.update({
-    id: '/cliente/conexoes',
-    path: '/cliente/conexoes',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedClienteClientesRoute =
-  AuthenticatedClienteClientesRouteImport.update({
-    id: '/cliente/clientes',
-    path: '/cliente/clientes',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedClienteCalendarioRoute =
-  AuthenticatedClienteCalendarioRouteImport.update({
-    id: '/cliente/calendario',
-    path: '/cliente/calendario',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedClienteAtendimentoRoute =
-  AuthenticatedClienteAtendimentoRouteImport.update({
-    id: '/cliente/atendimento',
-    path: '/cliente/atendimento',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedAdminUsuariosRoute =
-  AuthenticatedAdminUsuariosRouteImport.update({
-    id: '/admin/usuarios',
-    path: '/admin/usuarios',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedAdminRoiRoute = AuthenticatedAdminRoiRouteImport.update({
-  id: '/admin/roi',
-  path: '/admin/roi',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedAdminMetaAdsRoute =
-  AuthenticatedAdminMetaAdsRouteImport.update({
-    id: '/admin/meta-ads',
-    path: '/admin/meta-ads',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedAdminLeadsRoute = AuthenticatedAdminLeadsRouteImport.update({
-  id: '/admin/leads',
-  path: '/admin/leads',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedAdminEstrategiaRoute =
-  AuthenticatedAdminEstrategiaRouteImport.update({
-    id: '/admin/estrategia',
-    path: '/admin/estrategia',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedAdminDiagnosticosRoute =
-  AuthenticatedAdminDiagnosticosRouteImport.update({
-    id: '/admin/diagnosticos',
-    path: '/admin/diagnosticos',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedAdminDashboardClientesRoute =
-  AuthenticatedAdminDashboardClientesRouteImport.update({
-    id: '/admin/dashboard-clientes',
-    path: '/admin/dashboard-clientes',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedAdminDashboardRoute =
-  AuthenticatedAdminDashboardRouteImport.update({
-    id: '/admin/dashboard',
-    path: '/admin/dashboard',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedAdminConfigMetaRoute =
-  AuthenticatedAdminConfigMetaRouteImport.update({
-    id: '/admin/config-meta',
-    path: '/admin/config-meta',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedAdminCerebroPietroRoute =
-  AuthenticatedAdminCerebroPietroRouteImport.update({
-    id: '/admin/cerebro-pietro',
-    path: '/admin/cerebro-pietro',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedAdminCalendarioRoute =
-  AuthenticatedAdminCalendarioRouteImport.update({
-    id: '/admin/calendario',
-    path: '/admin/calendario',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedAdminAutomacoesLeadsRoute =
-  AuthenticatedAdminAutomacoesLeadsRouteImport.update({
-    id: '/admin/automacoes-leads',
-    path: '/admin/automacoes-leads',
+const AuthenticatedClienteRouteRoute =
+  AuthenticatedClienteRouteRouteImport.update({
+    id: '/cliente',
+    path: '/cliente',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedAdminAtendimentoRoute =
   AuthenticatedAdminAtendimentoRouteImport.update({
-    id: '/admin/atendimento',
-    path: '/admin/atendimento',
-    getParentRoute: () => AuthenticatedRouteRoute,
+    id: '/atendimento',
+    path: '/atendimento',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
   } as any)
+const AuthenticatedAdminAutomacoesLeadsRoute =
+  AuthenticatedAdminAutomacoesLeadsRouteImport.update({
+    id: '/automacoes-leads',
+    path: '/automacoes-leads',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
+const AuthenticatedAdminCalendarioRoute =
+  AuthenticatedAdminCalendarioRouteImport.update({
+    id: '/calendario',
+    path: '/calendario',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
+const AuthenticatedAdminCerebroPietroRoute =
+  AuthenticatedAdminCerebroPietroRouteImport.update({
+    id: '/cerebro-pietro',
+    path: '/cerebro-pietro',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
+const AuthenticatedAdminConfigMetaRoute =
+  AuthenticatedAdminConfigMetaRouteImport.update({
+    id: '/config-meta',
+    path: '/config-meta',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
+const AuthenticatedAdminDashboardRoute =
+  AuthenticatedAdminDashboardRouteImport.update({
+    id: '/dashboard',
+    path: '/dashboard',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
+const AuthenticatedAdminDashboardClientesRoute =
+  AuthenticatedAdminDashboardClientesRouteImport.update({
+    id: '/dashboard-clientes',
+    path: '/dashboard-clientes',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
+const AuthenticatedAdminDiagnosticosRoute =
+  AuthenticatedAdminDiagnosticosRouteImport.update({
+    id: '/diagnosticos',
+    path: '/diagnosticos',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
+const AuthenticatedAdminEstrategiaRoute =
+  AuthenticatedAdminEstrategiaRouteImport.update({
+    id: '/estrategia',
+    path: '/estrategia',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
+const AuthenticatedAdminLeadsRoute = AuthenticatedAdminLeadsRouteImport.update({
+  id: '/leads',
+  path: '/leads',
+  getParentRoute: () => AuthenticatedAdminRouteRoute,
+} as any)
+const AuthenticatedAdminMetaAdsRoute =
+  AuthenticatedAdminMetaAdsRouteImport.update({
+    id: '/meta-ads',
+    path: '/meta-ads',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
+const AuthenticatedAdminPipelineComercialRoute =
+  AuthenticatedAdminPipelineComercialRouteImport.update({
+    id: '/pipeline-comercial',
+    path: '/pipeline-comercial',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
+const AuthenticatedAdminRoiRoute = AuthenticatedAdminRoiRouteImport.update({
+  id: '/roi',
+  path: '/roi',
+  getParentRoute: () => AuthenticatedAdminRouteRoute,
+} as any)
+const AuthenticatedAdminUsuariosRoute =
+  AuthenticatedAdminUsuariosRouteImport.update({
+    id: '/usuarios',
+    path: '/usuarios',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
+const AuthenticatedClienteAtendimentoRoute =
+  AuthenticatedClienteAtendimentoRouteImport.update({
+    id: '/atendimento',
+    path: '/atendimento',
+    getParentRoute: () => AuthenticatedClienteRouteRoute,
+  } as any)
+const AuthenticatedClienteCalendarioRoute =
+  AuthenticatedClienteCalendarioRouteImport.update({
+    id: '/calendario',
+    path: '/calendario',
+    getParentRoute: () => AuthenticatedClienteRouteRoute,
+  } as any)
+const AuthenticatedClienteClientesRoute =
+  AuthenticatedClienteClientesRouteImport.update({
+    id: '/clientes',
+    path: '/clientes',
+    getParentRoute: () => AuthenticatedClienteRouteRoute,
+  } as any)
+const AuthenticatedClienteConexoesRoute =
+  AuthenticatedClienteConexoesRouteImport.update({
+    id: '/conexoes',
+    path: '/conexoes',
+    getParentRoute: () => AuthenticatedClienteRouteRoute,
+  } as any)
+const AuthenticatedClienteConteudoRoute =
+  AuthenticatedClienteConteudoRouteImport.update({
+    id: '/conteudo',
+    path: '/conteudo',
+    getParentRoute: () => AuthenticatedClienteRouteRoute,
+  } as any)
+const AuthenticatedClienteDashboardRoute =
+  AuthenticatedClienteDashboardRouteImport.update({
+    id: '/dashboard',
+    path: '/dashboard',
+    getParentRoute: () => AuthenticatedClienteRouteRoute,
+  } as any)
+const AuthenticatedClienteDiagnosticoRoute =
+  AuthenticatedClienteDiagnosticoRouteImport.update({
+    id: '/diagnostico',
+    path: '/diagnostico',
+    getParentRoute: () => AuthenticatedClienteRouteRoute,
+  } as any)
+const AuthenticatedClienteEntregasRoute =
+  AuthenticatedClienteEntregasRouteImport.update({
+    id: '/entregas',
+    path: '/entregas',
+    getParentRoute: () => AuthenticatedClienteRouteRoute,
+  } as any)
+const AuthenticatedClienteLeadsRoute =
+  AuthenticatedClienteLeadsRouteImport.update({
+    id: '/leads',
+    path: '/leads',
+    getParentRoute: () => AuthenticatedClienteRouteRoute,
+  } as any)
+const AuthenticatedClienteMetaAdsRoute =
+  AuthenticatedClienteMetaAdsRouteImport.update({
+    id: '/meta-ads',
+    path: '/meta-ads',
+    getParentRoute: () => AuthenticatedClienteRouteRoute,
+  } as any)
+const AuthenticatedClienteRoiRoute = AuthenticatedClienteRoiRouteImport.update({
+  id: '/roi',
+  path: '/roi',
+  getParentRoute: () => AuthenticatedClienteRouteRoute,
+} as any)
 const AuthenticatedAdminClientesIndexRoute =
   AuthenticatedAdminClientesIndexRouteImport.update({
-    id: '/admin/clientes/',
-    path: '/admin/clientes/',
-    getParentRoute: () => AuthenticatedRouteRoute,
+    id: '/clientes/',
+    path: '/clientes/',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
   } as any)
 const AuthenticatedAdminClientesIdRoute =
   AuthenticatedAdminClientesIdRouteImport.update({
-    id: '/admin/clientes/$id',
-    path: '/admin/clientes/$id',
-    getParentRoute: () => AuthenticatedRouteRoute,
+    id: '/clientes/$id',
+    path: '/clientes/$id',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/quero-saber-mais': typeof QueroSaberMaisRoute
+  '/admin': typeof AuthenticatedAdminRouteRouteWithChildren
+  '/cliente': typeof AuthenticatedClienteRouteRouteWithChildren
   '/admin/atendimento': typeof AuthenticatedAdminAtendimentoRoute
   '/admin/automacoes-leads': typeof AuthenticatedAdminAutomacoesLeadsRoute
   '/admin/calendario': typeof AuthenticatedAdminCalendarioRoute
+  '/admin/cerebro-pietro': typeof AuthenticatedAdminCerebroPietroRoute
+  '/admin/cerebro-pietro': typeof AuthenticatedAdminCerebroPietroRoute
   '/admin/cerebro-pietro': typeof AuthenticatedAdminCerebroPietroRoute
   '/admin/config-meta': typeof AuthenticatedAdminConfigMetaRoute
   '/admin/dashboard': typeof AuthenticatedAdminDashboardRoute
@@ -228,6 +252,7 @@ export interface FileRoutesByFullPath {
   '/admin/estrategia': typeof AuthenticatedAdminEstrategiaRoute
   '/admin/leads': typeof AuthenticatedAdminLeadsRoute
   '/admin/meta-ads': typeof AuthenticatedAdminMetaAdsRoute
+  '/admin/pipeline-comercial': typeof AuthenticatedAdminPipelineComercialRoute
   '/admin/roi': typeof AuthenticatedAdminRoiRoute
   '/admin/usuarios': typeof AuthenticatedAdminUsuariosRoute
   '/cliente/atendimento': typeof AuthenticatedClienteAtendimentoRoute
@@ -248,6 +273,8 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/quero-saber-mais': typeof QueroSaberMaisRoute
+  '/admin': typeof AuthenticatedAdminRouteRouteWithChildren
+  '/cliente': typeof AuthenticatedClienteRouteRouteWithChildren
   '/admin/atendimento': typeof AuthenticatedAdminAtendimentoRoute
   '/admin/automacoes-leads': typeof AuthenticatedAdminAutomacoesLeadsRoute
   '/admin/calendario': typeof AuthenticatedAdminCalendarioRoute
@@ -259,6 +286,7 @@ export interface FileRoutesByTo {
   '/admin/estrategia': typeof AuthenticatedAdminEstrategiaRoute
   '/admin/leads': typeof AuthenticatedAdminLeadsRoute
   '/admin/meta-ads': typeof AuthenticatedAdminMetaAdsRoute
+  '/admin/pipeline-comercial': typeof AuthenticatedAdminPipelineComercialRoute
   '/admin/roi': typeof AuthenticatedAdminRoiRoute
   '/admin/usuarios': typeof AuthenticatedAdminUsuariosRoute
   '/cliente/atendimento': typeof AuthenticatedClienteAtendimentoRoute
@@ -281,9 +309,12 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/login': typeof LoginRoute
   '/quero-saber-mais': typeof QueroSaberMaisRoute
+  '/_authenticated/admin': typeof AuthenticatedAdminRouteRouteWithChildren
+  '/_authenticated/cliente': typeof AuthenticatedClienteRouteRouteWithChildren
   '/_authenticated/admin/atendimento': typeof AuthenticatedAdminAtendimentoRoute
   '/_authenticated/admin/automacoes-leads': typeof AuthenticatedAdminAutomacoesLeadsRoute
   '/_authenticated/admin/calendario': typeof AuthenticatedAdminCalendarioRoute
+  '/_authenticated/admin/cerebro-pietro': typeof AuthenticatedAdminCerebroPietroRoute
   '/_authenticated/admin/cerebro-pietro': typeof AuthenticatedAdminCerebroPietroRoute
   '/_authenticated/admin/config-meta': typeof AuthenticatedAdminConfigMetaRoute
   '/_authenticated/admin/dashboard': typeof AuthenticatedAdminDashboardRoute
@@ -292,6 +323,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/estrategia': typeof AuthenticatedAdminEstrategiaRoute
   '/_authenticated/admin/leads': typeof AuthenticatedAdminLeadsRoute
   '/_authenticated/admin/meta-ads': typeof AuthenticatedAdminMetaAdsRoute
+  '/_authenticated/admin/pipeline-comercial': typeof AuthenticatedAdminPipelineComercialRoute
   '/_authenticated/admin/roi': typeof AuthenticatedAdminRoiRoute
   '/_authenticated/admin/usuarios': typeof AuthenticatedAdminUsuariosRoute
   '/_authenticated/cliente/atendimento': typeof AuthenticatedClienteAtendimentoRoute
@@ -314,9 +346,13 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/quero-saber-mais'
+    | '/admin'
+    | '/cliente'
     | '/admin/atendimento'
     | '/admin/automacoes-leads'
     | '/admin/calendario'
+    | '/admin/cerebro-pietro'
+    | '/admin/cerebro-pietro'
     | '/admin/cerebro-pietro'
     | '/admin/config-meta'
     | '/admin/dashboard'
@@ -325,6 +361,7 @@ export interface FileRouteTypes {
     | '/admin/estrategia'
     | '/admin/leads'
     | '/admin/meta-ads'
+    | '/admin/pipeline-comercial'
     | '/admin/roi'
     | '/admin/usuarios'
     | '/cliente/atendimento'
@@ -345,6 +382,8 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/quero-saber-mais'
+    | '/admin'
+    | '/cliente'
     | '/admin/atendimento'
     | '/admin/automacoes-leads'
     | '/admin/calendario'
@@ -356,6 +395,7 @@ export interface FileRouteTypes {
     | '/admin/estrategia'
     | '/admin/leads'
     | '/admin/meta-ads'
+    | '/admin/pipeline-comercial'
     | '/admin/roi'
     | '/admin/usuarios'
     | '/cliente/atendimento'
@@ -377,9 +417,12 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/login'
     | '/quero-saber-mais'
+    | '/_authenticated/admin'
+    | '/_authenticated/cliente'
     | '/_authenticated/admin/atendimento'
     | '/_authenticated/admin/automacoes-leads'
     | '/_authenticated/admin/calendario'
+    | '/_authenticated/admin/cerebro-pietro'
     | '/_authenticated/admin/cerebro-pietro'
     | '/_authenticated/admin/config-meta'
     | '/_authenticated/admin/dashboard'
@@ -388,6 +431,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/estrategia'
     | '/_authenticated/admin/leads'
     | '/_authenticated/admin/meta-ads'
+    | '/_authenticated/admin/pipeline-comercial'
     | '/_authenticated/admin/roi'
     | '/_authenticated/admin/usuarios'
     | '/_authenticated/cliente/atendimento'
@@ -414,18 +458,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/quero-saber-mais': {
-      id: '/quero-saber-mais'
-      path: '/quero-saber-mais'
-      fullPath: '/quero-saber-mais'
-      preLoaderRoute: typeof QueroSaberMaisRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/login': {
-      id: '/login'
-      path: '/login'
-      fullPath: '/login'
-      preLoaderRoute: typeof LoginRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated': {
@@ -435,202 +472,231 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/cliente/roi': {
-      id: '/_authenticated/cliente/roi'
-      path: '/cliente/roi'
-      fullPath: '/cliente/roi'
-      preLoaderRoute: typeof AuthenticatedClienteRoiRouteImport
+    '/quero-saber-mais': {
+      id: '/quero-saber-mais'
+      path: '/quero-saber-mais'
+      fullPath: '/quero-saber-mais'
+      preLoaderRoute: typeof QueroSaberMaisRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/admin': {
+      id: '/_authenticated/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AuthenticatedAdminRouteRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/cliente/meta-ads': {
-      id: '/_authenticated/cliente/meta-ads'
-      path: '/cliente/meta-ads'
-      fullPath: '/cliente/meta-ads'
-      preLoaderRoute: typeof AuthenticatedClienteMetaAdsRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/cliente/leads': {
-      id: '/_authenticated/cliente/leads'
-      path: '/cliente/leads'
-      fullPath: '/cliente/leads'
-      preLoaderRoute: typeof AuthenticatedClienteLeadsRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/cliente/entregas': {
-      id: '/_authenticated/cliente/entregas'
-      path: '/cliente/entregas'
-      fullPath: '/cliente/entregas'
-      preLoaderRoute: typeof AuthenticatedClienteEntregasRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/cliente/diagnostico': {
-      id: '/_authenticated/cliente/diagnostico'
-      path: '/cliente/diagnostico'
-      fullPath: '/cliente/diagnostico'
-      preLoaderRoute: typeof AuthenticatedClienteDiagnosticoRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/cliente/dashboard': {
-      id: '/_authenticated/cliente/dashboard'
-      path: '/cliente/dashboard'
-      fullPath: '/cliente/dashboard'
-      preLoaderRoute: typeof AuthenticatedClienteDashboardRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/cliente/conteudo': {
-      id: '/_authenticated/cliente/conteudo'
-      path: '/cliente/conteudo'
-      fullPath: '/cliente/conteudo'
-      preLoaderRoute: typeof AuthenticatedClienteConteudoRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/cliente/conexoes': {
-      id: '/_authenticated/cliente/conexoes'
-      path: '/cliente/conexoes'
-      fullPath: '/cliente/conexoes'
-      preLoaderRoute: typeof AuthenticatedClienteConexoesRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/cliente/clientes': {
-      id: '/_authenticated/cliente/clientes'
-      path: '/cliente/clientes'
-      fullPath: '/cliente/clientes'
-      preLoaderRoute: typeof AuthenticatedClienteClientesRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/cliente/calendario': {
-      id: '/_authenticated/cliente/calendario'
-      path: '/cliente/calendario'
-      fullPath: '/cliente/calendario'
-      preLoaderRoute: typeof AuthenticatedClienteCalendarioRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/cliente/atendimento': {
-      id: '/_authenticated/cliente/atendimento'
-      path: '/cliente/atendimento'
-      fullPath: '/cliente/atendimento'
-      preLoaderRoute: typeof AuthenticatedClienteAtendimentoRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/admin/usuarios': {
-      id: '/_authenticated/admin/usuarios'
-      path: '/admin/usuarios'
-      fullPath: '/admin/usuarios'
-      preLoaderRoute: typeof AuthenticatedAdminUsuariosRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/admin/roi': {
-      id: '/_authenticated/admin/roi'
-      path: '/admin/roi'
-      fullPath: '/admin/roi'
-      preLoaderRoute: typeof AuthenticatedAdminRoiRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/admin/meta-ads': {
-      id: '/_authenticated/admin/meta-ads'
-      path: '/admin/meta-ads'
-      fullPath: '/admin/meta-ads'
-      preLoaderRoute: typeof AuthenticatedAdminMetaAdsRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/admin/leads': {
-      id: '/_authenticated/admin/leads'
-      path: '/admin/leads'
-      fullPath: '/admin/leads'
-      preLoaderRoute: typeof AuthenticatedAdminLeadsRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/admin/estrategia': {
-      id: '/_authenticated/admin/estrategia'
-      path: '/admin/estrategia'
-      fullPath: '/admin/estrategia'
-      preLoaderRoute: typeof AuthenticatedAdminEstrategiaRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/admin/diagnosticos': {
-      id: '/_authenticated/admin/diagnosticos'
-      path: '/admin/diagnosticos'
-      fullPath: '/admin/diagnosticos'
-      preLoaderRoute: typeof AuthenticatedAdminDiagnosticosRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/admin/dashboard-clientes': {
-      id: '/_authenticated/admin/dashboard-clientes'
-      path: '/admin/dashboard-clientes'
-      fullPath: '/admin/dashboard-clientes'
-      preLoaderRoute: typeof AuthenticatedAdminDashboardClientesRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/admin/dashboard': {
-      id: '/_authenticated/admin/dashboard'
-      path: '/admin/dashboard'
-      fullPath: '/admin/dashboard'
-      preLoaderRoute: typeof AuthenticatedAdminDashboardRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/admin/config-meta': {
-      id: '/_authenticated/admin/config-meta'
-      path: '/admin/config-meta'
-      fullPath: '/admin/config-meta'
-      preLoaderRoute: typeof AuthenticatedAdminConfigMetaRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/admin/cerebro-pietro': {
-      id: '/_authenticated/admin/cerebro-pietro'
-      path: '/admin/cerebro-pietro'
-      fullPath: '/admin/cerebro-pietro'
-      preLoaderRoute: typeof AuthenticatedAdminCerebroPietroRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/admin/calendario': {
-      id: '/_authenticated/admin/calendario'
-      path: '/admin/calendario'
-      fullPath: '/admin/calendario'
-      preLoaderRoute: typeof AuthenticatedAdminCalendarioRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/admin/automacoes-leads': {
-      id: '/_authenticated/admin/automacoes-leads'
-      path: '/admin/automacoes-leads'
-      fullPath: '/admin/automacoes-leads'
-      preLoaderRoute: typeof AuthenticatedAdminAutomacoesLeadsRouteImport
+    '/_authenticated/cliente': {
+      id: '/_authenticated/cliente'
+      path: '/cliente'
+      fullPath: '/cliente'
+      preLoaderRoute: typeof AuthenticatedClienteRouteRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/admin/atendimento': {
       id: '/_authenticated/admin/atendimento'
-      path: '/admin/atendimento'
+      path: '/atendimento'
       fullPath: '/admin/atendimento'
       preLoaderRoute: typeof AuthenticatedAdminAtendimentoRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
+    '/_authenticated/admin/automacoes-leads': {
+      id: '/_authenticated/admin/automacoes-leads'
+      path: '/automacoes-leads'
+      fullPath: '/admin/automacoes-leads'
+      preLoaderRoute: typeof AuthenticatedAdminAutomacoesLeadsRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
+    '/_authenticated/admin/calendario': {
+      id: '/_authenticated/admin/calendario'
+      path: '/calendario'
+      fullPath: '/admin/calendario'
+      preLoaderRoute: typeof AuthenticatedAdminCalendarioRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
+    '/_authenticated/admin/cerebro-pietro': {
+      id: '/_authenticated/admin/cerebro-pietro'
+      path: '/cerebro-pietro'
+      fullPath: '/admin/cerebro-pietro'
+      preLoaderRoute: typeof AuthenticatedAdminCerebroPietroRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
+    '/_authenticated/admin/config-meta': {
+      id: '/_authenticated/admin/config-meta'
+      path: '/config-meta'
+      fullPath: '/admin/config-meta'
+      preLoaderRoute: typeof AuthenticatedAdminConfigMetaRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
+    '/_authenticated/admin/dashboard': {
+      id: '/_authenticated/admin/dashboard'
+      path: '/dashboard'
+      fullPath: '/admin/dashboard'
+      preLoaderRoute: typeof AuthenticatedAdminDashboardRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
+    '/_authenticated/admin/dashboard-clientes': {
+      id: '/_authenticated/admin/dashboard-clientes'
+      path: '/dashboard-clientes'
+      fullPath: '/admin/dashboard-clientes'
+      preLoaderRoute: typeof AuthenticatedAdminDashboardClientesRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
+    '/_authenticated/admin/diagnosticos': {
+      id: '/_authenticated/admin/diagnosticos'
+      path: '/diagnosticos'
+      fullPath: '/admin/diagnosticos'
+      preLoaderRoute: typeof AuthenticatedAdminDiagnosticosRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
+    '/_authenticated/admin/estrategia': {
+      id: '/_authenticated/admin/estrategia'
+      path: '/estrategia'
+      fullPath: '/admin/estrategia'
+      preLoaderRoute: typeof AuthenticatedAdminEstrategiaRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
+    '/_authenticated/admin/leads': {
+      id: '/_authenticated/admin/leads'
+      path: '/leads'
+      fullPath: '/admin/leads'
+      preLoaderRoute: typeof AuthenticatedAdminLeadsRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
+    '/_authenticated/admin/meta-ads': {
+      id: '/_authenticated/admin/meta-ads'
+      path: '/meta-ads'
+      fullPath: '/admin/meta-ads'
+      preLoaderRoute: typeof AuthenticatedAdminMetaAdsRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
+    '/_authenticated/admin/pipeline-comercial': {
+      id: '/_authenticated/admin/pipeline-comercial'
+      path: '/pipeline-comercial'
+      fullPath: '/admin/pipeline-comercial'
+      preLoaderRoute: typeof AuthenticatedAdminPipelineComercialRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
+    '/_authenticated/admin/roi': {
+      id: '/_authenticated/admin/roi'
+      path: '/roi'
+      fullPath: '/admin/roi'
+      preLoaderRoute: typeof AuthenticatedAdminRoiRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
+    '/_authenticated/admin/usuarios': {
+      id: '/_authenticated/admin/usuarios'
+      path: '/usuarios'
+      fullPath: '/admin/usuarios'
+      preLoaderRoute: typeof AuthenticatedAdminUsuariosRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
+    '/_authenticated/cliente/atendimento': {
+      id: '/_authenticated/cliente/atendimento'
+      path: '/atendimento'
+      fullPath: '/cliente/atendimento'
+      preLoaderRoute: typeof AuthenticatedClienteAtendimentoRouteImport
+      parentRoute: typeof AuthenticatedClienteRouteRoute
+    }
+    '/_authenticated/cliente/calendario': {
+      id: '/_authenticated/cliente/calendario'
+      path: '/calendario'
+      fullPath: '/cliente/calendario'
+      preLoaderRoute: typeof AuthenticatedClienteCalendarioRouteImport
+      parentRoute: typeof AuthenticatedClienteRouteRoute
+    }
+    '/_authenticated/cliente/clientes': {
+      id: '/_authenticated/cliente/clientes'
+      path: '/clientes'
+      fullPath: '/cliente/clientes'
+      preLoaderRoute: typeof AuthenticatedClienteClientesRouteImport
+      parentRoute: typeof AuthenticatedClienteRouteRoute
+    }
+    '/_authenticated/cliente/conexoes': {
+      id: '/_authenticated/cliente/conexoes'
+      path: '/conexoes'
+      fullPath: '/cliente/conexoes'
+      preLoaderRoute: typeof AuthenticatedClienteConexoesRouteImport
+      parentRoute: typeof AuthenticatedClienteRouteRoute
+    }
+    '/_authenticated/cliente/conteudo': {
+      id: '/_authenticated/cliente/conteudo'
+      path: '/conteudo'
+      fullPath: '/cliente/conteudo'
+      preLoaderRoute: typeof AuthenticatedClienteConteudoRouteImport
+      parentRoute: typeof AuthenticatedClienteRouteRoute
+    }
+    '/_authenticated/cliente/dashboard': {
+      id: '/_authenticated/cliente/dashboard'
+      path: '/dashboard'
+      fullPath: '/cliente/dashboard'
+      preLoaderRoute: typeof AuthenticatedClienteDashboardRouteImport
+      parentRoute: typeof AuthenticatedClienteRouteRoute
+    }
+    '/_authenticated/cliente/diagnostico': {
+      id: '/_authenticated/cliente/diagnostico'
+      path: '/diagnostico'
+      fullPath: '/cliente/diagnostico'
+      preLoaderRoute: typeof AuthenticatedClienteDiagnosticoRouteImport
+      parentRoute: typeof AuthenticatedClienteRouteRoute
+    }
+    '/_authenticated/cliente/entregas': {
+      id: '/_authenticated/cliente/entregas'
+      path: '/entregas'
+      fullPath: '/cliente/entregas'
+      preLoaderRoute: typeof AuthenticatedClienteEntregasRouteImport
+      parentRoute: typeof AuthenticatedClienteRouteRoute
+    }
+    '/_authenticated/cliente/leads': {
+      id: '/_authenticated/cliente/leads'
+      path: '/leads'
+      fullPath: '/cliente/leads'
+      preLoaderRoute: typeof AuthenticatedClienteLeadsRouteImport
+      parentRoute: typeof AuthenticatedClienteRouteRoute
+    }
+    '/_authenticated/cliente/meta-ads': {
+      id: '/_authenticated/cliente/meta-ads'
+      path: '/meta-ads'
+      fullPath: '/cliente/meta-ads'
+      preLoaderRoute: typeof AuthenticatedClienteMetaAdsRouteImport
+      parentRoute: typeof AuthenticatedClienteRouteRoute
+    }
+    '/_authenticated/cliente/roi': {
+      id: '/_authenticated/cliente/roi'
+      path: '/roi'
+      fullPath: '/cliente/roi'
+      preLoaderRoute: typeof AuthenticatedClienteRoiRouteImport
+      parentRoute: typeof AuthenticatedClienteRouteRoute
     }
     '/_authenticated/admin/clientes/': {
       id: '/_authenticated/admin/clientes/'
-      path: '/admin/clientes'
+      path: '/clientes'
       fullPath: '/admin/clientes/'
       preLoaderRoute: typeof AuthenticatedAdminClientesIndexRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+      parentRoute: typeof AuthenticatedAdminRouteRoute
     }
     '/_authenticated/admin/clientes/$id': {
       id: '/_authenticated/admin/clientes/$id'
-      path: '/admin/clientes/$id'
+      path: '/clientes/$id'
       fullPath: '/admin/clientes/$id'
       preLoaderRoute: typeof AuthenticatedAdminClientesIdRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+      parentRoute: typeof AuthenticatedAdminRouteRoute
     }
   }
 }
 
-interface AuthenticatedRouteRouteChildren {
+interface AuthenticatedAdminRouteRouteChildren {
   AuthenticatedAdminAtendimentoRoute: typeof AuthenticatedAdminAtendimentoRoute
   AuthenticatedAdminAutomacoesLeadsRoute: typeof AuthenticatedAdminAutomacoesLeadsRoute
   AuthenticatedAdminCalendarioRoute: typeof AuthenticatedAdminCalendarioRoute
+  AuthenticatedAdminCerebroPietroRoute: typeof AuthenticatedAdminCerebroPietroRoute
   AuthenticatedAdminCerebroPietroRoute: typeof AuthenticatedAdminCerebroPietroRoute
   AuthenticatedAdminConfigMetaRoute: typeof AuthenticatedAdminConfigMetaRoute
   AuthenticatedAdminDashboardRoute: typeof AuthenticatedAdminDashboardRoute
@@ -639,8 +705,42 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminEstrategiaRoute: typeof AuthenticatedAdminEstrategiaRoute
   AuthenticatedAdminLeadsRoute: typeof AuthenticatedAdminLeadsRoute
   AuthenticatedAdminMetaAdsRoute: typeof AuthenticatedAdminMetaAdsRoute
+  AuthenticatedAdminPipelineComercialRoute: typeof AuthenticatedAdminPipelineComercialRoute
   AuthenticatedAdminRoiRoute: typeof AuthenticatedAdminRoiRoute
   AuthenticatedAdminUsuariosRoute: typeof AuthenticatedAdminUsuariosRoute
+  AuthenticatedAdminClientesIdRoute: typeof AuthenticatedAdminClientesIdRoute
+  AuthenticatedAdminClientesIndexRoute: typeof AuthenticatedAdminClientesIndexRoute
+}
+
+const AuthenticatedAdminRouteRouteChildren: AuthenticatedAdminRouteRouteChildren =
+  {
+    AuthenticatedAdminAtendimentoRoute: AuthenticatedAdminAtendimentoRoute,
+    AuthenticatedAdminAutomacoesLeadsRoute:
+      AuthenticatedAdminAutomacoesLeadsRoute,
+    AuthenticatedAdminCalendarioRoute: AuthenticatedAdminCalendarioRoute,
+    AuthenticatedAdminCerebroPietroRoute: AuthenticatedAdminCerebroPietroRoute,
+    AuthenticatedAdminConfigMetaRoute: AuthenticatedAdminConfigMetaRoute,
+    AuthenticatedAdminDashboardRoute: AuthenticatedAdminDashboardRoute,
+    AuthenticatedAdminDashboardClientesRoute:
+      AuthenticatedAdminDashboardClientesRoute,
+    AuthenticatedAdminDiagnosticosRoute: AuthenticatedAdminDiagnosticosRoute,
+    AuthenticatedAdminEstrategiaRoute: AuthenticatedAdminEstrategiaRoute,
+    AuthenticatedAdminLeadsRoute: AuthenticatedAdminLeadsRoute,
+    AuthenticatedAdminMetaAdsRoute: AuthenticatedAdminMetaAdsRoute,
+    AuthenticatedAdminPipelineComercialRoute:
+      AuthenticatedAdminPipelineComercialRoute,
+    AuthenticatedAdminRoiRoute: AuthenticatedAdminRoiRoute,
+    AuthenticatedAdminUsuariosRoute: AuthenticatedAdminUsuariosRoute,
+    AuthenticatedAdminClientesIdRoute: AuthenticatedAdminClientesIdRoute,
+    AuthenticatedAdminClientesIndexRoute: AuthenticatedAdminClientesIndexRoute,
+  }
+
+const AuthenticatedAdminRouteRouteWithChildren =
+  AuthenticatedAdminRouteRoute._addFileChildren(
+    AuthenticatedAdminRouteRouteChildren,
+  )
+
+interface AuthenticatedClienteRouteRouteChildren {
   AuthenticatedClienteAtendimentoRoute: typeof AuthenticatedClienteAtendimentoRoute
   AuthenticatedClienteCalendarioRoute: typeof AuthenticatedClienteCalendarioRoute
   AuthenticatedClienteClientesRoute: typeof AuthenticatedClienteClientesRoute
@@ -652,39 +752,36 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedClienteLeadsRoute: typeof AuthenticatedClienteLeadsRoute
   AuthenticatedClienteMetaAdsRoute: typeof AuthenticatedClienteMetaAdsRoute
   AuthenticatedClienteRoiRoute: typeof AuthenticatedClienteRoiRoute
-  AuthenticatedAdminClientesIdRoute: typeof AuthenticatedAdminClientesIdRoute
-  AuthenticatedAdminClientesIndexRoute: typeof AuthenticatedAdminClientesIndexRoute
+}
+
+const AuthenticatedClienteRouteRouteChildren: AuthenticatedClienteRouteRouteChildren =
+  {
+    AuthenticatedClienteAtendimentoRoute: AuthenticatedClienteAtendimentoRoute,
+    AuthenticatedClienteCalendarioRoute: AuthenticatedClienteCalendarioRoute,
+    AuthenticatedClienteClientesRoute: AuthenticatedClienteClientesRoute,
+    AuthenticatedClienteConexoesRoute: AuthenticatedClienteConexoesRoute,
+    AuthenticatedClienteConteudoRoute: AuthenticatedClienteConteudoRoute,
+    AuthenticatedClienteDashboardRoute: AuthenticatedClienteDashboardRoute,
+    AuthenticatedClienteDiagnosticoRoute: AuthenticatedClienteDiagnosticoRoute,
+    AuthenticatedClienteEntregasRoute: AuthenticatedClienteEntregasRoute,
+    AuthenticatedClienteLeadsRoute: AuthenticatedClienteLeadsRoute,
+    AuthenticatedClienteMetaAdsRoute: AuthenticatedClienteMetaAdsRoute,
+    AuthenticatedClienteRoiRoute: AuthenticatedClienteRoiRoute,
+  }
+
+const AuthenticatedClienteRouteRouteWithChildren =
+  AuthenticatedClienteRouteRoute._addFileChildren(
+    AuthenticatedClienteRouteRouteChildren,
+  )
+
+interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAdminRouteRoute: typeof AuthenticatedAdminRouteRouteWithChildren
+  AuthenticatedClienteRouteRoute: typeof AuthenticatedClienteRouteRouteWithChildren
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
-  AuthenticatedAdminAtendimentoRoute: AuthenticatedAdminAtendimentoRoute,
-  AuthenticatedAdminAutomacoesLeadsRoute:
-    AuthenticatedAdminAutomacoesLeadsRoute,
-  AuthenticatedAdminCalendarioRoute: AuthenticatedAdminCalendarioRoute,
-  AuthenticatedAdminCerebroPietroRoute: AuthenticatedAdminCerebroPietroRoute,
-  AuthenticatedAdminConfigMetaRoute: AuthenticatedAdminConfigMetaRoute,
-  AuthenticatedAdminDashboardRoute: AuthenticatedAdminDashboardRoute,
-  AuthenticatedAdminDashboardClientesRoute:
-    AuthenticatedAdminDashboardClientesRoute,
-  AuthenticatedAdminDiagnosticosRoute: AuthenticatedAdminDiagnosticosRoute,
-  AuthenticatedAdminEstrategiaRoute: AuthenticatedAdminEstrategiaRoute,
-  AuthenticatedAdminLeadsRoute: AuthenticatedAdminLeadsRoute,
-  AuthenticatedAdminMetaAdsRoute: AuthenticatedAdminMetaAdsRoute,
-  AuthenticatedAdminRoiRoute: AuthenticatedAdminRoiRoute,
-  AuthenticatedAdminUsuariosRoute: AuthenticatedAdminUsuariosRoute,
-  AuthenticatedClienteAtendimentoRoute: AuthenticatedClienteAtendimentoRoute,
-  AuthenticatedClienteCalendarioRoute: AuthenticatedClienteCalendarioRoute,
-  AuthenticatedClienteClientesRoute: AuthenticatedClienteClientesRoute,
-  AuthenticatedClienteConexoesRoute: AuthenticatedClienteConexoesRoute,
-  AuthenticatedClienteConteudoRoute: AuthenticatedClienteConteudoRoute,
-  AuthenticatedClienteDashboardRoute: AuthenticatedClienteDashboardRoute,
-  AuthenticatedClienteDiagnosticoRoute: AuthenticatedClienteDiagnosticoRoute,
-  AuthenticatedClienteEntregasRoute: AuthenticatedClienteEntregasRoute,
-  AuthenticatedClienteLeadsRoute: AuthenticatedClienteLeadsRoute,
-  AuthenticatedClienteMetaAdsRoute: AuthenticatedClienteMetaAdsRoute,
-  AuthenticatedClienteRoiRoute: AuthenticatedClienteRoiRoute,
-  AuthenticatedAdminClientesIdRoute: AuthenticatedAdminClientesIdRoute,
-  AuthenticatedAdminClientesIndexRoute: AuthenticatedAdminClientesIndexRoute,
+  AuthenticatedAdminRouteRoute: AuthenticatedAdminRouteRouteWithChildren,
+  AuthenticatedClienteRouteRoute: AuthenticatedClienteRouteRouteWithChildren,
 }
 
 const AuthenticatedRouteRouteWithChildren =

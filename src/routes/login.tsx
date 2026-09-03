@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate, redirect } from "@tanstack/react-router";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
+import { isStaff } from "@/lib/roles";
 
 type AccessType = "equipe" | "cliente";
 const ACTIVE_ROLE_KEY = "tabgha_active_role";
@@ -10,9 +11,10 @@ function preferDestination(
   roles: Array<{ role: string }>,
   access: AccessType,
 ): "/admin/dashboard" | "/cliente/dashboard" {
-  const hasAdmin = roles.some((r) => r.role === "admin");
-  const hasCliente = roles.some((r) => r.role === "cliente");
-  if (access === "equipe" && hasAdmin) {
+  const roleNames = roles.map((r) => r.role);
+  const hasStaff = isStaff(roleNames);
+  const hasCliente = roleNames.includes("cliente");
+  if (access === "equipe" && hasStaff) {
     try {
       sessionStorage.setItem(ACTIVE_ROLE_KEY, "admin");
     } catch {
@@ -28,7 +30,7 @@ function preferDestination(
     }
     return "/cliente/dashboard";
   }
-  if (hasAdmin) {
+  if (hasStaff) {
     try {
       sessionStorage.setItem(ACTIVE_ROLE_KEY, "admin");
     } catch {
@@ -84,14 +86,17 @@ function LoginPage() {
       .from("user_roles").select("role").eq("user_id", userId);
     if (rolesError) { setError("Login realizado, mas não foi possível carregar seu perfil."); return; }
 
-    const hasAdmin = roles?.some((r) => r.role === "admin");
-    const hasCliente = roles?.some((r) => r.role === "cliente");
-    if (access === "equipe" && !hasAdmin) {
-      setError("Este login não tem acesso de equipe (admin). Use Portal do Cliente ou peça o perfil Admin.");
+    const roleNames = (roles ?? []).map((r) => r.role);
+    const hasStaff = isStaff(roleNames);
+    const hasCliente = roleNames.includes("cliente");
+    if (access === "equipe" && !hasStaff) {
+      setError(
+        "Este login não tem acesso de equipe. Use Portal do Cliente ou peça um perfil interno (Super Admin, Growth, etc.).",
+      );
       return;
     }
     if (access === "cliente" && !hasCliente) {
-      setError("Este login não tem portal do médico. Use Equipe Tabgha ou peça o perfil Portal.");
+      setError("Este login não tem portal do médico. Use Equipe Tabgha ou peça o perfil Cliente.");
       return;
     }
 

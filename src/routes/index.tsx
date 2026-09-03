@@ -22,13 +22,13 @@ export const Route = createFileRoute("/")({
   ssr: false,
   head: () => ({
     meta: [
-      { title: "Tabgha Health Marketing — Mais pacientes. Todo mês." },
+      { title: "Tabgha OS · Health Growth Operating System — Mais pacientes. Todo mês." },
       {
         name: "description",
         content:
           "A Tabgha transforma a presença digital de clínicas e consultórios em resultado previsível — com estratégia, conteúdo médico e tecnologia integrados.",
       },
-      { property: "og:title", content: "Tabgha Health Marketing" },
+      { property: "og:title", content: "Tabgha OS · Health Growth Operating System" },
       {
         property: "og:description",
         content:
@@ -1774,6 +1774,8 @@ function CTASection() {
           utm_source: params?.get("utm_source"),
           utm_medium: params?.get("utm_medium"),
           utm_campaign: params?.get("utm_campaign"),
+          utm_content: params?.get("utm_content"),
+          utm_term: params?.get("utm_term"),
         }),
       });
 
@@ -2113,7 +2115,7 @@ function Footer() {
           }}
         >
           <p style={{ fontSize: 12, color: "rgba(255,255,255,0.3)", margin: 0 }}>
-            © {new Date().getFullYear()} Tabgha Health Marketing. Todos os direitos reservados.
+            © {new Date().getFullYear()} Tabgha OS. Todos os direitos reservados.
           </p>
           <Link to="/login" style={{ fontSize: 12, color: "rgba(255,255,255,0.3)", textDecoration: "none", transition: "color 0.2s" }}
             onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = "rgba(255,255,255,0.6)"; }}

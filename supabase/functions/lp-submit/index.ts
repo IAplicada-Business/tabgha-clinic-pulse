@@ -1,6 +1,6 @@
 // Landing page "quero saber mais" — captura pública com honeypot + rate limit.
 //
-// POST { nome, telefone, especialidade?, cidade?, website?, utm_source?, utm_medium?, utm_campaign?, email? }
+// POST { nome, telefone, especialidade?, cidade?, website?, utm_source?, utm_medium?, utm_campaign?, utm_content?, utm_term?, email? }
 // CORS aberto. Sem service_role no cliente.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
@@ -72,6 +72,8 @@ type Payload = {
   utm_source?: string;
   utm_medium?: string;
   utm_campaign?: string;
+  utm_content?: string;
+  utm_term?: string;
 };
 
 Deno.serve(async (req) => {
@@ -124,6 +126,8 @@ Deno.serve(async (req) => {
         utm_source: payload.utm_source ?? "direct",
         utm_medium: payload.utm_medium ?? null,
         utm_campaign: payload.utm_campaign ?? null,
+        utm_content: payload.utm_content ?? null,
+        utm_term: payload.utm_term ?? null,
         status: "novo",
         observacoes: [
           especialidade ? `especialidade: ${especialidade}` : null,

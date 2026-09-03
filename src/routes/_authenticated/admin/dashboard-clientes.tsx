@@ -21,10 +21,13 @@ import {
   type AnalyticsFiltersValue,
 } from "@/components/analytics/AnalyticsFilters";
 import {
+  CHART_TOOLTIP_CURSOR,
+  CHART_TOOLTIP_STYLE,
   FunnelBars,
   InsightStack,
   Panel,
   RankedBarChart,
+  renderChartLegend,
   StatusChips,
   StoryBanner,
 } from "@/components/analytics/InsightPanel";
@@ -195,8 +198,7 @@ function DashboardClientesPage() {
 
       for (const m of metricas) {
         const id = m.cliente_id as string;
-        const nome =
-          (m.clientes as { nome?: string } | null)?.nome ?? String(id).slice(0, 8);
+        const nome = (m.clientes as { nome?: string } | null)?.nome ?? String(id).slice(0, 8);
         const prev = perfMap.get(id) ?? {
           nome,
           status: "ativo",
@@ -212,8 +214,7 @@ function DashboardClientesPage() {
 
       for (const l of leads) {
         const id = l.cliente_id as string;
-        const nome =
-          (l.clientes as { nome?: string } | null)?.nome ?? String(id).slice(0, 8);
+        const nome = (l.clientes as { nome?: string } | null)?.nome ?? String(id).slice(0, 8);
         const prev = perfMap.get(id) ?? {
           nome,
           status: (l.clientes as { status?: string } | null)?.status ?? "ativo",
@@ -281,33 +282,31 @@ function DashboardClientesPage() {
 
   return (
     <div className="space-y-4 px-6 py-6">
-      <header className="animate-fade-up flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <span className="eyebrow-pill">Visão Clientes</span>
-          <h1 className="mt-2 text-2xl font-extrabold tracking-tight">Dashboard Clientes</h1>
-          <p className="mt-0.5 max-w-2xl text-xs text-muted-foreground">
-            Performance por clínica: evolução de mídia, CAQ, funil e se a estratégia está
-            respondendo
-          </p>
-        </div>
-        <AnalyticsFilters
-          value={filters}
-          onChange={setFilters}
-          clientes={clientesOptions}
-          categorias={categorias}
-          showPlataforma
-        />
+      <header className="animate-fade-up">
+        <h1 className="text-xl font-bold tracking-tight">Dashboard Clientes</h1>
+        <p className="mt-0.5 max-w-2xl text-xs text-muted-foreground">
+          Performance por clínica: evolução de mídia, CAQ, funil e se a estratégia está respondendo
+        </p>
       </header>
-
-      <SubTabs
-        value={tab}
-        onChange={setTab}
-        tabs={[
-          { id: "visao", label: "Visão geral" },
-          { id: "performance", label: "Performance por cliente" },
-          { id: "oportunidades", label: "Oportunidades" },
-        ]}
+      <AnalyticsFilters
+        value={filters}
+        onChange={setFilters}
+        clientes={clientesOptions}
+        categorias={categorias}
+        showPlataforma
       />
+
+      <div className="mt-2 border-t border-border pt-4">
+        <SubTabs
+          value={tab}
+          onChange={setTab}
+          tabs={[
+            { id: "visao", label: "Visão geral" },
+            { id: "performance", label: "Performance por cliente" },
+            { id: "oportunidades", label: "Oportunidades" },
+          ]}
+        />
+      </div>
 
       {tab === "visao" ? (
         <>
@@ -406,8 +405,8 @@ function DashboardClientesPage() {
                         axisLine={false}
                         tickLine={false}
                       />
-                      <Tooltip />
-                      <Legend />
+                      <Tooltip contentStyle={CHART_TOOLTIP_STYLE} cursor={CHART_TOOLTIP_CURSOR} />
+                      <Legend content={renderChartLegend} />
                       <Bar
                         yAxisId="left"
                         dataKey="investimento"
@@ -486,7 +485,7 @@ function DashboardClientesPage() {
                       axisLine={false}
                       allowDecimals={false}
                     />
-                    <Tooltip />
+                    <Tooltip contentStyle={CHART_TOOLTIP_STYLE} />
                     <Area
                       type="monotone"
                       dataKey="count"

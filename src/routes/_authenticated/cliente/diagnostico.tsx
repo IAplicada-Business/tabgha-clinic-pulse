@@ -1,6 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { Stethoscope, Loader2 } from "lucide-react";
+import { Wizard7Fontes } from "@/components/diagnostico/Wizard7Fontes";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { cn } from "@/lib/utils";
@@ -154,103 +156,120 @@ function DiagnosticoPage() {
   return (
     <div className="space-y-6 px-6 py-6">
       <header className="animate-fade-up">
-        <span className="eyebrow-pill mb-2">Estratégia</span>
-        <h1 className="mt-2 text-xl font-bold tracking-tight">Diagnóstico</h1>
+        <h1 className="text-xl font-bold tracking-tight">Meu Diagnóstico 7F</h1>
         <p className="mt-0.5 text-xs text-muted-foreground">
           Análise estratégica do{" "}
           {cliente?.especialidade ? `consultório de ${cliente.especialidade}` : "seu consultório"}
         </p>
       </header>
 
-      {isLoading ? (
-        <div className="flex justify-center py-16">
-          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-        </div>
-      ) : !ready ? (
-        <div
-          className="card-lift animate-fade-up overflow-hidden rounded-2xl border border-border bg-card shadow-[var(--shadow-card)]"
-          style={{ animationDelay: "75ms" }}
-        >
-          <div className="flex items-center gap-2.5 border-b border-primary/15 bg-primary/5 px-5 py-3">
-            <span className="h-2 w-2 shrink-0 rounded-full bg-primary" />
-            <p className="text-[10.5px] font-bold uppercase tracking-widest text-primary">
-              Diagnóstico estratégico
-            </p>
-          </div>
-          <div className="flex flex-col items-center justify-center px-6 py-16 text-center">
-            <div className="icon-chip icon-chip-blue mb-5 h-16 w-16">
-              <Stethoscope className="h-7 w-7" />
+      <Tabs defaultValue="autoavaliacao" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="autoavaliacao">Autoavaliação · 7 Fontes</TabsTrigger>
+          <TabsTrigger value="estrategico">Diagnóstico estratégico</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="autoavaliacao" className="space-y-4">
+          <Wizard7Fontes clienteId={clienteId} />
+        </TabsContent>
+
+        <TabsContent value="estrategico" className="space-y-4">
+          {isLoading ? (
+            <div className="flex justify-center py-16">
+              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
             </div>
-            <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-              Em preparação
-            </p>
-            <h3 className="text-base font-semibold">Diagnóstico em breve</h3>
-            <p className="mt-1.5 max-w-sm text-xs leading-relaxed text-muted-foreground">
-              A equipe Tabgha está preparando a análise estratégica do seu consultório. Você será
-              notificado quando estiver pronto.
-            </p>
-          </div>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-          {d!.resumo ? (
-            <Section title="Visão consolidada" accent="blue" className="lg:col-span-2" delay={50}>
-              <p className="whitespace-pre-line text-sm leading-relaxed">{d!.resumo}</p>
-            </Section>
-          ) : null}
+          ) : !ready ? (
+            <div
+              className="card-lift animate-fade-up overflow-hidden rounded-2xl border border-border bg-card shadow-[0_1px_3px_rgba(15,27,53,0.04)]"
+              style={{ animationDelay: "75ms" }}
+            >
+              <div className="flex items-center gap-2.5 border-b border-primary/15 bg-primary/5 px-5 py-3">
+                <span className="h-2 w-2 shrink-0 rounded-full bg-primary" />
+                <p className="text-[10.5px] font-bold uppercase tracking-widest text-primary">
+                  Diagnóstico estratégico
+                </p>
+              </div>
+              <div className="flex flex-col items-center justify-center px-6 py-16 text-center">
+                <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/8 ring-1 ring-primary/15">
+                  <Stethoscope className="h-6 w-6 text-primary" />
+                </div>
+                <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                  Em preparação
+                </p>
+                <h3 className="text-base font-semibold">Diagnóstico em breve</h3>
+                <p className="mt-1.5 max-w-sm text-xs leading-relaxed text-muted-foreground">
+                  A equipe Tabgha está preparando a análise estratégica do seu consultório. Você
+                  será notificado quando estiver pronto.
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+              {d!.resumo ? (
+                <Section
+                  title="Visão consolidada"
+                  accent="blue"
+                  className="lg:col-span-2"
+                  delay={50}
+                >
+                  <p className="whitespace-pre-line text-sm leading-relaxed">{d!.resumo}</p>
+                </Section>
+              ) : null}
 
-          {d!.perfil ? (
-            <Section title="Perfil do consultório" accent="blue" delay={75}>
-              <div className="grid grid-cols-2 gap-4">
-                {Object.entries(PERFIL_LABELS).map(([k, l]) => (
-                  <div
-                    key={k}
-                    className={k === "diferencial" || k === "publico_alvo" ? "col-span-2" : ""}
-                  >
-                    <Field label={l} value={d!.perfil?.[k]} />
+              {d!.perfil ? (
+                <Section title="Perfil do consultório" accent="blue" delay={75}>
+                  <div className="grid grid-cols-2 gap-4">
+                    {Object.entries(PERFIL_LABELS).map(([k, l]) => (
+                      <div
+                        key={k}
+                        className={k === "diferencial" || k === "publico_alvo" ? "col-span-2" : ""}
+                      >
+                        <Field label={l} value={d!.perfil?.[k]} />
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-            </Section>
-          ) : null}
+                </Section>
+              ) : null}
 
-          {d!.jornada ? (
-            <Section title="Jornada do paciente" accent="violet" delay={150}>
-              <div className="grid grid-cols-2 gap-4">
-                {["canais_aquisicao", "funil", "objecoes"].map((k) => (
-                  <div key={k} className="col-span-2">
-                    <Field label={JORNADA_LABELS[k]} value={d!.jornada?.[k]} />
+              {d!.jornada ? (
+                <Section title="Jornada do paciente" accent="violet" delay={150}>
+                  <div className="grid grid-cols-2 gap-4">
+                    {["canais_aquisicao", "funil", "objecoes"].map((k) => (
+                      <div key={k} className="col-span-2">
+                        <Field label={JORNADA_LABELS[k]} value={d!.jornada?.[k]} />
+                      </div>
+                    ))}
+                    <Field
+                      label={JORNADA_LABELS["taxa_agendamento"]}
+                      value={d!.jornada?.taxa_agendamento}
+                    />
+                    <Field
+                      label={JORNADA_LABELS["taxa_conversao"]}
+                      value={d!.jornada?.taxa_conversao}
+                    />
                   </div>
-                ))}
-                <Field
-                  label={JORNADA_LABELS["taxa_agendamento"]}
-                  value={d!.jornada?.taxa_agendamento}
-                />
-                <Field
-                  label={JORNADA_LABELS["taxa_conversao"]}
-                  value={d!.jornada?.taxa_conversao}
-                />
-              </div>
-            </Section>
-          ) : null}
+                </Section>
+              ) : null}
 
-          {d!.dores ? (
-            <Section title="Dores identificadas" accent="rose" delay={225}>
-              <div className="space-y-4">
-                {Object.entries(DORES_LABELS).map(([k, l]) => (
-                  <Field key={k} label={l} value={d!.dores?.[k]} />
-                ))}
-              </div>
-            </Section>
-          ) : null}
+              {d!.dores ? (
+                <Section title="Dores identificadas" accent="rose" delay={225}>
+                  <div className="space-y-4">
+                    {Object.entries(DORES_LABELS).map(([k, l]) => (
+                      <Field key={k} label={l} value={d!.dores?.[k]} />
+                    ))}
+                  </div>
+                </Section>
+              ) : null}
 
-          {d!.concorrentes ? (
-            <Section title="Concorrentes & posicionamento" accent="amber" delay={300}>
-              <p className="whitespace-pre-line text-sm leading-relaxed">{d!.concorrentes}</p>
-            </Section>
-          ) : null}
-        </div>
-      )}
+              {d!.concorrentes ? (
+                <Section title="Concorrentes & posicionamento" accent="amber" delay={300}>
+                  <p className="whitespace-pre-line text-sm leading-relaxed">{d!.concorrentes}</p>
+                </Section>
+              ) : null}
+            </div>
+          )}
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

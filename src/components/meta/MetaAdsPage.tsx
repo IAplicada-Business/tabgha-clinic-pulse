@@ -20,6 +20,8 @@ import {
   type AnalyticsFiltersValue,
 } from "@/components/analytics/AnalyticsFilters";
 import {
+  CHART_TOOLTIP_CURSOR,
+  CHART_TOOLTIP_STYLE,
   InsightStack,
   Panel,
   RankedBarChart,
@@ -37,14 +39,10 @@ import {
 } from "@/components/ui/table";
 import { useAuth } from "@/lib/auth";
 import { useClientesOptions } from "@/hooks/useClientesOptions";
-import {
-  buildAdInsights,
-  buildCampaignInsights,
-  fmtMoneyCompact,
-} from "@/lib/analytics-insights";
+import { buildAdInsights, buildCampaignInsights, fmtMoneyCompact } from "@/lib/analytics-insights";
 import { calcCaq } from "@/lib/analytics-range";
 import { supabase } from "@/integrations/supabase/client";
-import { formatCurrency, META_TOOLTIP_STYLE } from "@/lib/types";
+import { formatCurrency } from "@/lib/types";
 
 type MetaAdsPageProps = {
   isAdmin?: boolean;
@@ -196,7 +194,13 @@ export function MetaAdsPage({
 
       const byCampaign = new Map<
         string,
-        { campanha: string; investimento: number; leads: number; impressoes: number; cliques: number }
+        {
+          campanha: string;
+          investimento: number;
+          leads: number;
+          impressoes: number;
+          cliques: number;
+        }
       >();
       for (const row of currentCampaigns) {
         const key = row.campanha ?? "Sem campanha";
@@ -498,7 +502,7 @@ export function MetaAdsPage({
                           axisLine={false}
                           tickLine={false}
                         />
-                        <Tooltip contentStyle={META_TOOLTIP_STYLE} />
+                        <Tooltip contentStyle={CHART_TOOLTIP_STYLE} />
                         <Line
                           yAxisId="left"
                           type="monotone"
@@ -533,7 +537,7 @@ export function MetaAdsPage({
                           tickLine={false}
                         />
                         <YAxis tick={{ fontSize: 10 }} axisLine={false} tickLine={false} />
-                        <Tooltip contentStyle={META_TOOLTIP_STYLE} />
+                        <Tooltip contentStyle={CHART_TOOLTIP_STYLE} cursor={CHART_TOOLTIP_CURSOR} />
                         <Bar dataKey="leads" fill="#0284c7" radius={[4, 4, 0, 0]} />
                       </BarChart>
                     </ResponsiveContainer>

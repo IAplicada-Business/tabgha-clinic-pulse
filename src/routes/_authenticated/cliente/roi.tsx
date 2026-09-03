@@ -17,6 +17,8 @@ import { format, subDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 import {
+  CHART_TOOLTIP_CURSOR,
+  CHART_TOOLTIP_STYLE,
   FunnelBars,
   InsightStack,
   Panel,
@@ -231,6 +233,12 @@ function RoiPage() {
     oportunidades: "Oportunidades",
     marketing: "Marketing pago",
   };
+  const pageDescription: Record<TabId, string> = {
+    operacao: "Investimento em mídia e retorno da sua clínica.",
+    oportunidades: "Leads gerados e convertidos no período.",
+    campanhas: "Ranking das suas campanhas por investimento e leads.",
+    marketing: "Métricas detalhadas dos seus anúncios (Meta Ads).",
+  };
 
   return (
     <div className="space-y-6 px-6 py-6">
@@ -257,6 +265,24 @@ function RoiPage() {
           </div>
         ) : null}
       </div>
+      {tab !== "marketing" ? (
+        <div className="flex gap-1 rounded-xl border border-border bg-secondary/40 p-1">
+          {PERIODOS.map((p) => (
+            <button
+              key={p.days}
+              onClick={() => setPeriodo(p.days)}
+              className={cn(
+                "rounded-lg px-3.5 py-1.5 text-xs font-semibold transition-all duration-150",
+                periodo === p.days
+                  ? "bg-card text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground",
+              )}
+            >
+              {p.label}
+            </button>
+          ))}
+        </div>
+      ) : null}
 
       {tab === "marketing" ? (
         <MetaAdsPage fixedClienteId={clienteId ?? null} embedded defaultTab="anuncios" />
@@ -297,7 +323,11 @@ function RoiPage() {
               <InsightStack items={[...campaignInsights, ...funnelInsights].slice(0, 3)} />
 
               <div className="grid gap-4 lg:grid-cols-2">
-                <Panel title="Investimento × Leads" subtitle={`Últimos ${periodo} dias`} tone="soft">
+                <Panel
+                  title="Investimento × Leads"
+                  subtitle={`Últimos ${periodo} dias`}
+                  tone="soft"
+                >
                   {chartData.length === 0 ? (
                     <p className="py-10 text-center text-sm text-muted-foreground">
                       Sem série diária de mídia no período
@@ -344,12 +374,7 @@ function RoiPage() {
                             axisLine={false}
                           />
                           <Tooltip
-                            contentStyle={{
-                              fontSize: 11,
-                              borderRadius: 10,
-                              background: "#fff",
-                              border: "1px solid #e2e8f0",
-                            }}
+                            contentStyle={CHART_TOOLTIP_STYLE}
                             formatter={(v: number, name: string) => [
                               name === "Investimento (R$)" ? fmtCurrency(v) : v,
                               name,
@@ -416,7 +441,10 @@ function RoiPage() {
                             tickLine={false}
                           />
                           <YAxis tick={{ fontSize: 10 }} axisLine={false} tickLine={false} />
-                          <Tooltip />
+                          <Tooltip
+                            contentStyle={CHART_TOOLTIP_STYLE}
+                            cursor={CHART_TOOLTIP_CURSOR}
+                          />
                           <Bar dataKey="leads" fill="#14b8a6" radius={[4, 4, 0, 0]} />
                         </BarChart>
                       </ResponsiveContainer>
