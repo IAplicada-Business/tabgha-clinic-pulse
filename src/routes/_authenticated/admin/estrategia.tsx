@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { KpiCard } from "@/components/ui/kpi-card";
 import type { Tables } from "@/integrations/supabase/types";
+import { STATUS_CLASS, STATUS_LABEL, type CriativoStatus } from "@/lib/biblioteca";
 
 export const Route = createFileRoute("/_authenticated/admin/estrategia")({
   component: EstrategiaPage,
@@ -19,32 +20,42 @@ export const Route = createFileRoute("/_authenticated/admin/estrategia")({
 
 type Conteudo = Tables<"conteudos"> & { clientes?: { nome: string } | null };
 
-const COLUMNS: { key: string; label: string; color: string; accent: string }[] = [
+/**
+ * As colunas são os 5 status de public.conteudos — os mesmos da Biblioteca
+ * Criativa e do portal do médico. O vocabulário antigo (briefing / roteiro /
+ * producao / aprovacao / agendado / postado) saiu na migration
+ * 20260903200000_biblioteca_criativa e o CHECK do banco rejeita esses valores.
+ */
+const COLUMNS: { key: CriativoStatus; label: string; color: string; accent: string }[] = [
   {
-    key: "briefing",
-    label: "Briefing",
-    color: "bg-slate-100 text-slate-600",
+    key: "rascunho",
+    label: STATUS_LABEL.rascunho,
+    color: STATUS_CLASS.rascunho,
     accent: "bg-slate-400",
   },
-  { key: "roteiro", label: "Roteiro", color: "bg-blue-100 text-blue-700", accent: "bg-blue-500" },
   {
-    key: "producao",
-    label: "Produção",
-    color: "bg-amber-100 text-amber-700",
+    key: "pendente_aprovacao",
+    label: STATUS_LABEL.pendente_aprovacao,
+    color: STATUS_CLASS.pendente_aprovacao,
     accent: "bg-amber-500",
   },
-  { key: "aprovacao", label: "Aprovação", color: "bg-red-100 text-red-700", accent: "bg-red-500" },
   {
-    key: "agendado",
-    label: "Agendado",
-    color: "bg-violet-100 text-violet-700",
-    accent: "bg-violet-500",
+    key: "pedir_ajuste",
+    label: STATUS_LABEL.pedir_ajuste,
+    color: STATUS_CLASS.pedir_ajuste,
+    accent: "bg-orange-500",
   },
   {
-    key: "postado",
-    label: "Postado",
-    color: "bg-green-100 text-green-700",
+    key: "aprovado",
+    label: STATUS_LABEL.aprovado,
+    color: STATUS_CLASS.aprovado,
     accent: "bg-emerald-500",
+  },
+  {
+    key: "arquivado",
+    label: STATUS_LABEL.arquivado,
+    color: STATUS_CLASS.arquivado,
+    accent: "bg-slate-300",
   },
 ];
 
@@ -76,7 +87,7 @@ function NovoConteudoDialog({ open, onClose }: { open: boolean; onClose: () => v
         tipo: form.tipo || null,
         data_postagem: form.data_postagem || null,
         roteiro: form.roteiro || null,
-        status: "briefing",
+        status: "rascunho",
       });
       if (error) throw error;
     },
@@ -285,9 +296,9 @@ function EstrategiaPage() {
   const byStatus = (status: string) => filtered.filter((c) => c.status === status);
 
   // KPI counts for summary bar
-  const totalPostado = conteudos.filter((c) => c.status === "postado").length;
-  const totalAprovacao = conteudos.filter((c) => c.status === "aprovacao").length;
-  const totalProducao = conteudos.filter((c) => c.status === "producao").length;
+  const totalAprovado = conteudos.filter((c) => c.status === "aprovado").length;
+  const totalAprovacao = conteudos.filter((c) => c.status === "pendente_aprovacao").length;
+  const totalAjuste = conteudos.filter((c) => c.status === "pedir_ajuste").length;
 
   return (
     <div className="flex flex-col h-full">
@@ -306,9 +317,9 @@ function EstrategiaPage() {
       {/* KPI Summary Cards */}
       <div className="grid grid-cols-2 gap-3 px-6 pt-4 pb-2 sm:grid-cols-3">
         {[
-          { label: "Postados", value: totalPostado, icon: CheckCircle2, tint: "green" as const, delay: 0 },
+          { label: "Aprovados", value: totalAprovado, icon: CheckCircle2, tint: "green" as const, delay: 0 },
           { label: "Em aprovação", value: totalAprovacao, icon: Clock, tint: "rose" as const, delay: 75 },
-          { label: "Em produção", value: totalProducao, icon: Pencil, tint: "amber" as const, delay: 150 },
+          { label: "Pedidos de ajuste", value: totalAjuste, icon: Pencil, tint: "amber" as const, delay: 150 },
         ].map((kpi) => (
           <div key={kpi.label} className="animate-fade-up" style={{ animationDelay: kpi.delay + "ms" }}>
             <KpiCard label={kpi.label} value={kpi.value} icon={kpi.icon} tint={kpi.tint} format="raw" />

@@ -64,6 +64,7 @@ import { CreateLeadDialog } from "@/components/crm/CreateLeadDialog";
 import { LeadDetailDialog } from "@/components/crm/LeadDetailDialog";
 import type { Lead as CrmLead } from "@/hooks/useLeads";
 import { syncAgenteAtivoInstances } from "@/lib/pietro";
+import { CRIATIVO_STATUS, STATUS_CLASS, STATUS_LABEL, type CriativoStatus } from "@/lib/biblioteca";
 
 export const Route = createFileRoute("/_authenticated/admin/clientes/$id")({
   component: ClienteFichaPage,
@@ -149,7 +150,7 @@ function TabCadastro({ cliente }: { cliente: Cliente }) {
           .from("conteudos")
           .select("id", { count: "exact", head: true })
           .eq("cliente_id", cliente.id)
-          .eq("status", "aprovacao"),
+          .eq("status", "pendente_aprovacao"),
       ]);
       return {
         leads: leadsTotal.count ?? 0,
@@ -1125,32 +1126,9 @@ function TabLeads({ clienteId }: { clienteId: string }) {
 }
 
 // ── Tab: Conteúdo ─────────────────────────────────────────────────────────────
-const CONTEUDO_STATUS_BADGE: Record<string, string> = {
-  briefing: "bg-slate-100 text-slate-600",
-  roteiro: "bg-blue-100 text-blue-700",
-  producao: "bg-yellow-100 text-yellow-700",
-  aprovacao: "bg-orange-100 text-orange-700",
-  agendado: "bg-indigo-100 text-indigo-700",
-  postado: "bg-green-100 text-green-700",
-};
-
-const CONTEUDO_PIPELINE = [
-  "briefing",
-  "roteiro",
-  "producao",
-  "aprovacao",
-  "agendado",
-  "postado",
-] as const;
-
-const CONTEUDO_STATUS_LABEL: Record<string, string> = {
-  briefing: "Briefing",
-  roteiro: "Roteiro",
-  producao: "Produção",
-  aprovacao: "Aprovação",
-  agendado: "Agendado",
-  postado: "Postado",
-};
+// Rótulos e cores vêm de @/lib/biblioteca — mesma fonte da Biblioteca Criativa,
+// da Estratégia e do portal do médico. Não se declara um segundo vocabulário.
+const CONTEUDO_PIPELINE = CRIATIVO_STATUS;
 
 function TabConteudo({ clienteId }: { clienteId: string }) {
   const { data: conteudos = [], isLoading } = useQuery({
@@ -1185,9 +1163,9 @@ function TabConteudo({ clienteId }: { clienteId: string }) {
 
   const pipelineStats = CONTEUDO_PIPELINE.map((s) => ({
     s,
-    label: CONTEUDO_STATUS_LABEL[s],
+    label: STATUS_LABEL[s],
     count: conteudos.filter((c) => c.status === s).length,
-    color: CONTEUDO_STATUS_BADGE[s],
+    color: STATUS_CLASS[s],
   })).filter(({ count }) => count > 0);
 
   return (
@@ -1238,10 +1216,10 @@ function TabConteudo({ clienteId }: { clienteId: string }) {
                     <span
                       className={cn(
                         "rounded-full px-2.5 py-0.5 text-[11px] font-medium capitalize",
-                        CONTEUDO_STATUS_BADGE[c.status] ?? "bg-slate-100 text-slate-600",
+                        STATUS_CLASS[c.status as CriativoStatus] ?? "bg-slate-100 text-slate-600",
                       )}
                     >
-                      {CONTEUDO_STATUS_LABEL[c.status] ?? c.status}
+                      {STATUS_LABEL[c.status as CriativoStatus] ?? c.status}
                     </span>
                   </td>
                   <td className="px-4 py-3 text-muted-foreground text-xs">

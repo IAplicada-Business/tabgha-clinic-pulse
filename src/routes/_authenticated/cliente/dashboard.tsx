@@ -71,7 +71,7 @@ function ClienteDashboard() {
           .from("conteudos")
           .select("id", { count: "exact", head: true })
           .eq("cliente_id", clienteId!)
-          .eq("status", "aprovacao"),
+          .eq("status", "pendente_aprovacao"),
       ]);
 
       const redes = ((cliente?.dados_extras as Record<string, unknown> | null)?.redes ??
@@ -143,7 +143,7 @@ function ClienteDashboard() {
         .from("conteudos")
         .select("id, titulo, rede, tipo, data_postagem")
         .eq("cliente_id", clienteId!)
-        .eq("status", "aprovacao")
+        .eq("status", "pendente_aprovacao")
         .order("data_postagem", { ascending: true, nullsFirst: false })
         .limit(4);
       return data ?? [];
