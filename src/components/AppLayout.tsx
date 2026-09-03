@@ -29,6 +29,7 @@ import {
   X,
   ShieldCheck,
   Package,
+  Brain,
 } from "lucide-react";
 
 type NavChild = {
@@ -126,6 +127,12 @@ const ADMIN_NAV: NavGroup[] = [
         to: "/admin/atendimento",
         label: "Atendimento",
         icon: MessageSquare,
+        perm: "admin.atendimento",
+      },
+      {
+        to: "/admin/cerebro-pietro",
+        label: "Cérebro Pietro",
+        icon: Brain,
         perm: "admin.atendimento",
       },
       {

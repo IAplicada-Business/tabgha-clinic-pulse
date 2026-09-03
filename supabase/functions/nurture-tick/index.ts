@@ -1,4 +1,10 @@
-// Cron: nurturing de leads frios + pedido de review Google.
+// Cron (hora em hora): nurturing de leads frios + pedido de review Google
+// + reengajamento do Pietro em conversas de bot paradas (pietro_brain_defaults.reengage_hours).
+//
+// Camadas, sem sobreposição:
+//   1. reengage (IA, 1x por conversa, ~4h de silêncio)   → ai-respond mode=reengage
+//   2. close_stalled_conversations (SQL, 30/30min)       → marca stalled após a janela + graça
+//   3. cold_followup (templates, 2 dias sem mexer no lead) → nurture_jobs
 //
 // POST {} (opcional)
 // Auth: livre (verify_jwt=false) — usa service role internamente
@@ -58,6 +64,113 @@ async function sendBotMessage(clienteId: string, telefone: string, body: string)
 
 function renderTemplate(template: string, vars: Record<string, string>) {
   return template.replace(/\{\{(\w+)\}\}/g, (_, key: string) => vars[key] ?? "");
+}
+
+// ── Reengajamento do Pietro ──────────────────────────────────────────────────
+
+async function loadReengageHours(): Promise<number> {
+  const { data } = await supabase
+    .from("app_config")
+    .select("valor")
+    .eq("chave", "pietro_brain_defaults")
+    .maybeSingle();
+  const raw = (data?.valor as { reengage_hours?: unknown } | null)?.reengage_hours;
+  const n = Number(raw ?? 4);
+  return Number.isFinite(n) ? Math.max(0, Math.min(72, n)) : 4;
+}
+
+function flag(v: unknown) {
+  return v === true || v === "true";
+}
+
+/** Mesma regra do whatsapp-inbound: instância primeiro, legado em clientes depois. */
+async function agenteAtivoPorCliente(): Promise<Map<string, boolean>> {
+  const map = new Map<string, boolean>();
+  const { data: instances } = await supabase
+    .from("whatsapp_instances")
+    .select("cliente_id, dados_extras")
+    .eq("status", "connected");
+  for (const i of instances ?? []) {
+    const extras = (i.dados_extras ?? {}) as Record<string, unknown>;
+    if ("agente_ativo" in extras) map.set(i.cliente_id, flag(extras.agente_ativo));
+  }
+  const { data: clientes } = await supabase.from("clientes").select("id, dados_extras");
+  for (const c of clientes ?? []) {
+    if (map.has(c.id)) continue;
+    const zapi = ((c.dados_extras as Record<string, unknown> | null)?.automacoes as
+      | { zapi?: { agente_ativo?: unknown } }
+      | undefined)?.zapi;
+    map.set(c.id, flag(zapi?.agente_ativo));
+  }
+  return map;
+}
+
+async function reengageSilentBotConversations() {
+  const hours = await loadReengageHours();
+  if (hours <= 0) return { reengaged: 0, skipped: 0, disabled: true };
+
+  const now = Date.now();
+  const since = new Date(now - hours * 3_600_000).toISOString();
+  // Janela [hours, 2*hours]: fora disso o close_stalled já assume.
+  const floor = new Date(now - hours * 2 * 3_600_000).toISOString();
+
+  const { data: convs, error } = await supabase
+    .from("whatsapp_conversations")
+    .select("id, cliente_id, contact_phone, last_inbound_at, last_outbound_at, bot_notes")
+    .eq("owner_state", "bot")
+    .in("state", ["greeting", "qualifying", "routing"])
+    .is("closed_at", null)
+    .not("last_inbound_at", "is", null)
+    .not("last_outbound_at", "is", null)
+    .lt("last_inbound_at", since)
+    .gt("last_inbound_at", floor)
+    .order("last_inbound_at", { ascending: true })
+    .limit(30);
+
+  if (error) throw error;
+  if (!convs?.length) return { reengaged: 0, skipped: 0 };
+
+  const ativo = await agenteAtivoPorCliente();
+  let reengaged = 0;
+  let skipped = 0;
+
+  for (const c of convs) {
+    const notes = (c.bot_notes ?? {}) as Record<string, unknown>;
+    const botRespondeu =
+      c.last_outbound_at && c.last_inbound_at && c.last_outbound_at >= c.last_inbound_at;
+    if (!botRespondeu || notes.reengage_sent_at || !ativo.get(c.cliente_id)) {
+      skipped += 1;
+      continue;
+    }
+
+    try {
+      const res = await fetch(`${SUPABASE_URL}/functions/v1/ai-respond`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${SERVICE_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          conversation_id: c.id,
+          cliente_id: c.cliente_id,
+          mode: "reengage",
+        }),
+      });
+      const out = (await res.json().catch(() => ({}))) as { ok?: boolean; skipped?: boolean };
+      if (res.ok && out.ok && !out.skipped) reengaged += 1;
+      else skipped += 1;
+    } catch (err) {
+      skipped += 1;
+      await supabase.from("webhook_errors").insert({
+        source: "nurture_tick",
+        cliente_id: c.cliente_id,
+        payload: { conversation_id: c.id, step: "reengage" },
+        error: err instanceof Error ? err.message : String(err),
+      });
+    }
+  }
+
+  return { reengaged, skipped };
 }
 
 async function enrollColdLeads(defaults: Defaults) {
@@ -275,11 +388,16 @@ Deno.serve(async (req) => {
 
   try {
     const defaults = await loadDefaults();
+    const reengage = await reengageSilentBotConversations().catch((err) => {
+      console.error("reengage error", err);
+      return { reengaged: 0, skipped: 0, error: err instanceof Error ? err.message : String(err) };
+    });
     const enrolled = await enrollColdLeads(defaults);
     const processed = await processDueJobs(defaults);
 
     return json({
       ok: true,
+      reengage,
       enrolled_cold: enrolled,
       ...processed,
     });
