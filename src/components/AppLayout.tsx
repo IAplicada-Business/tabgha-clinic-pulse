@@ -579,10 +579,10 @@ function SidebarNav({
                               }))
                             }
                             className={cn(
-                              "mx-2 mb-px flex w-[calc(100%-16px)] items-center gap-2.5 rounded-xl border-0 bg-transparent px-2.5 py-2 text-left text-[12.5px] transition-all duration-200",
+                              "mx-2 mb-px flex w-[calc(100%-16px)] items-center gap-2.5 rounded-xl border-0 px-2.5 py-2 text-left text-[12.5px] font-medium transition-all duration-200",
                               active
                                 ? "bg-sidebar-primary/90 font-semibold text-white shadow-[0_4px_12px_-2px_oklch(0.440_0.158_261_/_45%)]"
-                                : "text-sidebar-foreground/55 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground",
+                                : "bg-white/[0.04] text-sidebar-foreground/70 hover:bg-white/[0.08] hover:text-sidebar-foreground",
                             )}
                           >
                             <Icon
@@ -600,7 +600,7 @@ function SidebarNav({
                             />
                           </button>
                           {submenuOpen ? (
-                            <div className="mb-1 ml-4 mt-0.5 space-y-0.5 border-l-2 border-sidebar-border/50 pl-3">
+                            <div className="mb-1 ml-5 mt-0.5 space-y-px border-l border-sidebar-border/30 pl-2.5">
                               {it.children!.map((child) => {
                                 const exactActive = navChildActive(child, pathname, searchParams);
                                 const childKey = child.search
@@ -613,16 +613,16 @@ function SidebarNav({
                                     search={(child.search ?? {}) as any}
                                     onClick={onNavigate}
                                     className={cn(
-                                      "flex items-center rounded-lg px-2.5 py-1.5 text-[12px] transition-all duration-200",
+                                      "flex items-center rounded-md px-2 py-1 text-[11.5px] transition-all duration-200",
                                       exactActive
-                                        ? "bg-sidebar-accent font-semibold text-sidebar-primary"
-                                        : "text-sidebar-foreground/50 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground",
+                                        ? "bg-sidebar-accent/50 font-medium text-sidebar-primary"
+                                        : "text-sidebar-foreground/40 hover:bg-sidebar-accent/30 hover:text-sidebar-foreground/70",
                                     )}
                                   >
                                     <span
                                       className={cn(
-                                        "mr-2 h-1.5 w-1.5 shrink-0 rounded-full transition-colors",
-                                        exactActive ? "bg-sidebar-primary" : "bg-sidebar-foreground/20",
+                                        "mr-2 h-1 w-1 shrink-0 rounded-full transition-colors",
+                                        exactActive ? "bg-sidebar-primary" : "bg-sidebar-foreground/15",
                                       )}
                                     />
                                     {child.label}
@@ -641,10 +641,10 @@ function SidebarNav({
                         to={it.to as any}
                         onClick={onNavigate}
                         className={cn(
-                          "mx-2 mb-px flex items-center gap-2.5 rounded-xl px-2.5 py-2 text-[12.5px] transition-all duration-200",
+                          "mx-2 mb-px flex items-center gap-2.5 rounded-xl px-2.5 py-2 text-[12.5px] font-medium transition-all duration-200",
                           active
                             ? "bg-sidebar-primary text-white font-semibold shadow-[0_4px_12px_-2px_oklch(0.440_0.158_261_/_45%)]"
-                            : "text-sidebar-foreground/55 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground",
+                            : "bg-white/[0.04] text-sidebar-foreground/70 hover:bg-white/[0.08] hover:text-sidebar-foreground",
                         )}
                       >
                         <Icon
