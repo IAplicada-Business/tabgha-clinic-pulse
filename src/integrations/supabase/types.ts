@@ -351,6 +351,7 @@ export type Database = {
       diagnostico_frases_por_faixa: {
         Row: {
           atualizado_em: string
+          autor: string | null
           criado_em: string
           faixa_max: number
           faixa_min: number
@@ -361,6 +362,7 @@ export type Database = {
         }
         Insert: {
           atualizado_em?: string
+          autor?: string | null
           criado_em?: string
           faixa_max: number
           faixa_min: number
@@ -371,6 +373,7 @@ export type Database = {
         }
         Update: {
           atualizado_em?: string
+          autor?: string | null
           criado_em?: string
           faixa_max?: number
           faixa_min?: number
