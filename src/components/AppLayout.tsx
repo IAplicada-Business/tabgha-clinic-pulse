@@ -601,23 +601,23 @@ function SidebarNav({
                 <button
                   onClick={() => toggleGroup(key)}
                   className={cn(
-                    "flex w-[calc(100%-16px)] items-center justify-between mx-2 rounded-lg border-0 px-2.5 py-2 cursor-pointer transition-colors",
-                    "text-[11px] font-bold tracking-[0.05em] uppercase",
+                    "flex w-[calc(100%-16px)] items-center justify-between mx-2 rounded-md border-0 bg-transparent px-2.5 py-1.5 cursor-pointer transition-colors",
+                    "text-[10px] font-semibold tracking-[0.14em] uppercase",
                     hasActive
-                      ? "bg-sidebar-primary/25 text-white"
-                      : "bg-white/[0.04] text-sidebar-foreground/80 hover:bg-white/[0.08] hover:text-sidebar-foreground",
+                      ? "text-sidebar-foreground/75"
+                      : "text-sidebar-foreground/40 hover:text-sidebar-foreground/70",
                   )}
                 >
                   <span className="flex items-center gap-1.5">
                     {hasActive && (
-                      <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-sidebar-primary" />
+                      <span className="h-1 w-1 shrink-0 rounded-full bg-sidebar-primary" />
                     )}
-                    {isAdminGroup && <ShieldCheck className="h-3.5 w-3.5 opacity-80" />}
+                    {isAdminGroup && <ShieldCheck className="h-3 w-3 opacity-70" />}
                     {key}
                   </span>
                   <ChevronRight
                     className={cn(
-                      "h-3.5 w-3.5 opacity-80 transition-transform duration-200",
+                      "h-3 w-3 opacity-50 transition-transform duration-200",
                       isOpen && "rotate-90",
                     )}
                   />
@@ -675,28 +675,28 @@ function SidebarNav({
                               }))
                             }
                             className={cn(
-                              "mx-2 mb-px flex w-[calc(100%-16px)] items-center gap-2.5 rounded-xl border-0 px-2.5 py-2 text-left text-[12.5px] font-medium transition-all duration-200",
+                              "mx-2 mb-px flex w-[calc(100%-16px)] items-center gap-2.5 rounded-lg border-0 bg-transparent px-2.5 py-1.5 text-left text-[12.5px] transition-colors duration-200",
                               active
-                                ? "bg-sidebar-primary/90 font-semibold text-white shadow-[0_4px_12px_-2px_oklch(0.440_0.158_261_/_45%)]"
-                                : "bg-white/[0.04] text-sidebar-foreground/70 hover:bg-white/[0.08] hover:text-sidebar-foreground",
+                                ? "font-semibold text-sidebar-foreground"
+                                : "font-medium text-sidebar-foreground/60 hover:bg-white/[0.05] hover:text-sidebar-foreground",
                             )}
                           >
                             <Icon
                               className={cn(
                                 "h-3.5 w-3.5 shrink-0",
-                                active ? "text-white opacity-100" : "opacity-50",
+                                active ? "text-sidebar-primary opacity-100" : "opacity-45",
                               )}
                             />
                             <span className="flex-1">{it.label}</span>
                             <ChevronRight
                               className={cn(
-                                "h-3 w-3 opacity-55 transition-transform duration-200",
+                                "h-3 w-3 opacity-40 transition-transform duration-200",
                                 submenuOpen && "rotate-90",
                               )}
                             />
                           </button>
                           {submenuOpen ? (
-                            <div className="mb-1 ml-5 mt-0.5 space-y-px border-l border-sidebar-border/30 pl-2.5">
+                            <div className="mb-1 ml-[18px] mt-0.5 space-y-px border-l border-sidebar-border/40 pl-2">
                               {it.children!.map((child) => {
                                 const exactActive = navChildActive(child, pathname, searchParams);
                                 const childKey = child.search
@@ -709,16 +709,16 @@ function SidebarNav({
                                     search={(child.search ?? {}) as any}
                                     onClick={onNavigate}
                                     className={cn(
-                                      "flex items-center rounded-md px-2 py-1 text-[11.5px] transition-all duration-200",
+                                      "flex items-center rounded-lg px-2.5 py-1.5 text-[11.5px] transition-all duration-200",
                                       exactActive
-                                        ? "bg-sidebar-accent/50 font-medium text-sidebar-primary"
-                                        : "text-sidebar-foreground/40 hover:bg-sidebar-accent/30 hover:text-sidebar-foreground/70",
+                                        ? "bg-sidebar-primary font-semibold text-white shadow-[0_4px_12px_-2px_oklch(0.440_0.158_261_/_45%)]"
+                                        : "font-medium text-sidebar-foreground/55 hover:bg-white/[0.05] hover:text-sidebar-foreground",
                                     )}
                                   >
                                     <span
                                       className={cn(
                                         "mr-2 h-1 w-1 shrink-0 rounded-full transition-colors",
-                                        exactActive ? "bg-sidebar-primary" : "bg-sidebar-foreground/15",
+                                        exactActive ? "bg-white/70" : "bg-sidebar-foreground/20",
                                       )}
                                     />
                                     {child.label}
@@ -737,16 +737,16 @@ function SidebarNav({
                         to={it.to as any}
                         onClick={onNavigate}
                         className={cn(
-                          "mx-2 mb-px flex items-center gap-2.5 rounded-xl px-2.5 py-2 text-[12.5px] font-medium transition-all duration-200",
+                          "mx-2 mb-px flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-[12.5px] font-medium transition-all duration-200",
                           active
                             ? "bg-sidebar-primary text-white font-semibold shadow-[0_4px_12px_-2px_oklch(0.440_0.158_261_/_45%)]"
-                            : "bg-white/[0.04] text-sidebar-foreground/70 hover:bg-white/[0.08] hover:text-sidebar-foreground",
+                            : "bg-transparent text-sidebar-foreground/60 hover:bg-white/[0.05] hover:text-sidebar-foreground",
                         )}
                       >
                         <Icon
                           className={cn(
                             "h-3.5 w-3.5 shrink-0",
-                            active ? "text-white opacity-100" : "opacity-50",
+                            active ? "text-white opacity-100" : "opacity-45",
                           )}
                         />
                         {it.label}
