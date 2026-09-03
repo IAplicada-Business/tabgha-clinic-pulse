@@ -211,17 +211,17 @@ export function AtendimentoPage({ isAdmin = false }: AtendimentoPageProps) {
             </select>
           )}
           <Tabs value={tab} onValueChange={(value) => setTab(value as InboxTab)}>
-            <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="awaiting_human" className="text-xs px-1">
+            <TabsList className="grid w-full grid-cols-4 gap-0.5">
+              <TabsTrigger value="awaiting_human" className="px-0.5 text-[10px]">
                 Aguardando
               </TabsTrigger>
-              <TabsTrigger value="active" className="text-xs px-1">
+              <TabsTrigger value="active" className="px-0.5 text-[10px]">
                 Ativas
               </TabsTrigger>
-              <TabsTrigger value="closed" className="text-xs px-1">
+              <TabsTrigger value="closed" className="px-0.5 text-[10px]">
                 Fechadas
               </TabsTrigger>
-              <TabsTrigger value="all" className="text-xs px-1">
+              <TabsTrigger value="all" className="px-0.5 text-[10px]">
                 Todas
               </TabsTrigger>
             </TabsList>

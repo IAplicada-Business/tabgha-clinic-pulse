@@ -215,6 +215,39 @@ export type Database = {
           },
         ]
       }
+      diagnostico_frases_por_faixa: {
+        Row: {
+          atualizado_em: string
+          criado_em: string
+          faixa_max: number
+          faixa_min: number
+          fonte: Database["public"]["Enums"]["fonte_diagnostico"]
+          frase: string
+          id: string
+          placeholder: boolean
+        }
+        Insert: {
+          atualizado_em?: string
+          criado_em?: string
+          faixa_max: number
+          faixa_min: number
+          fonte: Database["public"]["Enums"]["fonte_diagnostico"]
+          frase: string
+          id?: string
+          placeholder?: boolean
+        }
+        Update: {
+          atualizado_em?: string
+          criado_em?: string
+          faixa_max?: number
+          faixa_min?: number
+          fonte?: Database["public"]["Enums"]["fonte_diagnostico"]
+          frase?: string
+          id?: string
+          placeholder?: boolean
+        }
+        Relationships: []
+      }
       diagnostico_questoes: {
         Row: {
           ajuda: string | null
@@ -274,8 +307,8 @@ export type Database = {
           gerado_em?: string
           gerado_por?: string | null
           id?: string
-          link_expira_em?: string | null
-          link_token?: string | null
+          link_expira_em: string | null
+          link_token: string | null
           por_fonte?: Json
           resumo_executivo?: string | null
           score_geral?: number | null
@@ -297,13 +330,6 @@ export type Database = {
             columns: ["cliente_id"]
             isOneToOne: true
             referencedRelation: "clientes"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "diagnostico_relatorios_gerado_por_fkey"
-            columns: ["gerado_por"]
-            isOneToOne: false
-            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -352,13 +378,6 @@ export type Database = {
             columns: ["questao_id"]
             isOneToOne: false
             referencedRelation: "diagnostico_questoes"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "diagnostico_respostas_respondido_por_fkey"
-            columns: ["respondido_por"]
-            isOneToOne: false
-            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -477,8 +496,10 @@ export type Database = {
           status: string
           telefone: string | null
           utm_campaign: string | null
+          utm_content: string | null
           utm_medium: string | null
           utm_source: string | null
+          utm_term: string | null
         }
         Insert: {
           atualizado_em?: string
@@ -502,8 +523,10 @@ export type Database = {
           status?: string
           telefone?: string | null
           utm_campaign?: string | null
+          utm_content?: string | null
           utm_medium?: string | null
           utm_source?: string | null
+          utm_term?: string | null
         }
         Update: {
           atualizado_em?: string
@@ -527,8 +550,10 @@ export type Database = {
           status?: string
           telefone?: string | null
           utm_campaign?: string | null
+          utm_content?: string | null
           utm_medium?: string | null
           utm_source?: string | null
+          utm_term?: string | null
         }
         Relationships: [
           {
@@ -1166,9 +1191,7 @@ export type Database = {
         }
         Returns: boolean
       }
-      is_staff:
-        | { Args: never; Returns: boolean }
-        | { Args: { _user_id: string }; Returns: boolean }
+      is_staff: { Args: { _user_id: string }; Returns: boolean }
       log_ticket_converted: {
         Args: { _lead_id: string; _ticket: number }
         Returns: undefined
@@ -1200,13 +1223,13 @@ export type Database = {
     Enums: {
       app_role:
         | "admin"
-        | "cliente"
         | "gestor_estrategico"
         | "growth_manager"
         | "social_media"
         | "performance"
         | "atendimento_cs"
         | "financeiro"
+        | "cliente"
       fonte_diagnostico:
         | "posicionamento"
         | "presenca_digital"
@@ -1344,13 +1367,13 @@ export const Constants = {
     Enums: {
       app_role: [
         "admin",
-        "cliente",
         "gestor_estrategico",
         "growth_manager",
         "social_media",
         "performance",
         "atendimento_cs",
         "financeiro",
+        "cliente",
       ],
       fonte_diagnostico: [
         "posicionamento",

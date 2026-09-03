@@ -271,12 +271,37 @@ export function StatusChips({
   );
 }
 
-const TOOLTIP_STYLE = {
+/** Estilo padrão do tooltip em todos os gráficos Recharts do app (fundo sólido + sombra). */
+export const CHART_TOOLTIP_STYLE: React.CSSProperties = {
   borderRadius: 12,
-  border: "1px solid hsl(var(--border))",
-  background: "hsl(var(--card))",
+  border: "1px solid var(--border)",
+  background: "var(--card)",
+  boxShadow: "0 8px 24px rgba(15,27,53,0.12)",
+  padding: "8px 12px",
   fontSize: 12,
 };
+
+/** Cursor sutil (tint claro) para hover de barras — evita o retângulo cinza padrão do Recharts. */
+export const CHART_TOOLTIP_CURSOR = { fill: "rgba(15,27,53,0.06)", radius: 4 };
+
+/** Legenda padrão com fundo (pill), usada via `<Legend content={renderChartLegend} />`. */
+export function renderChartLegend(props: { payload?: Array<{ value: string; color?: string }> }) {
+  const { payload } = props;
+  if (!payload?.length) return null;
+  return (
+    <div className="mt-2 flex flex-wrap items-center justify-center gap-2">
+      {payload.map((entry) => (
+        <span
+          key={entry.value}
+          className="inline-flex items-center gap-1.5 rounded-full border border-border bg-secondary/50 px-2.5 py-1 text-[11px] font-medium text-foreground"
+        >
+          <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: entry.color }} />
+          {entry.value}
+        </span>
+      ))}
+    </div>
+  );
+}
 
 /** Ranking horizontal com Recharts — fácil de ler para leigos */
 export function RankedBarChart({
@@ -325,7 +350,8 @@ export function RankedBarChart({
             tickLine={false}
           />
           <Tooltip
-            contentStyle={TOOLTIP_STYLE}
+            contentStyle={CHART_TOOLTIP_STYLE}
+            cursor={CHART_TOOLTIP_CURSOR}
             formatter={(value: number) => [formatValue ? formatValue(value) : value, "Valor"]}
           />
           <Bar dataKey={valueKey} radius={[0, 6, 6, 0]} barSize={18}>

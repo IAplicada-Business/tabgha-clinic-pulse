@@ -210,9 +210,7 @@ function ClientesAdminPage() {
   // KPI counts
   const totalAtivos = clientes.filter((c) => c.status === "ativo").length;
   const totalOnboarding = clientes.filter((c) => c.status === "onboarding").length;
-  const totalCarteira = clientes.filter((c) =>
-    ["ativo", "onboarding"].includes(c.status),
-  ).length;
+  const totalCarteira = clientes.filter((c) => ["ativo", "onboarding"].includes(c.status)).length;
   const totalLeads = clientes.reduce((acc, c) => acc + c.leads_count, 0);
 
   const kpiCards = [
@@ -225,16 +223,16 @@ function ClientesAdminPage() {
   return (
     <div className="px-6 py-6 space-y-6">
       {/* Header */}
-      <div className="flex items-start justify-between gap-4 animate-fade-up">
-        <div>
-          <span className="eyebrow-pill">CRM</span>
-          <h1 className="mt-2 text-xl font-bold tracking-tight">Clientes</h1>
-        </div>
-        <Button onClick={() => setShowNew(true)}>
-          <Plus className="mr-2 h-4 w-4" />
-          Novo cliente
-        </Button>
+      <div className="animate-fade-up">
+        <h1 className="text-xl font-bold tracking-tight">Carteira de clientes</h1>
+        <p className="mt-0.5 text-xs text-muted-foreground">
+          Clínicas atendidas pela Tabgha, status e dados de contato.
+        </p>
       </div>
+      <Button onClick={() => setShowNew(true)}>
+        <Plus className="mr-2 h-4 w-4" />
+        Novo cliente
+      </Button>
 
       {/* KPI Cards */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">

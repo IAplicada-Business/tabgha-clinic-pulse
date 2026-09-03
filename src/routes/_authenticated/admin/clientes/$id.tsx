@@ -1112,9 +1112,7 @@ function TabLeads({ clienteId }: { clienteId: string }) {
         </div>
       )}
 
-      {selected ? (
-        <LeadDetailDialog lead={selected} onClose={() => setSelectedId(null)} />
-      ) : null}
+      {selected ? <LeadDetailDialog lead={selected} onClose={() => setSelectedId(null)} /> : null}
 
       <CreateLeadDialog
         open={showCreate}
@@ -1426,8 +1424,8 @@ function TabConexoes({ cliente }: { cliente: Cliente }) {
 
   const saveInstance = useMutation({
     mutationFn: async () => {
-      if (!instanceId.trim() || !instanceToken.trim()) {
-        throw new Error("Instance ID e Token são obrigatórios.");
+      if (!instanceId.trim() || !instanceToken.trim() || !clientToken.trim()) {
+        throw new Error("Instance ID, Token e Client-Token são obrigatórios.");
       }
       const keepStatus =
         wppInstance?.status === "connected" || wppInstance?.status === "connecting"
@@ -1531,7 +1529,10 @@ function TabConexoes({ cliente }: { cliente: Cliente }) {
               {s.label}
             </p>
             <p
-              className={cn("mt-1 text-sm font-medium", s.ok ? "text-emerald-800" : "text-foreground")}
+              className={cn(
+                "mt-1 text-sm font-medium",
+                s.ok ? "text-emerald-800" : "text-foreground",
+              )}
             >
               {s.ok ? "Pronto" : "Pendente"}
             </p>
@@ -1628,11 +1629,11 @@ function TabConexoes({ cliente }: { cliente: Cliente }) {
               />
             </div>
             <div className="space-y-2">
-              <Label>Client-Token (se a Z-API pedir)</Label>
+              <Label>Client-Token</Label>
               <Input
                 value={clientToken}
                 onChange={(e) => setClientToken(e.target.value)}
-                placeholder="Opcional"
+                placeholder="Token de segurança da conta Z-API"
                 autoComplete="off"
               />
             </div>
@@ -1884,60 +1885,64 @@ function ClienteFichaPage() {
   return (
     <div className="px-6 py-6">
       {/* Page header */}
-      <div className="mb-6 flex items-center gap-4">
-        <Link
-          to="/admin/clientes"
-          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
-        >
-          <ArrowLeft className="h-4 w-4" />
-        </Link>
-        <div className="flex-1 min-w-0">
-          <h1 className="text-xl font-bold tracking-tight truncate">{cliente.nome}</h1>
-          <p className="text-xs text-muted-foreground mt-0.5">{cliente.especialidade ?? "—"}</p>
+      <div className="mb-6 space-y-3">
+        <div className="flex items-center gap-4">
+          <Link
+            to="/admin/clientes"
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </Link>
+          <div className="flex-1 min-w-0">
+            <h1 className="text-xl font-bold tracking-tight truncate">{cliente.nome}</h1>
+            <p className="text-xs text-muted-foreground mt-0.5">{cliente.especialidade ?? "—"}</p>
+          </div>
         </div>
-        <span
-          className={cn(
-            "shrink-0 rounded-full border px-3 py-1 text-xs font-semibold capitalize",
-            statusColor[cliente.status] ?? "bg-muted text-muted-foreground",
-          )}
-        >
-          {cliente.status}
-        </span>
-        <AlertDialog>
-          <AlertDialogTrigger asChild>
-            <Button
-              variant="outline"
-              size="sm"
-              className="shrink-0 border-rose-200 text-rose-700 hover:bg-rose-50"
-              disabled={excluir.isPending}
-            >
-              {excluir.isPending ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : (
-                <Trash2 className="mr-2 h-4 w-4" />
-              )}
-              Excluir
-            </Button>
-          </AlertDialogTrigger>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Excluir cliente?</AlertDialogTitle>
-              <AlertDialogDescription>
-                Isso remove <strong>{cliente.nome}</strong> e dados vinculados (leads, conteúdos,
-                etc.). Esta ação não pode ser desfeita.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancelar</AlertDialogCancel>
-              <AlertDialogAction
-                className="bg-rose-600 hover:bg-rose-700"
-                onClick={() => excluir.mutate()}
+        <div className="flex items-center gap-3">
+          <span
+            className={cn(
+              "shrink-0 rounded-full border px-3 py-1 text-xs font-semibold capitalize",
+              statusColor[cliente.status] ?? "bg-muted text-muted-foreground",
+            )}
+          >
+            {cliente.status}
+          </span>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className="shrink-0 border-rose-200 text-rose-700 hover:bg-rose-50"
+                disabled={excluir.isPending}
               >
-                Excluir definitivamente
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+                {excluir.isPending ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Trash2 className="mr-2 h-4 w-4" />
+                )}
+                Excluir
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Excluir cliente?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Isso remove <strong>{cliente.nome}</strong> e dados vinculados (leads, conteúdos,
+                  etc.). Esta ação não pode ser desfeita.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                <AlertDialogAction
+                  className="bg-rose-600 hover:bg-rose-700"
+                  onClick={() => excluir.mutate()}
+                >
+                  Excluir definitivamente
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
       </div>
 
       <Tabs defaultValue="cadastro">

@@ -10,8 +10,10 @@ function AdminAtendimento() {
   return (
     <div className="px-6 py-6 space-y-6">
       <div>
-        <span className="eyebrow-pill">Operação</span>
-        <h1 className="mt-2 text-xl font-bold tracking-tight">Atendimento WhatsApp</h1>
+        <h1 className="text-xl font-bold tracking-tight">Atendimento</h1>
+        <p className="mt-0.5 text-xs text-muted-foreground">
+          Conversas e suporte via WhatsApp em tempo real.
+        </p>
       </div>
       <AtendimentoPage isAdmin />
     </div>

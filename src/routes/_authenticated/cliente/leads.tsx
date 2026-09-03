@@ -51,27 +51,15 @@ function LeadsPage() {
   return (
     <div className="flex h-[calc(100dvh-3rem)] flex-col overflow-hidden md:h-screen">
       <div className="shrink-0 border-b border-border px-6 py-5">
-        <span className="eyebrow-pill">Captação</span>
-        <div className="mt-2 flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-baseline gap-3">
-            <h1 className="text-xl font-bold tracking-tight">Leads</h1>
-            <span className="text-sm text-muted-foreground">{leads.length} no período</span>
-          </div>
-          <Button
-            size="sm"
-            className="gap-2"
-            disabled={!clienteId}
-            onClick={() => setShowCreate(true)}
-          >
-            <UserPlus className="h-4 w-4" />
-            Novo lead
-          </Button>
+        <div className="flex items-baseline gap-3">
+          <h1 className="text-xl font-bold tracking-tight">Funil de pacientes</h1>
+          <span className="text-sm text-muted-foreground">{leads.length} no período</span>
         </div>
         <p className="mt-0.5 text-xs text-muted-foreground">
           Inclua leads manualmente ou receba via Meta, LP e WhatsApp. Arraste cards entre colunas.
         </p>
 
-        <div className="mt-4 flex flex-wrap gap-2">
+        <div className="mt-3 flex flex-wrap items-center gap-2">
           <select
             value={search.periodo}
             onChange={(e) => updateSearch({ periodo: Number(e.target.value) })}
@@ -105,6 +93,15 @@ function LeadsPage() {
             placeholder="Buscar nome ou telefone"
             className="max-w-xs rounded-xl"
           />
+          <Button
+            size="sm"
+            className="gap-2"
+            disabled={!clienteId}
+            onClick={() => setShowCreate(true)}
+          >
+            <UserPlus className="h-4 w-4" />
+            Novo lead
+          </Button>
         </div>
       </div>
 

@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Loader2, UserPlus, Users } from "lucide-react";
 
 import { EmptyState } from "@/components/EmptyState";
@@ -29,14 +29,19 @@ function AdminLeadsPage() {
   const [showCreate, setShowCreate] = useState(false);
   const [focusLead, setFocusLead] = useState<Lead | null>(null);
 
+  // Pré-seleciona o primeiro cliente só na primeira carga (habilita "Novo lead").
+  // Depois disso "Todos os clientes" (cliente = "") precisa continuar valendo.
+  const autoPickedCliente = useRef(false);
+
   useEffect(() => {
-    if (!search.cliente && clientes[0]?.id) {
-      void navigate({
-        to: ".",
-        search: (prev: typeof search) => ({ ...prev, cliente: clientes[0].id }),
-        replace: true,
-      });
-    }
+    if (autoPickedCliente.current || clientes.length === 0) return;
+    autoPickedCliente.current = true;
+    if (search.cliente) return;
+    void navigate({
+      to: ".",
+      search: (prev: typeof search) => ({ ...prev, cliente: clientes[0].id }),
+      replace: true,
+    });
   }, [clientes, search.cliente, navigate]);
 
   const filters = useMemo(
@@ -61,27 +66,15 @@ function AdminLeadsPage() {
   return (
     <div className="flex h-[calc(100dvh-3rem)] flex-col overflow-hidden md:h-screen">
       <div className="shrink-0 border-b border-border px-6 py-5">
-        <span className="eyebrow-pill">Aquisição</span>
-        <div className="mt-2 flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-baseline gap-3">
-            <h1 className="text-xl font-bold tracking-tight">Funil de leads</h1>
-            <span className="text-sm text-muted-foreground">{leads.length} no período</span>
-          </div>
-          <Button
-            size="sm"
-            className="gap-2"
-            disabled={!search.cliente}
-            onClick={() => setShowCreate(true)}
-          >
-            <UserPlus className="h-4 w-4" />
-            Novo lead
-          </Button>
+        <div className="flex items-baseline gap-3">
+          <h1 className="text-xl font-bold tracking-tight">Funil de pacientes</h1>
+          <span className="text-sm text-muted-foreground">{leads.length} no período</span>
         </div>
         <p className="mt-0.5 text-xs text-muted-foreground">
           Crie leads manualmente ou acompanhe captura Meta/LP/WhatsApp.
         </p>
 
-        <div className="mt-4 flex flex-wrap gap-2">
+        <div className="mt-3 flex flex-wrap items-center gap-2">
           <select
             value={search.cliente}
             onChange={(e) => updateSearch({ cliente: e.target.value })}
@@ -127,6 +120,15 @@ function AdminLeadsPage() {
             placeholder="Buscar nome ou telefone"
             className="max-w-xs rounded-xl"
           />
+          <Button
+            size="sm"
+            className="gap-2"
+            disabled={!search.cliente}
+            onClick={() => setShowCreate(true)}
+          >
+            <UserPlus className="h-4 w-4" />
+            Novo lead
+          </Button>
         </div>
       </div>
 

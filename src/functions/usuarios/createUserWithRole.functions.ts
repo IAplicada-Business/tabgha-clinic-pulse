@@ -1,18 +1,21 @@
 import { z } from "zod";
 import { FunctionsHttpError } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+import { APP_ROLES, type AppRole, isStaffRole } from "@/lib/roles";
+
+const appRoleSchema = z.enum(APP_ROLES as unknown as [AppRole, ...AppRole[]]);
 
 const schema = z
   .object({
     email: z.string().email(),
     nome: z.string().min(2),
-    role: z.enum(["admin", "cliente"]).optional(),
-    roles: z.array(z.enum(["admin", "cliente"])).min(1).optional(),
+    role: appRoleSchema.optional(),
+    roles: z.array(appRoleSchema).min(1).optional(),
     cliente_id: z.string().uuid().nullable(),
     permissoes: z.array(z.string()),
   })
   .refine((d) => Boolean(d.role || (d.roles && d.roles.length > 0)), {
-    message: "Informe ao menos um perfil (admin ou cliente).",
+    message: "Informe ao menos um perfil.",
   });
 
 type Input = z.infer<typeof schema>;
@@ -58,7 +61,7 @@ async function readEdgeError(error: unknown, fallbackData: EdgePayload | null): 
   return "Falha ao criar usuário.";
 }
 
-function resolveRoles(data: Input): Array<"admin" | "cliente"> {
+function resolveRoles(data: Input): AppRole[] {
   if (data.roles?.length) return [...new Set(data.roles)];
   if (data.role) return [data.role];
   return [];
@@ -67,7 +70,7 @@ function resolveRoles(data: Input): Array<"admin" | "cliente"> {
 /**
  * Cria usuário via edge `admin-create-user`.
  * Retorna senha provisória (Tabgha{ano}) para o admin copiar/enviar.
- * Aceita um ou dois papéis (admin e/ou cliente).
+ * Aceita os 8 perfis do Blueprint (staff + cliente; dual staff+portal ok).
  */
 export async function createUserWithRole(input: { data: Input }): Promise<CreateUserResult> {
   const data = schema.parse(input.data);
@@ -75,6 +78,12 @@ export async function createUserWithRole(input: { data: Input }): Promise<Create
 
   if (roles.includes("cliente") && !data.cliente_id) {
     throw new Error("Selecione o consultório ao liberar o portal do médico.");
+  }
+
+  // No máximo um perfil staff + opcional cliente
+  const staffCount = roles.filter(isStaffRole).length;
+  if (staffCount > 1) {
+    throw new Error("Selecione apenas um perfil interno da equipe.");
   }
 
   const { data: result, error } = await supabase.functions.invoke("admin-create-user", {

@@ -4,10 +4,10 @@
 // POST {
 //   action?: "create" | "reset_password",
 //   email?, nome?,
-//   role?: "admin" | "cliente",          // legado (um papel)
-//   roles?: ("admin"|"cliente")[],       // preferido (um ou ambos)
+//   role?: AppRole,                       // legado (um papel)
+//   roles?: AppRole[],                    // preferido (staff + opcional cliente)
 //   cliente_id?, permissoes?,
-//   user_id?                            // obrigatório em reset_password
+//   user_id?                              // obrigatório em reset_password
 // }
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
@@ -18,7 +18,22 @@ const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY") ?? Deno.env.get("SB_PUBLISHAB
 
 const admin = createClient(SUPABASE_URL, SERVICE_KEY);
 
-type AppRole = "admin" | "cliente";
+const APP_ROLES = [
+  "admin",
+  "gestor_estrategico",
+  "growth_manager",
+  "social_media",
+  "performance",
+  "atendimento_cs",
+  "financeiro",
+  "cliente",
+] as const;
+
+type AppRole = (typeof APP_ROLES)[number];
+
+function isAppRole(value: string): value is AppRole {
+  return (APP_ROLES as readonly string[]).includes(value);
+}
 
 function provisionalPassword(now = new Date()) {
   return `Tabgha${now.getFullYear()}`;
@@ -36,14 +51,12 @@ function json(body: Record<string, unknown>, status = 200) {
 }
 
 function normalizeRoles(body: {
-  role?: AppRole;
-  roles?: AppRole[];
+  role?: string;
+  roles?: string[];
 }): AppRole[] {
-  const fromArray = (body.roles ?? []).filter(
-    (r): r is AppRole => r === "admin" || r === "cliente",
-  );
+  const fromArray = (body.roles ?? []).filter(isAppRole);
   if (fromArray.length > 0) return [...new Set(fromArray)];
-  if (body.role === "admin" || body.role === "cliente") return [body.role];
+  if (body.role && isAppRole(body.role)) return [body.role];
   return [];
 }
 
@@ -64,7 +77,7 @@ async function findExistingByEmail(email: string): Promise<{
       .eq("user_id", profile.id);
     return {
       userId: profile.id,
-      roles: (roleRows ?? []).map((r) => r.role as AppRole),
+      roles: (roleRows ?? []).map((r) => r.role as AppRole).filter(isAppRole),
     };
   }
 
@@ -78,7 +91,7 @@ async function findExistingByEmail(email: string): Promise<{
     .eq("user_id", found.id);
   return {
     userId: found.id,
-    roles: (roleRows ?? []).map((r) => r.role as AppRole),
+    roles: (roleRows ?? []).map((r) => r.role as AppRole).filter(isAppRole),
   };
 }
 
@@ -195,7 +208,18 @@ Deno.serve(async (req) => {
     const nome = body.nome?.trim();
     const roles = normalizeRoles(body);
     if (!email || !nome || roles.length === 0) {
-      return json({ ok: false, error: "email, nome e ao menos um perfil (admin/cliente) são obrigatórios" }, 400);
+      return json(
+        { ok: false, error: "email, nome e ao menos um perfil são obrigatórios" },
+        400,
+      );
+    }
+
+    const staffRoles = roles.filter((r) => r !== "cliente");
+    if (staffRoles.length > 1) {
+      return json(
+        { ok: false, error: "Selecione apenas um perfil interno da equipe." },
+        400,
+      );
     }
 
     const wantsCliente = roles.includes("cliente");
@@ -260,7 +284,8 @@ Deno.serve(async (req) => {
     const permissoes = body.permissoes ?? ["*"];
 
     // Garante profile + ao menos o primeiro papel via RPC; depois sincroniza o conjunto.
-    const primaryRole = roles.includes("admin") ? "admin" : "cliente";
+    const primaryRole: AppRole =
+      staffRoles[0] ?? (wantsCliente ? "cliente" : "admin");
     const { error: rpcError } = await admin.rpc("admin_upsert_profile_role", {
       _user_id: userId,
       _role: primaryRole,

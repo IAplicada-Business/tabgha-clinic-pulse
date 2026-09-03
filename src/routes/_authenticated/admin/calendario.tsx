@@ -41,7 +41,9 @@ function CalendarioAdminPage() {
         id: c.id,
         date: c.data_postagem!,
         title: c.titulo ?? "Conteúdo",
-        type: c.tipo?.toLowerCase().includes("grav") ? ("gravacao" as const) : ("conteudo" as const),
+        type: c.tipo?.toLowerCase().includes("grav")
+          ? ("gravacao" as const)
+          : ("conteudo" as const),
         sub: [c.rede, c.tipo].filter(Boolean).join(" · "),
       }));
     },

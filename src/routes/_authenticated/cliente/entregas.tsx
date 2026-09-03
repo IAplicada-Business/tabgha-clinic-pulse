@@ -217,10 +217,9 @@ function EntregasPage() {
 
   return (
     <div className="space-y-6 px-6 py-6">
-      <div className="flex flex-wrap items-end justify-between gap-3">
+      <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <span className="eyebrow-pill">Portal</span>
-          <h1 className="mt-2 text-xl font-bold tracking-tight">Entregas</h1>
+          <h1 className="text-xl font-bold tracking-tight">Entregas</h1>
           <p className="mt-0.5 text-xs text-muted-foreground">
             Aprove ou peça ajustes nas peças da Tabgha.
           </p>

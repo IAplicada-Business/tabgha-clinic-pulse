@@ -17,6 +17,8 @@ import { format, subDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 import {
+  CHART_TOOLTIP_CURSOR,
+  CHART_TOOLTIP_STYLE,
   FunnelBars,
   InsightStack,
   Panel,
@@ -205,9 +207,19 @@ function RoiPage() {
   const adsCrmGap = insightFromGap(totais.leads, leadsCrm);
 
   const kpis = [
-    { label: "Investimento", value: fmtCurrency(totais.investimento), icon: Wallet, tint: "blue" as const },
+    {
+      label: "Investimento",
+      value: fmtCurrency(totais.investimento),
+      icon: Wallet,
+      tint: "blue" as const,
+    },
     { label: "Leads (funil)", value: String(leadsBase), icon: Users, tint: "green" as const },
-    { label: "CPL médio", value: cpl != null ? fmtCurrency(cpl) : "—", icon: Target, tint: "amber" as const },
+    {
+      label: "CPL médio",
+      value: cpl != null ? fmtCurrency(cpl) : "—",
+      icon: Target,
+      tint: "amber" as const,
+    },
     {
       label: "CAQ",
       value: caq != null ? fmtCurrency(caq) : "—",
@@ -230,6 +242,11 @@ function RoiPage() {
     operacao: "Operação",
     oportunidades: "Oportunidades",
     marketing: "Marketing pago",
+  };
+  const pageDescription: Record<TabId, string> = {
+    operacao: "Investimento em mídia e retorno da sua clínica.",
+    oportunidades: "Leads gerados e convertidos no período.",
+    marketing: "Métricas detalhadas dos seus anúncios (Meta Ads).",
   };
 
   return (
@@ -257,7 +274,6 @@ function RoiPage() {
           </div>
         ) : null}
       </div>
-
       {tab === "marketing" ? (
         <MetaAdsPage fixedClienteId={clienteId ?? null} embedded defaultTab="anuncios" />
       ) : isLoading ? (
@@ -281,7 +297,11 @@ function RoiPage() {
 
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
                 {kpis.map((kpi, i) => (
-                  <div key={kpi.label} className="animate-fade-up" style={{ animationDelay: `${i * 75}ms` }}>
+                  <div
+                    key={kpi.label}
+                    className="animate-fade-up"
+                    style={{ animationDelay: `${i * 75}ms` }}
+                  >
                     <KpiCard
                       label={kpi.label}
                       value={kpi.value}
@@ -297,7 +317,11 @@ function RoiPage() {
               <InsightStack items={[...campaignInsights, ...funnelInsights].slice(0, 3)} />
 
               <div className="grid gap-4 lg:grid-cols-2">
-                <Panel title="Investimento × Leads" subtitle={`Últimos ${periodo} dias`} tone="soft">
+                <Panel
+                  title="Investimento × Leads"
+                  subtitle={`Últimos ${periodo} dias`}
+                  tone="soft"
+                >
                   {chartData.length === 0 ? (
                     <p className="py-10 text-center text-sm text-muted-foreground">
                       Sem série diária de mídia no período
@@ -344,12 +368,7 @@ function RoiPage() {
                             axisLine={false}
                           />
                           <Tooltip
-                            contentStyle={{
-                              fontSize: 11,
-                              borderRadius: 10,
-                              background: "#fff",
-                              border: "1px solid #e2e8f0",
-                            }}
+                            contentStyle={CHART_TOOLTIP_STYLE}
                             formatter={(v: number, name: string) => [
                               name === "Investimento (R$)" ? fmtCurrency(v) : v,
                               name,
@@ -416,7 +435,10 @@ function RoiPage() {
                             tickLine={false}
                           />
                           <YAxis tick={{ fontSize: 10 }} axisLine={false} tickLine={false} />
-                          <Tooltip />
+                          <Tooltip
+                            contentStyle={CHART_TOOLTIP_STYLE}
+                            cursor={CHART_TOOLTIP_CURSOR}
+                          />
                           <Bar dataKey="leads" fill="#14b8a6" radius={[4, 4, 0, 0]} />
                         </BarChart>
                       </ResponsiveContainer>
