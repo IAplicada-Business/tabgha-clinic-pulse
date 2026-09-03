@@ -79,22 +79,38 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "Tabgha OS · Health Growth Operating System" },
-      { name: "description", content: "SaaS platform for medical marketing agencies and clinics, managing clients, leads, content, and campaigns." },
+      {
+        name: "description",
+        content:
+          "Tabgha OS · Health Growth Operating System · a plataforma que integra estratégia, IA, CRM, automação e dados para clínicas.",
+      },
       { name: "author", content: "Tabgha OS" },
       { property: "og:title", content: "Tabgha OS · Health Growth Operating System" },
-      { property: "og:description", content: "SaaS platform for medical marketing agencies and clinics, managing clients, leads, content, and campaigns." },
+      {
+        property: "og:description",
+        content:
+          "Tabgha OS · Health Growth Operating System · a plataforma que integra estratégia, IA, CRM, automação e dados para clínicas.",
+      },
       { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
+      { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "Tabgha OS · Health Growth Operating System" },
-      { name: "twitter:description", content: "SaaS platform for medical marketing agencies and clinics, managing clients, leads, content, and campaigns." },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/703b053b-0b4d-468a-8081-967ab4e53042/id-preview-866f40cc--17846404-c991-4994-9eef-09d7703cac4d.lovable.app-1781795568980.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/703b053b-0b4d-468a-8081-967ab4e53042/id-preview-866f40cc--17846404-c991-4994-9eef-09d7703cac4d.lovable.app-1781795568980.png" },
+      {
+        name: "twitter:description",
+        content:
+          "Tabgha OS · Health Growth Operating System · a plataforma que integra estratégia, IA, CRM, automação e dados para clínicas.",
+      },
+      { property: "og:image", content: "/og-tabgha.png" },
+      { name: "twitter:image", content: "/og-tabgha.png" },
     ],
     links: [
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com" },
-      { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" },
+      {
+        rel: "stylesheet",
+        href: "https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap",
+      },
       { rel: "stylesheet", href: appCss },
+      { rel: "icon", href: "/favicon.ico", sizes: "any" },
     ],
   }),
   shellComponent: RootShell,

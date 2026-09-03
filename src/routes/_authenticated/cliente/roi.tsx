@@ -64,7 +64,7 @@ export const Route = createFileRoute("/_authenticated/cliente/roi")({
     tab: resolveRoiTab(search.tab),
   }),
   component: RoiPage,
-  head: () => ({ meta: [{ title: "ROI — Portal" }] }),
+  head: () => ({ meta: [{ title: "ROI · Tabgha OS" }] }),
 });
 
 const PERIODOS = [

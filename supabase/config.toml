@@ -1,9 +1,10 @@
 project_id = "vdnxhvvkxfzuqludpmna"
 
-[functions.whatsapp-inbound]
-verify_jwt = false
+# Espelha o que está publicado no projeto. Sem a entrada aqui a CLI publica com
+# verify_jwt = true, o que derruba os webhooks e os endpoints públicos.
 
-[functions.webhook_whatsapp]
+# ── Webhooks e crons (sem JWT; validam por segredo/service role) ─────────────
+[functions.whatsapp-inbound]
 verify_jwt = false
 
 [functions.webhook_meta_lead]
@@ -15,5 +16,44 @@ verify_jwt = false
 [functions.sync_meta_leads]
 verify_jwt = false
 
+[functions.refresh-meta-tokens]
+verify_jwt = false
+
+[functions.close-stalled-conversations]
+verify_jwt = false
+
+[functions.nurture-tick]
+verify_jwt = false
+
 [functions.meta-oauth-callback]
 verify_jwt = false
+
+# ── Endpoints públicos (landing page, relatório por link) ───────────────────
+[functions.lp-submit]
+verify_jwt = false
+
+[functions.diagnostico-publico]
+verify_jwt = false
+
+# ── Chamadas do app: a própria função checa o JWT/role ──────────────────────
+[functions.zapi-send]
+verify_jwt = false
+
+[functions.ai-respond]
+verify_jwt = false
+
+[functions.whatsapp-connect]
+verify_jwt = false
+
+[functions.admin-create-user]
+verify_jwt = false
+
+[functions.admin-update-user-email]
+verify_jwt = false
+
+[functions.gerar_diagnostico]
+verify_jwt = false
+
+# ── Exige JWT na borda (repassa o token pro client Supabase, RLS decide) ────
+[functions.gerar-diagnostico-7f]
+verify_jwt = true

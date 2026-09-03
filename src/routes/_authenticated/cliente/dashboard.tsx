@@ -21,7 +21,7 @@ import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/cliente/dashboard")({
   component: ClienteDashboard,
-  head: () => ({ meta: [{ title: "Portal do Cliente — Tabgha" }] }),
+  head: () => ({ meta: [{ title: "Portal do cliente · Tabgha OS" }] }),
 });
 
 function ClienteDashboard() {

@@ -15,7 +15,7 @@ import { WhatsappConnectCard } from "@/components/whatsapp/WhatsappConnectCard";
 
 export const Route = createFileRoute("/_authenticated/cliente/conexoes")({
   component: ConexoesPage,
-  head: () => ({ meta: [{ title: "Conexões — Portal" }] }),
+  head: () => ({ meta: [{ title: "Conexões · Tabgha OS" }] }),
 });
 
 type RedesForm = {

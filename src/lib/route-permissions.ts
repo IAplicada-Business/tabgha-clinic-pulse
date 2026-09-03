@@ -11,20 +11,31 @@ type RouteRule = {
   perm: string;
 };
 
+/**
+ * Ordem: prefixos mais específicos primeiro. Espelha public.roles_permissoes —
+ * ao mexer aqui, mexa também na matriz do banco.
+ */
 const ADMIN_ROUTE_RULES: RouteRule[] = [
   { prefix: "/admin/usuarios", perm: ADMIN_PERMISSION_GROUPS.usuarios },
+  // Configurações é super-admin-only; reaproveita a permissão de usuários em vez
+  // de criar um grupo novo para uma tela só.
+  { prefix: "/admin/configuracoes", perm: ADMIN_PERMISSION_GROUPS.usuarios },
   { prefix: "/admin/diagnosticos", perm: ADMIN_PERMISSION_GROUPS.diagnosticos },
   { prefix: "/admin/estrategia", perm: ADMIN_PERMISSION_GROUPS.estrategia },
+  { prefix: "/admin/biblioteca-criativa", perm: ADMIN_PERMISSION_GROUPS.biblioteca },
+  { prefix: "/admin/cerebro-pietro", perm: ADMIN_PERMISSION_GROUPS.cerebro },
   { prefix: "/admin/atendimento", perm: ADMIN_PERMISSION_GROUPS.atendimento },
   { prefix: "/admin/config-meta", perm: ADMIN_PERMISSION_GROUPS.meta_ads },
   { prefix: "/admin/meta-ads", perm: ADMIN_PERMISSION_GROUPS.meta_ads },
+  { prefix: "/admin/financeiro", perm: ADMIN_PERMISSION_GROUPS.financeiro },
   { prefix: "/admin/roi", perm: ADMIN_PERMISSION_GROUPS.roi },
   { prefix: "/admin/pipeline-comercial", perm: ADMIN_PERMISSION_GROUPS.pipeline },
-  { prefix: "/admin/automacoes-leads", perm: ADMIN_PERMISSION_GROUPS.operacao },
-  { prefix: "/admin/leads", perm: ADMIN_PERMISSION_GROUPS.operacao },
-  { prefix: "/admin/calendario", perm: ADMIN_PERMISSION_GROUPS.operacao },
+  { prefix: "/admin/automacoes-leads", perm: ADMIN_PERMISSION_GROUPS.nutricao },
+  { prefix: "/admin/nutricao", perm: ADMIN_PERMISSION_GROUPS.nutricao },
+  { prefix: "/admin/leads", perm: ADMIN_PERMISSION_GROUPS.crm },
+  { prefix: "/admin/calendario", perm: ADMIN_PERMISSION_GROUPS.calendario },
   { prefix: "/admin/clientes", perm: ADMIN_PERMISSION_GROUPS.clientes },
-  { prefix: "/admin/dashboard-clientes", perm: ADMIN_PERMISSION_GROUPS.dashboard },
+  { prefix: "/admin/dashboard-clientes", perm: ADMIN_PERMISSION_GROUPS.dashboard_executivo },
   { prefix: "/admin/dashboard", perm: ADMIN_PERMISSION_GROUPS.dashboard },
   // fallback genérico /admin/*
   { prefix: "/admin", perm: ADMIN_PERMISSION_GROUPS.dashboard },
@@ -77,10 +88,14 @@ export function firstAllowedAdminPath(permissoes: string[] | null | undefined): 
     "/admin/leads",
     "/admin/calendario",
     "/admin/automacoes-leads",
+    "/admin/nutricao",
+    "/admin/financeiro",
+    "/admin/biblioteca-criativa",
     "/admin/diagnosticos",
     "/admin/pipeline-comercial",
     "/admin/usuarios",
     "/admin/config-meta",
+    "/admin/configuracoes",
   ];
   for (const path of candidates) {
     const required = requiredPermissionForPath(path);
@@ -110,10 +125,7 @@ export function firstAllowedClientePath(permissoes: string[] | null | undefined)
   return "/login";
 }
 
-export function canAccessPath(
-  pathname: string,
-  permissoes: string[] | null | undefined,
-): boolean {
+export function canAccessPath(pathname: string, permissoes: string[] | null | undefined): boolean {
   const required = requiredPermissionForPath(pathname);
   if (!required) return true;
   return hasPermission(permissoes, required);

@@ -49,7 +49,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_authenticated/admin/dashboard-clientes")({
   component: DashboardClientesPage,
-  head: () => ({ meta: [{ title: "Dashboard Clientes — Admin" }] }),
+  head: () => ({ meta: [{ title: "Dashboard de clientes · Tabgha OS" }] }),
 });
 
 type TabId = "visao" | "performance" | "oportunidades";

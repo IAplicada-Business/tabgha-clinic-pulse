@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { supabase } from "@/integrations/supabase/client";
+import { TabghaLogo } from "@/components/TabghaLogo";
 import {
   LayoutDashboard,
   Calendar,
@@ -33,6 +34,9 @@ import {
   Brain,
   Briefcase,
   Megaphone,
+  DollarSign,
+  Images,
+  Settings,
 } from "lucide-react";
 
 type NavChild = {
@@ -69,6 +73,11 @@ function navChildActive(
   );
 }
 
+/** Marca do item ativo na sidebar: barra de 3px em accent-orange (#F39C12). */
+const BARRA_ATIVA =
+  "relative before:absolute before:-left-2 before:top-1/2 before:h-[18px] before:w-[3px] " +
+  "before:-translate-y-1/2 before:rounded-r-full before:bg-[var(--accent-orange)] before:content-['']";
+
 type NavGroup = {
   group: string;
   items: NavItem[];
@@ -82,7 +91,7 @@ const ADMIN_ITEMS = {
     perm: "admin.dashboard",
     children: [
       { to: "/admin/dashboard", label: "Tabgha", perm: "admin.dashboard" },
-      { to: "/admin/dashboard-clientes", label: "Clientes", perm: "admin.dashboard" },
+      { to: "/admin/dashboard-clientes", label: "Clientes", perm: "admin.dashboard_executivo" },
     ],
   },
   roi: {
@@ -123,7 +132,7 @@ const ADMIN_ITEMS = {
     to: "/admin/cerebro-pietro",
     label: "Cérebro Pietro",
     icon: Brain,
-    perm: "admin.atendimento",
+    perm: "admin.cerebro",
   },
   estrategia: {
     to: "/admin/estrategia",
@@ -135,19 +144,29 @@ const ADMIN_ITEMS = {
     to: "/admin/calendario",
     label: "Calendário editorial",
     icon: Calendar,
-    perm: "admin.operacao",
+    perm: "admin.calendario",
+  },
+  biblioteca: {
+    to: "/admin/biblioteca-criativa",
+    label: "Biblioteca Criativa",
+    icon: Images,
+    perm: "admin.biblioteca",
   },
   automacoes: {
     to: "/admin/automacoes-leads",
     label: "Automações de pacientes",
     icon: Zap,
-    perm: "admin.operacao",
+    perm: "admin.nutricao",
+    children: [
+      { to: "/admin/automacoes-leads", label: "Desempenho", perm: "admin.nutricao" },
+      { to: "/admin/nutricao", label: "Nutrição de leads", perm: "admin.nutricao" },
+    ],
   },
   funilPacientes: {
     to: "/admin/leads",
     label: "Funil de pacientes",
     icon: UserCheck,
-    perm: "admin.operacao",
+    perm: "admin.crm",
   },
   metaAds: {
     to: "/admin/meta-ads",
@@ -161,10 +180,43 @@ const ADMIN_ITEMS = {
     icon: Briefcase,
     perm: "admin.pipeline",
   },
+  financeiro: {
+    to: "/admin/financeiro",
+    label: "Financeiro",
+    icon: DollarSign,
+    perm: "admin.financeiro",
+    children: [
+      {
+        to: "/admin/financeiro",
+        label: "Contratos",
+        perm: "admin.financeiro",
+        search: { tab: "contratos" },
+      },
+      {
+        to: "/admin/financeiro",
+        label: "Cobranças",
+        perm: "admin.financeiro",
+        search: { tab: "cobrancas" },
+      },
+      { to: "/admin/financeiro", label: "MRR", perm: "admin.financeiro", search: { tab: "mrr" } },
+      {
+        to: "/admin/financeiro",
+        label: "Inadimplência",
+        perm: "admin.financeiro",
+        search: { tab: "inadimplencia" },
+      },
+    ],
+  },
   usuarios: {
     to: "/admin/usuarios",
     label: "Usuários & acessos",
     icon: UserCog,
+    perm: "admin.usuarios",
+  },
+  configuracoes: {
+    to: "/admin/configuracoes",
+    label: "Configurações",
+    icon: Settings,
     perm: "admin.usuarios",
   },
   conexoesMeta: {
@@ -175,8 +227,13 @@ const ADMIN_ITEMS = {
   },
 } satisfies Record<string, NavItem>;
 
+/**
+ * Sidebar por perfil — espelha a matriz public.roles_permissoes.
+ * O filtro de permissão ainda roda por cima (canSeeNavPermission), então um
+ * item listado aqui e sem permissão simplesmente não aparece.
+ */
 const ADMIN_NAV_BY_ROLE: Record<StaffRole, NavGroup[]> = {
-  admin: [
+  super_admin: [
     { group: "Visão geral", items: [ADMIN_ITEMS.dashboard, ADMIN_ITEMS.roi] },
     { group: "Clientes", items: [ADMIN_ITEMS.clientes, ADMIN_ITEMS.diagnosticos] },
     {
@@ -189,38 +246,44 @@ const ADMIN_NAV_BY_ROLE: Record<StaffRole, NavGroup[]> = {
         ADMIN_ITEMS.metaAds,
       ],
     },
-    { group: "Conteúdo", items: [ADMIN_ITEMS.estrategia, ADMIN_ITEMS.calendario] },
-    { group: "Comercial Tabgha", items: [ADMIN_ITEMS.pipelineB2b] },
-    { group: "Administração", items: [ADMIN_ITEMS.usuarios, ADMIN_ITEMS.conexoesMeta] },
+    {
+      group: "Conteúdo",
+      items: [ADMIN_ITEMS.estrategia, ADMIN_ITEMS.biblioteca, ADMIN_ITEMS.calendario],
+    },
+    { group: "Comercial Tabgha", items: [ADMIN_ITEMS.pipelineB2b, ADMIN_ITEMS.financeiro] },
+    {
+      group: "Administração",
+      items: [ADMIN_ITEMS.usuarios, ADMIN_ITEMS.conexoesMeta, ADMIN_ITEMS.configuracoes],
+    },
   ],
   gestor_estrategico: [
     { group: "Visão estratégica", items: [ADMIN_ITEMS.dashboard, ADMIN_ITEMS.roi] },
     { group: "Clientes", items: [ADMIN_ITEMS.clientes, ADMIN_ITEMS.diagnosticos] },
-    {
-      group: "Aquisição de pacientes",
-      items: [ADMIN_ITEMS.funilPacientes, ADMIN_ITEMS.automacoes, ADMIN_ITEMS.metaAds],
-    },
-    { group: "Conteúdo", items: [ADMIN_ITEMS.estrategia, ADMIN_ITEMS.calendario] },
-    { group: "Configurações", items: [ADMIN_ITEMS.conexoesMeta] },
+    { group: "Aquisição de pacientes", items: [ADMIN_ITEMS.funilPacientes] },
+    { group: "Comercial Tabgha", items: [ADMIN_ITEMS.pipelineB2b, ADMIN_ITEMS.financeiro] },
   ],
   growth_manager: [
     { group: "Visão", items: [ADMIN_ITEMS.dashboard, ADMIN_ITEMS.roi] },
     {
       group: "Aquisição de pacientes",
-      items: [ADMIN_ITEMS.funilPacientes, ADMIN_ITEMS.automacoes, ADMIN_ITEMS.metaAds],
+      items: [
+        ADMIN_ITEMS.funilPacientes,
+        ADMIN_ITEMS.atendimento,
+        ADMIN_ITEMS.cerebroPietro,
+        ADMIN_ITEMS.automacoes,
+      ],
     },
     { group: "Comercial Tabgha", items: [ADMIN_ITEMS.pipelineB2b] },
     { group: "Carteira", items: [ADMIN_ITEMS.clientes] },
-    { group: "Planejamento", items: [ADMIN_ITEMS.calendario] },
-    { group: "Configurações", items: [ADMIN_ITEMS.conexoesMeta] },
+    { group: "Conteúdo", items: [ADMIN_ITEMS.biblioteca, ADMIN_ITEMS.calendario] },
   ],
   social_media: [
-    { group: "Conteúdo", items: [ADMIN_ITEMS.estrategia, ADMIN_ITEMS.calendario] },
-    { group: "Carteira", items: [ADMIN_ITEMS.clientes] },
     {
-      group: "Distribuição & jornada",
-      items: [ADMIN_ITEMS.funilPacientes, ADMIN_ITEMS.automacoes],
+      group: "Conteúdo",
+      items: [ADMIN_ITEMS.estrategia, ADMIN_ITEMS.biblioteca, ADMIN_ITEMS.calendario],
     },
+    { group: "Carteira", items: [ADMIN_ITEMS.clientes] },
+    { group: "Resultados", items: [ADMIN_ITEMS.roi] },
   ],
   performance: [
     { group: "Tráfego", items: [ADMIN_ITEMS.metaAds, ADMIN_ITEMS.roi] },
@@ -231,16 +294,14 @@ const ADMIN_NAV_BY_ROLE: Record<StaffRole, NavGroup[]> = {
   atendimento_cs: [
     {
       group: "Fila de pacientes",
-      items: [ADMIN_ITEMS.atendimento, ADMIN_ITEMS.cerebroPietro, ADMIN_ITEMS.funilPacientes],
+      items: [ADMIN_ITEMS.atendimento, ADMIN_ITEMS.funilPacientes],
     },
     { group: "Clientes", items: [ADMIN_ITEMS.clientes, ADMIN_ITEMS.diagnosticos] },
-    {
-      group: "Ferramentas",
-      items: [ADMIN_ITEMS.automacoes, ADMIN_ITEMS.calendario],
-    },
+    { group: "Visão", items: [ADMIN_ITEMS.dashboard] },
   ],
   financeiro: [
-    { group: "Financeiro", items: [ADMIN_ITEMS.roi, ADMIN_ITEMS.dashboard] },
+    { group: "Financeiro", items: [ADMIN_ITEMS.financeiro] },
+    { group: "Visão", items: [ADMIN_ITEMS.dashboard] },
     { group: "Carteira", items: [ADMIN_ITEMS.clientes] },
   ],
 };
@@ -545,17 +606,10 @@ function SidebarNav({
           collapsed ? "justify-center px-0" : "px-3.5",
         )}
       >
-        {!collapsed && (
-          <img
-            src="https://tabghamkt.com.br/wp-content/uploads/2025/05/logo_tabgha_health_mkt_caixa_alta-04-scaled-e1747895382243.png"
-            alt="Tabgha Health Marketing"
-            className="h-6 w-auto brightness-0 invert"
-          />
-        )}
-        {collapsed && (
-          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-sidebar-primary/20">
-            <span className="text-[11px] font-bold text-sidebar-primary">T</span>
-          </div>
+        {!collapsed ? (
+          <TabghaLogo tone="claro" altura={26} />
+        ) : (
+          <TabghaLogo variante="mark" tone="claro" altura={28} />
         )}
       </div>
 
@@ -646,7 +700,7 @@ function SidebarNav({
                               className={cn(
                                 "flex h-9 w-9 items-center justify-center rounded-xl transition-all duration-200 mx-auto",
                                 active
-                                  ? "bg-sidebar-primary text-white shadow-[0_4px_12px_-2px_oklch(0.440_0.158_261_/_55%)]"
+                                  ? "bg-sidebar-primary text-white shadow-[0_4px_12px_-2px_oklch(0.524_0.126_252_/_55%)]"
                                   : "text-sidebar-foreground/50 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground",
                               )}
                             >
@@ -677,7 +731,7 @@ function SidebarNav({
                             className={cn(
                               "mx-2 mb-px flex w-[calc(100%-16px)] items-center gap-2.5 rounded-lg border-0 bg-transparent px-2.5 py-1.5 text-left text-[12.5px] transition-colors duration-200",
                               active
-                                ? "font-semibold text-sidebar-foreground"
+                                ? `font-semibold text-sidebar-foreground ${BARRA_ATIVA}`
                                 : "font-medium text-sidebar-foreground/60 hover:bg-white/[0.05] hover:text-sidebar-foreground",
                             )}
                           >
@@ -711,7 +765,7 @@ function SidebarNav({
                                     className={cn(
                                       "flex items-center rounded-lg px-2.5 py-1.5 text-[11.5px] transition-all duration-200",
                                       exactActive
-                                        ? "bg-sidebar-primary font-semibold text-white shadow-[0_4px_12px_-2px_oklch(0.440_0.158_261_/_45%)]"
+                                        ? "bg-sidebar-primary font-semibold text-white shadow-[0_4px_12px_-2px_oklch(0.524_0.126_252_/_45%)]"
                                         : "font-medium text-sidebar-foreground/55 hover:bg-white/[0.05] hover:text-sidebar-foreground",
                                     )}
                                   >
@@ -739,7 +793,8 @@ function SidebarNav({
                         className={cn(
                           "mx-2 mb-px flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-[12.5px] font-medium transition-all duration-200",
                           active
-                            ? "bg-sidebar-primary text-white font-semibold shadow-[0_4px_12px_-2px_oklch(0.440_0.158_261_/_45%)]"
+                            ? `bg-sidebar-primary text-white font-semibold ${BARRA_ATIVA} ` +
+                                "shadow-[0_4px_12px_-2px_oklch(0.524_0.126_252_/_45%)]"
                             : "bg-transparent text-sidebar-foreground/60 hover:bg-white/[0.05] hover:text-sidebar-foreground",
                         )}
                       >
@@ -951,7 +1006,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
     isStaff(roles) && roles.includes("cliente") && Boolean(profile?.cliente_id);
   const staffRole = primaryStaffRole(roles);
 
-  const roleGroups = role === "admin" ? ADMIN_NAV_BY_ROLE[staffRole ?? "admin"] : CLIENTE_NAV;
+  const roleGroups = role === "admin" ? ADMIN_NAV_BY_ROLE[staffRole ?? "super_admin"] : CLIENTE_NAV;
   const configuredAdminPaths = new Set(
     roleGroups.flatMap((group) => group.items.map((item) => item.to)),
   );
@@ -1033,7 +1088,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
           className="pointer-events-none absolute inset-0 -z-10 opacity-60"
           style={{
             background:
-              "radial-gradient(500px 260px at 0% 0%, oklch(0.440 0.158 261 / 22%), transparent 60%), radial-gradient(420px 240px at 100% 100%, oklch(0.770 0.160 72 / 8%), transparent 55%)",
+              "radial-gradient(500px 260px at 0% 0%, oklch(0.524 0.126 252 / 22%), transparent 60%), radial-gradient(420px 240px at 100% 100%, oklch(0.763 0.163 69 / 8%), transparent 55%)",
           }}
         />
         <SidebarNav
@@ -1054,15 +1109,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
           >
             <Menu className="h-5 w-5" />
           </button>
-          <img
-            src="https://tabghamkt.com.br/wp-content/uploads/2025/05/logo_tabgha_health_mkt_caixa_alta-04-scaled-e1747895382243.png"
-            alt="Tabgha Health Marketing"
-            className="h-6 w-auto"
-            style={{
-              filter:
-                "brightness(0) saturate(100%) invert(18%) sepia(56%) saturate(1200%) hue-rotate(204deg) brightness(82%) contrast(97%)",
-            }}
-          />
+          <TabghaLogo altura={24} />
           {isSimulating && (
             <div className="ml-auto flex items-center gap-1.5 rounded-full border border-amber-400/30 bg-amber-400/10 px-3 py-1">
               <Eye className="h-3 w-3 text-amber-400" />

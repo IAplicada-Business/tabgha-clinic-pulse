@@ -21,7 +21,7 @@ import { cn } from "@/lib/utils";
  */
 export const Route = createFileRoute("/diagnostico/$token")({
   component: DiagnosticoPublicoPage,
-  head: () => ({ meta: [{ title: "Diagnóstico Estratégico · 7 Fontes" }] }),
+  head: () => ({ meta: [{ title: "Diagnóstico Estratégico · Tabgha OS" }] }),
 });
 
 const RADAR_COLOR = "#1A5FAD";

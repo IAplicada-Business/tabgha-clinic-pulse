@@ -13,7 +13,7 @@ import { ptBR } from "date-fns/locale";
 
 export const Route = createFileRoute("/_authenticated/cliente/clientes")({
   component: ClientesPage,
-  head: () => ({ meta: [{ title: "Pacientes — Portal" }] }),
+  head: () => ({ meta: [{ title: "Pacientes · Tabgha OS" }] }),
 });
 
 function ClientesPage() {

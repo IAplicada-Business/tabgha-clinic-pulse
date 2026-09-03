@@ -83,8 +83,8 @@ async function loadProfileAndRoles(
   // Ordem estável: Super Admin primeiro, demais staff, cliente por último
   roles.sort((a, b) => {
     if (a === b) return 0;
-    if (a === "admin") return -1;
-    if (b === "admin") return 1;
+    if (a === "super_admin") return -1;
+    if (b === "super_admin") return 1;
     if (a === "cliente") return 1;
     if (b === "cliente") return -1;
     return a.localeCompare(b);

@@ -86,27 +86,6 @@ const STEPS = [
   },
 ];
 
-const TESTIMONIALS = [
-  {
-    name: "Dra. Ana Claudia Mendes",
-    role: "Dermatologista · São Paulo",
-    stars: 5,
-    text: "Em 4 meses a Tabgha triplicou meu volume de novos pacientes. A diferença é que eles chegam já sabendo quem sou — o conteúdo educa antes mesmo de marcar consulta.",
-  },
-  {
-    name: "Dr. Rodrigo Figueiredo",
-    role: "Ortopedista · Belo Horizonte",
-    stars: 5,
-    text: "Tentei outras agências antes. Nenhuma entendia o setor de saúde. A Tabgha não só entende como tem um portal próprio que me dá visibilidade total sobre leads e ROI.",
-  },
-  {
-    name: "Clínica Sorrir Mais",
-    role: "Odontologia · Curitiba",
-    stars: 5,
-    text: "Nossa agenda estava com 30% de ociosidade. Após o diagnóstico e as primeiras campanhas, fechamos 3 meses consecutivos com lista de espera.",
-  },
-];
-
 const FAQS = [
   {
     q: "Para quais especialidades a Tabgha trabalha?",
@@ -135,11 +114,37 @@ const SPECIALTIES = [
   "Cardiologia", "Nutrição", "Ginecologia", "Cirurgia Plástica",
 ];
 
-const STATS = [
-  { value: "+180", numericValue: 180, prefix: "+", label: "Clínicas atendidas", icon: Users },
-  { value: "+14k", numericValue: 14, prefix: "+", suffix: "k", label: "Leads gerados", icon: Target },
-  { value: "4.1x", numericValue: 4.1, prefix: "", suffix: "x", label: "ROAS médio", icon: TrendingUp },
-  { value: "92%", numericValue: 92, prefix: "", suffix: "%", label: "Retenção em 6 meses", icon: Rocket },
+/**
+ * Substitui o antigo bloco de métricas (+180 clínicas · +14k leads · 4.1x ROAS
+ * · 92% retenção). Aqueles números não estavam autorizados; o bloco passa a
+ * comunicar o que a plataforma é, sem prometer resultado.
+ */
+const PILARES_LP = [
+  {
+    emoji: "🏥",
+    icon: Users,
+    titulo: "Múltiplas especialidades",
+    descricao:
+      "Framework aplicável a consultórios, clínicas e instituições de qualquer porte",
+  },
+  {
+    emoji: "⚙️",
+    icon: Rocket,
+    titulo: "Operação estruturada",
+    descricao: "Processos, automações e IA integrados em uma única plataforma",
+  },
+  {
+    emoji: "📊",
+    icon: TrendingUp,
+    titulo: "Resultados mensuráveis",
+    descricao: "Cada decisão sustentada por dados em tempo real",
+  },
+  {
+    emoji: "🔒",
+    icon: Target,
+    titulo: "Compliance médico",
+    descricao: "Desenvolvido seguindo boas práticas de CFM e LGPD",
+  },
 ];
 
 // ─── CountUp hook ──────────────────────────────────────────────────────────────
@@ -279,7 +284,7 @@ function Nav() {
   const navLinks: [string, string][] = [
     ["#solucao", "Solução"],
     ["#resultados", "Resultados"],
-    ["#depoimentos", "Depoimentos"],
+    ["#depoimentos", "Casos"],
     ["#faq", "FAQ"],
   ];
 
@@ -722,9 +727,9 @@ function Hero() {
             overflow: "hidden",
           }}
         >
-          {STATS.map((s, i) => (
+          {PILARES_LP.map((s, i) => (
             <div
-              key={s.label}
+              key={s.titulo}
               style={{
                 display: "flex",
                 flexDirection: "column",
@@ -733,8 +738,8 @@ function Hero() {
                 borderLeft: i > 0 ? "1px solid rgba(255,255,255,0.08)" : undefined,
               }}
             >
-              <span style={{ fontSize: 24, fontWeight: 700, color: "#fff", lineHeight: 1 }}>{s.value}</span>
-              <span style={{ marginTop: 4, fontSize: 10, color: "rgba(255,255,255,0.45)", textAlign: "center" }}>{s.label}</span>
+              <span style={{ fontSize: 22, lineHeight: 1 }}>{s.emoji}</span>
+              <span style={{ marginTop: 6, fontSize: 10.5, fontWeight: 600, color: "rgba(255,255,255,0.8)", textAlign: "center" }}>{s.titulo}</span>
             </div>
           ))}
         </div>
@@ -1413,40 +1418,42 @@ function HowItWorks() {
 
 // ─── Results — CountUp ────────────────────────────────────────────────────────
 
-function MetricCard({ stat }: { stat: typeof STATS[0] }) {
-  const isDecimal = !Number.isInteger(stat.numericValue);
-  const { count, ref } = useCountUp(stat.numericValue, 1500, isDecimal ? 1 : 0);
+function PilarCard({ pilar }: { pilar: (typeof PILARES_LP)[0] }) {
   const { ref: revealRef, visible } = useScrollReveal();
-  const Icon = stat.icon;
+  const Icon = pilar.icon;
 
   return (
     <div
       ref={revealRef}
       className={cn("scroll-reveal", visible && "visible")}
       style={{
-        background: "linear-gradient(135deg, #1A5FAD, #40ADDB)",
+        background: "linear-gradient(135deg, #0E2A47, #2B6CB0)",
         borderRadius: 16,
         padding: "28px 32px",
         display: "flex",
         flexDirection: "column",
         alignItems: "flex-start",
-        boxShadow: "0 12px 40px rgba(26,95,173,0.3)",
+        boxShadow: "0 12px 40px rgba(43,108,176,0.28)",
       }}
     >
-      <Icon style={{ width: 28, height: 28, color: "rgba(255,255,255,0.7)", marginBottom: 16 }} />
+      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
+        <span style={{ fontSize: 26, lineHeight: 1 }}>{pilar.emoji}</span>
+        <Icon style={{ width: 22, height: 22, color: "rgba(255,255,255,0.55)" }} />
+      </div>
       <span
-        ref={ref}
         style={{
-          fontSize: "clamp(48px, 6vw, 80px)",
-          fontWeight: 500,
-          lineHeight: 1,
+          fontSize: 20,
+          fontWeight: 600,
+          lineHeight: 1.25,
           color: "#fff",
-          letterSpacing: "-0.02em",
+          letterSpacing: "-0.01em",
         }}
       >
-        {stat.prefix}{isDecimal ? count.toFixed(1) : Math.round(count)}{stat.suffix}
+        {pilar.titulo}
       </span>
-      <span style={{ fontSize: 14, color: "rgba(255,255,255,0.75)", marginTop: 8 }}>{stat.label}</span>
+      <span style={{ fontSize: 14, lineHeight: 1.6, color: "rgba(255,255,255,0.75)", marginTop: 10 }}>
+        {pilar.descricao}
+      </span>
     </div>
   );
 }
@@ -1475,7 +1482,7 @@ function ResultsSection() {
               color: "#1A5FAD",
             }}
           >
-            ● Resultados reais
+            ● A plataforma
           </span>
           <h2
             style={{
@@ -1487,7 +1494,7 @@ function ResultsSection() {
               marginTop: 16,
             }}
           >
-            Números que a sua clínica{" "}
+            O que sustenta o{" "}
             <span
               style={{
                 backgroundImage: "linear-gradient(135deg, #1A5FAD, #40ADDB)",
@@ -1496,17 +1503,17 @@ function ResultsSection() {
                 backgroundClip: "text",
               }}
             >
-              merece ter
+              Tabgha OS
             </span>
           </h2>
           <p style={{ fontSize: 16, lineHeight: 1.6, color: "#64748b", marginTop: 16, maxWidth: 480, margin: "16px auto 0" }}>
-            Dados reais dos nossos clientes ativos — transparência total sobre o que entregamos.
+            Um sistema operacional de crescimento — não uma promessa de número.
           </p>
         </div>
 
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 20 }}>
-          {STATS.map((s) => (
-            <MetricCard key={s.label} stat={s} />
+          {PILARES_LP.map((pilar) => (
+            <PilarCard key={pilar.titulo} pilar={pilar} />
           ))}
         </div>
       </div>
@@ -1516,11 +1523,14 @@ function ResultsSection() {
 
 // ─── Testimonials + Logo Strip ────────────────────────────────────────────────
 
-function Testimonials() {
+function CasosEmConsolidacao() {
   const { ref: titleRef, visible: titleVisible } = useScrollReveal();
 
   return (
-    <section id="depoimentos" style={{ background: "#0D1B3E", paddingBottom: 112, paddingTop: 80, position: "relative" }}>
+    <section
+      id="depoimentos"
+      style={{ background: "#0E2A47", paddingBottom: 112, paddingTop: 80, position: "relative" }}
+    >
       {/* top wave */}
       <div style={{ position: "absolute", top: 0, left: 0, right: 0, transform: "translateY(-1px)" }}>
         <svg viewBox="0 0 1440 80" style={{ width: "100%", display: "block", transform: "rotate(180deg)" }} preserveAspectRatio="none">
@@ -1536,18 +1546,18 @@ function Testimonials() {
         >
           <span
             style={{
-              background: "rgba(26,95,173,0.08)",
-              border: "1px solid rgba(26,95,173,0.15)",
+              background: "rgba(243,156,18,0.10)",
+              border: "1px solid rgba(243,156,18,0.25)",
               borderRadius: 4,
               padding: "4px 10px",
               fontSize: 11,
               fontWeight: 500,
               letterSpacing: "0.08em",
               textTransform: "uppercase" as const,
-              color: "#60C3E8",
+              color: "#F39C12",
             }}
           >
-            ● Depoimentos
+            ● Em breve · casos reais autorizados
           </span>
           <h2
             style={{
@@ -1559,12 +1569,38 @@ function Testimonials() {
               marginTop: 16,
             }}
           >
-            Quem já tem agenda cheia fala por nós
+            Casos reais em consolidação
           </h2>
+          <p
+            style={{
+              fontSize: 16,
+              lineHeight: 1.7,
+              color: "rgba(255,255,255,0.6)",
+              maxWidth: 560,
+              margin: "20px auto 0",
+            }}
+          >
+            Estamos consolidando os primeiros casos autorizados de médicos parceiros. Os resultados
+            completos serão publicados a partir de janeiro de 2027.
+          </p>
+          <p style={{ fontSize: 15, color: "rgba(255,255,255,0.75)", marginTop: 28 }}>
+            Quer ser um dos primeiros a compartilhar seu case?{" "}
+            <a
+              href="#contato"
+              style={{
+                color: "#F39C12",
+                fontWeight: 600,
+                textDecoration: "underline",
+                textUnderlineOffset: 4,
+              }}
+            >
+              Vamos conversar
+            </a>
+          </p>
         </div>
 
-        {/* Auto-scroll logo strip */}
-        <div style={{ overflow: "hidden", marginBottom: 64, position: "relative" }}>
+        {/* Especialidades atendidas — sem nome de médico, sem número */}
+        <div style={{ overflow: "hidden", position: "relative" }}>
           <div
             style={{
               display: "flex",
@@ -1573,9 +1609,9 @@ function Testimonials() {
               width: "max-content",
             }}
           >
-            {[...SPECIALTIES, ...SPECIALTIES].map((s, i) => (
+            {[...SPECIALTIES, ...SPECIALTIES].map((esp, i) => (
               <div
-                key={`${s}-${i}`}
+                key={`${esp}-${i}`}
                 style={{
                   background: "rgba(255,255,255,0.04)",
                   border: "1px solid rgba(255,255,255,0.08)",
@@ -1588,38 +1624,10 @@ function Testimonials() {
                   flexShrink: 0,
                 }}
               >
-                {s}
+                {esp}
               </div>
             ))}
           </div>
-        </div>
-
-        {/* Testimonial cards */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 20 }}>
-          {TESTIMONIALS.map((t) => (
-            <div
-              key={t.name}
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                border: "1px solid rgba(255,255,255,0.08)",
-                background: "rgba(255,255,255,0.04)",
-                borderRadius: 20,
-                padding: 32,
-              }}
-            >
-              <div style={{ display: "flex", gap: 4 }}>
-                {Array.from({ length: t.stars }).map((_, i) => (
-                  <Star key={i} style={{ width: 14, height: 14, fill: "#f59e0b", color: "#f59e0b" }} />
-                ))}
-              </div>
-              <p style={{ marginTop: 16, flex: 1, fontSize: 14, lineHeight: 1.7, color: "rgba(255,255,255,0.7)" }}>"{t.text}"</p>
-              <div style={{ marginTop: 24, borderTop: "1px solid rgba(255,255,255,0.08)", paddingTop: 20 }}>
-                <p style={{ fontSize: 14, fontWeight: 600, color: "#fff", margin: 0 }}>{t.name}</p>
-                <p style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", margin: 0, marginTop: 2 }}>{t.role}</p>
-              </div>
-            </div>
-          ))}
         </div>
       </div>
 
@@ -1726,28 +1734,57 @@ function FAQ() {
 
 // ─── CTA / Quero saber mais ───────────────────────────────────────────────────
 
-const ESPECIALIDADES = ["Ortopedia","Dermatologia","Clínica geral","OPME","Cardiologia","Oftalmologia","Ginecologia","Pediatria","Neurologia","Outro"];
-const VOLUMES = [
-  { value: "menos_50",   label: "Menos de 50 pacientes/mês" },
-  { value: "50_150",     label: "50 – 150 pacientes/mês" },
-  { value: "150_500",    label: "150 – 500 pacientes/mês" },
-  { value: "mais_500",   label: "Mais de 500 pacientes/mês" },
+const ESPECIALIDADES = [
+  "Cardiologia",
+  "Dermatologia",
+  "Endocrinologia",
+  "Ginecologia",
+  "Ortopedia",
+  "Pediatria",
+  "Psiquiatria",
+  "Outros",
 ];
+
+const TAMANHOS_OPERACAO = [
+  { value: "individual", label: "Consultório individual" },
+  { value: "2_5", label: "2 a 5 profissionais" },
+  { value: "6_15", label: "6 a 15 profissionais" },
+  { value: "15_mais", label: "15+ profissionais" },
+];
+
+const LIMITE_DESAFIO = 300;
+
+const CAMPO_LP: React.CSSProperties = { borderRadius: 8, padding: "13px 18px", fontSize: 14, color: "#fff", background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)", outline: "none", width: "100%" };
+
+/** Evento Lead do Pixel Meta — valor padrão do briefing. */
+function dispararPixelLead() {
+  const fbq = (window as unknown as { fbq?: (...args: unknown[]) => void }).fbq;
+  if (typeof fbq === "function") {
+    fbq("track", "Lead", { value: 100, currency: "BRL" });
+  }
+}
 
 function CTASection() {
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const [telefone, setTelefone] = useState("");
   const [especialidade, setEspecialidade] = useState("");
-  const [volume, setVolume] = useState("");
+  const [cidade, setCidade] = useState("");
+  const [tamanho, setTamanho] = useState("");
+  const [desafio, setDesafio] = useState("");
+  const [aceite, setAceite] = useState(false);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!nome || (!email && !telefone)) {
-      setErro("Preencha o nome e pelo menos um contato (email ou telefone).");
+    if (!nome.trim() || !email.trim() || !telefone.trim() || !especialidade || !cidade.trim() || !tamanho) {
+      setErro("Preencha todos os campos obrigatórios.");
+      return;
+    }
+    if (!aceite) {
+      setErro("É preciso aceitar a Política de Privacidade para continuar.");
       return;
     }
     setLoading(true);
@@ -1769,7 +1806,10 @@ function CTASection() {
           email: email || null,
           telefone: telefone || null,
           especialidade: especialidade || null,
-          volume_estimado: volume || null,
+          cidade: cidade.trim() || null,
+          tamanho_operacao: tamanho || null,
+          desafio: desafio.trim() || null,
+          origem: "LP Tabgha OS",
           website: "",
           utm_source: params?.get("utm_source"),
           utm_medium: params?.get("utm_medium"),
@@ -1793,12 +1833,17 @@ function CTASection() {
         return;
       }
 
+      dispararPixelLead();
       setSuccess(true);
       setNome("");
       setEmail("");
       setTelefone("");
       setEspecialidade("");
-      setVolume("");
+      setCidade("");
+      setTamanho("");
+      setDesafio("");
+      setAceite(false);
+      window.location.assign("/obrigado");
     } catch {
       setErro("Erro ao enviar. Tente novamente.");
     } finally {
@@ -1913,61 +1958,143 @@ function CTASection() {
                 display: "flex",
                 flexDirection: "column",
                 gap: 10,
-                maxWidth: 420,
+                maxWidth: 480,
                 margin: "40px auto 0",
+                textAlign: "left" as const,
               }}
             >
               <input
                 type="text"
                 required
-                placeholder="Seu nome *"
+                aria-label="Nome completo"
+                placeholder="Nome completo *"
                 value={nome}
                 onChange={(e) => setNome(e.target.value)}
-                style={{ borderRadius: 8, padding: "13px 18px", fontSize: 14, color: "#fff", background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)", outline: "none", width: "100%" }}
-              />
-              <input
-                type="tel"
-                placeholder="Telefone / WhatsApp"
-                value={telefone}
-                onChange={(e) => setTelefone(e.target.value)}
-                style={{ borderRadius: 8, padding: "13px 18px", fontSize: 14, color: "#fff", background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)", outline: "none", width: "100%" }}
+                style={CAMPO_LP}
               />
               <input
                 type="email"
-                placeholder="Email (opcional)"
+                required
+                aria-label="Email profissional"
+                placeholder="Email profissional *"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                style={{ borderRadius: 8, padding: "13px 18px", fontSize: 14, color: "#fff", background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)", outline: "none", width: "100%" }}
+                style={CAMPO_LP}
+              />
+              <input
+                type="tel"
+                required
+                aria-label="WhatsApp"
+                placeholder="WhatsApp *"
+                value={telefone}
+                onChange={(e) => setTelefone(e.target.value)}
+                style={CAMPO_LP}
               />
               <select
+                required
+                aria-label="Especialidade médica"
                 value={especialidade}
                 onChange={(e) => setEspecialidade(e.target.value)}
-                style={{ borderRadius: 8, padding: "13px 18px", fontSize: 14, color: especialidade ? "#fff" : "rgba(255,255,255,0.45)", background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)", outline: "none", width: "100%" }}
+                style={{ ...CAMPO_LP, color: especialidade ? "#fff" : "rgba(255,255,255,0.45)" }}
               >
-                <option value="" style={{ background: "#0D1B3E" }}>Especialidade</option>
-                {ESPECIALIDADES.map((e) => <option key={e} value={e} style={{ background: "#0D1B3E" }}>{e}</option>)}
+                <option value="" style={{ background: "#0E2A47" }}>
+                  Especialidade médica *
+                </option>
+                {ESPECIALIDADES.map((esp) => (
+                  <option key={esp} value={esp} style={{ background: "#0E2A47" }}>
+                    {esp}
+                  </option>
+                ))}
               </select>
-              <select
-                value={volume}
-                onChange={(e) => setVolume(e.target.value)}
-                style={{ borderRadius: 8, padding: "13px 18px", fontSize: 14, color: volume ? "#fff" : "rgba(255,255,255,0.45)", background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)", outline: "none", width: "100%" }}
+              <input
+                type="text"
+                required
+                aria-label="Cidade"
+                placeholder="Cidade *"
+                value={cidade}
+                onChange={(e) => setCidade(e.target.value)}
+                style={CAMPO_LP}
+              />
+
+              <fieldset style={{ border: "none", padding: 0, margin: "6px 0 0" }}>
+                <legend style={{ fontSize: 13, color: "rgba(255,255,255,0.65)", marginBottom: 8 }}>
+                  Tamanho da operação *
+                </legend>
+                <div style={{ display: "grid", gap: 6 }}>
+                  {TAMANHOS_OPERACAO.map((t) => (
+                    <label
+                      key={t.value}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 10,
+                        fontSize: 14,
+                        color: "rgba(255,255,255,0.8)",
+                        cursor: "pointer",
+                      }}
+                    >
+                      <input
+                        type="radio"
+                        name="tamanho-operacao"
+                        value={t.value}
+                        checked={tamanho === t.value}
+                        onChange={(e) => setTamanho(e.target.value)}
+                        style={{ accentColor: "#2B6CB0", width: 16, height: 16 }}
+                      />
+                      {t.label}
+                    </label>
+                  ))}
+                </div>
+              </fieldset>
+
+              <textarea
+                rows={3}
+                maxLength={LIMITE_DESAFIO}
+                aria-label="Principal desafio de crescimento hoje"
+                placeholder="Principal desafio de crescimento hoje (opcional)"
+                value={desafio}
+                onChange={(e) => setDesafio(e.target.value)}
+                style={{ ...CAMPO_LP, resize: "vertical" as const, fontFamily: "inherit" }}
+              />
+              <span style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", marginTop: -4 }}>
+                {desafio.length}/{LIMITE_DESAFIO}
+              </span>
+
+              <label
+                style={{
+                  display: "flex",
+                  alignItems: "flex-start",
+                  gap: 10,
+                  fontSize: 12.5,
+                  lineHeight: 1.5,
+                  color: "rgba(255,255,255,0.65)",
+                  cursor: "pointer",
+                  marginTop: 4,
+                }}
               >
-                <option value="" style={{ background: "#0D1B3E" }}>Volume estimado de pacientes/mês</option>
-                {VOLUMES.map((v) => <option key={v.value} value={v.value} style={{ background: "#0D1B3E" }}>{v.label}</option>)}
-              </select>
+                <input
+                  type="checkbox"
+                  required
+                  checked={aceite}
+                  onChange={(e) => setAceite(e.target.checked)}
+                  style={{ accentColor: "#2B6CB0", width: 16, height: 16, marginTop: 2, flexShrink: 0 }}
+                />
+                Li e aceito a Política de Privacidade e o uso dos meus dados para contato comercial
+              </label>
+
               {erro && <p style={{ color: "#f87171", fontSize: 13, margin: 0 }}>{erro}</p>}
               <button
                 type="submit"
                 disabled={loading}
                 style={{
                   display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 10,
-                  background: loading ? "rgba(26,95,173,0.6)" : "linear-gradient(135deg, #1A5FAD, #40ADDB)",
+                  background: loading ? "rgba(43,108,176,0.6)" : "linear-gradient(135deg, #2B6CB0, #5AA6E5)",
                   borderRadius: 8, padding: "14px 24px", color: "#fff", fontSize: 15, fontWeight: 600,
                   border: "none", cursor: loading ? "not-allowed" : "pointer",
-                  boxShadow: "0 4px 20px rgba(26,95,173,0.35)", width: "100%", marginTop: 4,
+                  boxShadow: "0 4px 20px rgba(43,108,176,0.35)", width: "100%", marginTop: 8,
                 }}
               >
-                {loading ? "Enviando…" : "Quero saber mais"}
+                {loading ? "Enviando…" : "Solicitar Diagnóstico Estratégico"}
                 {!loading && (
                   <div style={{ width: 36, height: 36, background: "rgba(255,255,255,0.15)", borderRadius: 6, display: "flex", alignItems: "center", justifyContent: "center" }}>
                     <ArrowUpRight style={{ width: 16, height: 16 }} />
@@ -1990,50 +2117,69 @@ function CTASection() {
 // ─── Footer ───────────────────────────────────────────────────────────────────
 
 function Footer() {
+  const colTitulo: React.CSSProperties = {
+    marginBottom: 16,
+    fontSize: 11,
+    fontWeight: 600,
+    letterSpacing: "0.08em",
+    textTransform: "uppercase" as const,
+    color: "rgba(255,255,255,0.3)",
+  };
+  const linkStyle: React.CSSProperties = {
+    fontSize: 14,
+    color: "rgba(255,255,255,0.5)",
+    textDecoration: "none",
+  };
+
   return (
-    <footer style={{ background: "#0D1B3E", paddingTop: 64, paddingBottom: 40 }}>
+    <footer style={{ background: "#0E2A47", paddingTop: 64, paddingBottom: 40 }}>
       <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px" }}>
         <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "2fr 1fr 1fr 1fr",
-            gap: 40,
-          }}
+          style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr", gap: 40 }}
           className="footer-grid"
         >
-          {/* Brand */}
+          {/* Marca */}
           <div>
-            <img
-              src="https://tabghamkt.com.br/wp-content/uploads/2025/05/logo_tabgha_health_mkt_caixa_alta-04-scaled-e1747895382243.png"
-              alt="Tabgha Health Marketing"
-              style={{ height: 32, width: "auto", filter: "brightness(0) invert(1)", opacity: 0.6 }}
-            />
-            <p style={{ marginTop: 16, maxWidth: 260, fontSize: 13, lineHeight: 1.7, color: "rgba(255,255,255,0.4)" }}>
-              Estratégia, conteúdo e tecnologia integrados para clínicas e consultórios que querem crescer com previsibilidade.
+            <span
+              style={{
+                display: "inline-flex",
+                alignItems: "baseline",
+                gap: 6,
+                fontSize: 22,
+                fontWeight: 800,
+                letterSpacing: "-0.02em",
+                color: "#fff",
+              }}
+            >
+              Tabgha
+              <span style={{ color: "#F39C12" }}>OS</span>
+            </span>
+            <p
+              style={{
+                marginTop: 16,
+                maxWidth: 280,
+                fontSize: 13,
+                lineHeight: 1.7,
+                color: "rgba(255,255,255,0.4)",
+              }}
+            >
+              Health Growth Operating System — estratégia, IA, CRM, automação e dados na mesma
+              operação, para clínicas e consultórios.
             </p>
           </div>
 
-          {/* Navigation */}
+          {/* Navegação */}
           <div>
-            <h4
-              style={{
-                marginBottom: 16,
-                fontSize: 11,
-                fontWeight: 600,
-                letterSpacing: "0.08em",
-                textTransform: "uppercase" as const,
-                color: "rgba(255,255,255,0.3)",
-              }}
-            >
-              Navegação
-            </h4>
+            <h4 style={colTitulo}>Navegação</h4>
             <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: 10 }}>
-              {[["#solucao", "Solução"], ["#resultados", "Resultados"], ["#depoimentos", "Depoimentos"], ["#faq", "FAQ"]].map(([href, label]) => (
+              {[
+                ["#topo", "Home"],
+                ["#solucao", "Método"],
+                ["#resultados", "Plataforma"],
+                ["#contato", "Contato"],
+              ].map(([href, label]) => (
                 <li key={label}>
-                  <a href={href} style={{ fontSize: 14, color: "rgba(255,255,255,0.5)", textDecoration: "none", transition: "color 0.2s" }}
-                    onMouseEnter={(e) => { e.currentTarget.style.color = "#fff"; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.color = "rgba(255,255,255,0.5)"; }}
-                  >
+                  <a href={href} style={linkStyle}>
                     {label}
                   </a>
                 </li>
@@ -2041,62 +2187,42 @@ function Footer() {
             </ul>
           </div>
 
-          {/* Connect */}
+          {/* Contato */}
           <div>
-            <h4
-              style={{
-                marginBottom: 16,
-                fontSize: 11,
-                fontWeight: 600,
-                letterSpacing: "0.08em",
-                textTransform: "uppercase" as const,
-                color: "rgba(255,255,255,0.3)",
-              }}
-            >
-              Connect
-            </h4>
+            <h4 style={colTitulo}>Contato</h4>
             <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: 10 }}>
-              {["Instagram", "LinkedIn", "YouTube", "WhatsApp"].map((s) => (
-                <li key={s}>
-                  <a href="#" style={{ fontSize: 14, color: "rgba(255,255,255,0.5)", textDecoration: "none", transition: "color 0.2s" }}
-                    onMouseEnter={(e) => { e.currentTarget.style.color = "#fff"; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.color = "rgba(255,255,255,0.5)"; }}
-                  >
-                    {s}
-                  </a>
-                </li>
-              ))}
+              <li style={{ ...linkStyle, lineHeight: 1.6 }}>Curitiba · Paraná · Brasil</li>
+              <li>
+                <a href="https://wa.me/5541999999999" style={linkStyle}>
+                  WhatsApp
+                </a>
+              </li>
+              <li>
+                <a href="mailto:contato@tabghamkt.com.br" style={linkStyle}>
+                  contato@tabghamkt.com.br
+                </a>
+              </li>
             </ul>
           </div>
 
-          {/* Login */}
+          {/* Legal */}
           <div>
-            <h4
-              style={{
-                marginBottom: 16,
-                fontSize: 11,
-                fontWeight: 600,
-                letterSpacing: "0.08em",
-                textTransform: "uppercase" as const,
-                color: "rgba(255,255,255,0.3)",
-              }}
-            >
-              Plataforma
-            </h4>
+            <h4 style={colTitulo}>Legal</h4>
             <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: 10 }}>
               <li>
-                <Link to="/login" style={{ fontSize: 14, color: "rgba(255,255,255,0.5)", textDecoration: "none", transition: "color 0.2s" }}
-                  onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = "#fff"; }}
-                  onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = "rgba(255,255,255,0.5)"; }}
-                >
+                <a href="/politica-de-privacidade" style={linkStyle}>
+                  Política de Privacidade
+                </a>
+              </li>
+              <li>
+                <a href="/termos-de-uso" style={linkStyle}>
+                  Termos de Uso
+                </a>
+              </li>
+              <li>
+                <Link to="/login" style={linkStyle}>
                   Acesso à plataforma
                 </Link>
-              </li>
-              <li>
-                <a href="#" style={{ fontSize: 14, color: "rgba(255,255,255,0.5)", textDecoration: "none" }}>Política de privacidade</a>
-              </li>
-              <li>
-                <a href="#" style={{ fontSize: 14, color: "rgba(255,255,255,0.5)", textDecoration: "none" }}>Termos de uso</a>
               </li>
             </ul>
           </div>
@@ -2104,25 +2230,18 @@ function Footer() {
 
         <div
           style={{
-            marginTop: 56,
-            borderTop: "1px solid rgba(255,255,255,0.1)",
-            paddingTop: 32,
-            display: "flex",
-            flexWrap: "wrap",
-            alignItems: "center",
-            justifyContent: "space-between",
-            gap: 16,
+            marginTop: 48,
+            paddingTop: 24,
+            borderTop: "1px solid rgba(255,255,255,0.08)",
+            textAlign: "center" as const,
           }}
         >
-          <p style={{ fontSize: 12, color: "rgba(255,255,255,0.3)", margin: 0 }}>
-            © {new Date().getFullYear()} Tabgha OS. Todos os direitos reservados.
+          <p style={{ fontSize: 12, color: "rgba(255,255,255,0.35)", margin: 0 }}>
+            © 2026 Tabgha OS · Health Growth Operating System · Sistema para clientes:{" "}
+            <a href="https://os.tabgha.com.br" style={{ color: "rgba(255,255,255,0.55)", textDecoration: "none" }}>
+              os.tabgha.com.br
+            </a>
           </p>
-          <Link to="/login" style={{ fontSize: 12, color: "rgba(255,255,255,0.3)", textDecoration: "none", transition: "color 0.2s" }}
-            onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = "rgba(255,255,255,0.6)"; }}
-            onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = "rgba(255,255,255,0.3)"; }}
-          >
-            Acesso à plataforma →
-          </Link>
         </div>
       </div>
       <style>{`
@@ -2154,7 +2273,7 @@ function Landing() {
       <SolutionSection />
       <HowItWorks />
       <ResultsSection />
-      <Testimonials />
+      <CasosEmConsolidacao />
       <FAQ />
       <CTASection />
       <Footer />

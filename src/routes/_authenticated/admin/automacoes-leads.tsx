@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/admin/automacoes-leads")({
   component: AutomacoesLeadsPage,
-  head: () => ({ meta: [{ title: "Automações de leads — Tabgha Admin" }] }),
+  head: () => ({ meta: [{ title: "Automações de pacientes · Tabgha OS" }] }),
 });
 
 type Lead = { id: string; status: string; canal: string | null; criado_em: string };

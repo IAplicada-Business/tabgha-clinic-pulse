@@ -25,7 +25,7 @@ import { useAuth } from "@/lib/auth";
 
 export const Route = createFileRoute("/_authenticated/cliente/diagnostico")({
   component: DiagnosticoPage,
-  head: () => ({ meta: [{ title: "Diagnóstico Estratégico — Portal" }] }),
+  head: () => ({ meta: [{ title: "Diagnóstico Estratégico · Tabgha OS" }] }),
 });
 
 type Vista = "entrada" | "form" | "resultado";

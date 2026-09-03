@@ -1,10 +1,10 @@
 /**
- * Perfis do Blueprint (Etapa 2 / Fase A).
- * `admin` no banco = Super Admin (legado preservado — não renomear).
+ * Os 8 perfis de acesso. O valor `super_admin` no enum app_role era `admin`
+ * até a migration 20260903180000_perfis_acesso.
  */
 
 export const STAFF_ROLES = [
-  "admin",
+  "super_admin",
   "gestor_estrategico",
   "growth_manager",
   "social_media",
@@ -23,7 +23,7 @@ export type AppRole = (typeof APP_ROLES)[number];
 export type ViewArea = "admin" | "cliente";
 
 export const ROLE_LABELS: Record<AppRole, string> = {
-  admin: "Super Admin",
+  super_admin: "Super Admin",
   gestor_estrategico: "Gestor Estratégico",
   growth_manager: "Growth Manager",
   social_media: "Social Media",
@@ -46,7 +46,7 @@ export function isStaff(roles: readonly string[] | null | undefined): boolean {
 }
 
 export function isSuperAdmin(roles: readonly string[] | null | undefined): boolean {
-  return (roles ?? []).includes("admin");
+  return (roles ?? []).includes("super_admin");
 }
 
 export function primaryStaffRole(roles: readonly AppRole[]): StaffRole | null {

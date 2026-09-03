@@ -16,7 +16,7 @@ import { CheckCircle2, Clock, Users } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/admin/diagnosticos")({
   component: DiagnosticosPage,
-  head: () => ({ meta: [{ title: "Diagnóstico 7 Fontes — Tabgha Admin" }] }),
+  head: () => ({ meta: [{ title: "Diagnóstico 7 Fontes · Tabgha OS" }] }),
 });
 
 const PERIODOS = [

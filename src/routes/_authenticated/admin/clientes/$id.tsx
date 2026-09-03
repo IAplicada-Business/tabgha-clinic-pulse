@@ -67,7 +67,7 @@ import { syncAgenteAtivoInstances } from "@/lib/pietro";
 
 export const Route = createFileRoute("/_authenticated/admin/clientes/$id")({
   component: ClienteFichaPage,
-  head: () => ({ meta: [{ title: "Ficha do Cliente — Tabgha Admin" }] }),
+  head: () => ({ meta: [{ title: "Ficha do cliente · Tabgha OS" }] }),
 });
 
 type Cliente = Tables<"clientes">;

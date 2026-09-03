@@ -15,10 +15,11 @@ import { KpiCard } from "@/components/ui/kpi-card";
 import { useClientesOptions } from "@/hooks/useClientesOptions";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
+import { FinanceiroCards } from "@/components/financeiro/FinanceiroCards";
 
 export const Route = createFileRoute("/_authenticated/admin/dashboard")({
   component: DashboardTabghaPage,
-  head: () => ({ meta: [{ title: "Dashboard Tabgha — Admin" }] }),
+  head: () => ({ meta: [{ title: "Dashboard · Tabgha OS" }] }),
 });
 
 const CLIENTE_STATUS: Record<string, { dot: string; label: string; text: string }> = {
@@ -185,6 +186,8 @@ function DashboardTabghaPage() {
           Crescimento da agência e gestão da carteira. Mídia e CAQ ficam em ROI e Marketing Pago.
         </p>
       </header>
+      <FinanceiroCards />
+
       <AnalyticsFilters
         value={filters}
         onChange={setFilters}
@@ -240,7 +243,11 @@ function DashboardTabghaPage() {
             tint: "amber" as const,
           },
         ].map((card, i) => (
-          <div key={card.label} className="animate-fade-up" style={{ animationDelay: `${i * 70}ms` }}>
+          <div
+            key={card.label}
+            className="animate-fade-up"
+            style={{ animationDelay: `${i * 70}ms` }}
+          >
             <KpiCard
               label={card.label}
               value={card.value}

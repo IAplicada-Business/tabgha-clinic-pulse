@@ -3,6 +3,10 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
 import { isStaff } from "@/lib/roles";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { TabghaLogo } from "@/components/TabghaLogo";
 
 type AccessType = "equipe" | "cliente";
 const ACTIVE_ROLE_KEY = "tabgha_active_role";
@@ -62,7 +66,7 @@ export const Route = createFileRoute("/login")({
     }
   },
   component: LoginPage,
-  head: () => ({ meta: [{ title: "Login — Tabgha" }] }),
+  head: () => ({ meta: [{ title: "Entrar · Tabgha OS" }] }),
 });
 
 function LoginPage() {
@@ -79,12 +83,38 @@ function LoginPage() {
     setLoading(true);
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
-    if (error) { setError("Email ou senha incorretos."); return; }
+    if (error) {
+      setError("Email ou senha incorretos.");
+      return;
+    }
     const userId = data.user?.id;
-    if (!userId) { setError("Sessão não criada."); return; }
+    if (!userId) {
+      setError("Sessão não criada.");
+      return;
+    }
+    // Conta desativada em /admin/usuarios não entra (o registro continua existindo).
+    const { data: perfil } = await supabase
+      .from("profiles")
+      .select("ativo")
+      .eq("id", userId)
+      .maybeSingle();
+    if (perfil && perfil.ativo === false) {
+      await supabase.auth.signOut();
+      setError("Este acesso está desativado. Fale com o administrador.");
+      return;
+    }
+
     const { data: roles, error: rolesError } = await supabase
-      .from("user_roles").select("role").eq("user_id", userId);
-    if (rolesError) { setError("Login realizado, mas não foi possível carregar seu perfil."); return; }
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", userId);
+    if (rolesError) {
+      setError("Login realizado, mas não foi possível carregar seu perfil.");
+      return;
+    }
+
+    // profiles_self é SELECT-only; o carimbo entra pela função SECURITY DEFINER.
+    void supabase.rpc("registrar_acesso");
 
     const roleNames = (roles ?? []).map((r) => r.role);
     const hasStaff = isStaff(roleNames);
@@ -104,139 +134,119 @@ function LoginPage() {
   }
 
   return (
-    <div
-      className="relative min-h-screen w-full overflow-hidden flex items-center justify-center px-4"
-      style={{ backgroundColor: "#0B1B3E" }}
-    >
-      {/* Decorative gradient orbs */}
+    <div className="flex min-h-screen w-full flex-col md:flex-row">
+      {/* ── Lado esquerdo · marca ─────────────────────────────────────────── */}
       <div
-        className="pointer-events-none absolute -top-40 -right-40 h-[480px] w-[480px] rounded-full opacity-25 blur-[100px]"
-        style={{ background: "radial-gradient(circle, #1A5FAD 0%, transparent 70%)" }}
-      />
-      <div
-        className="pointer-events-none absolute -bottom-40 -left-40 h-[400px] w-[400px] rounded-full opacity-20 blur-[100px]"
-        style={{ background: "radial-gradient(circle, #F6A623 0%, transparent 70%)" }}
-      />
-      {/* Subtle grid texture */}
-      <div
-        className="pointer-events-none absolute inset-0 opacity-[0.03]"
+        className="relative flex shrink-0 flex-col items-center justify-center overflow-hidden px-8 py-10 md:w-1/2 md:py-0"
         style={{
-          backgroundImage: "linear-gradient(rgba(255,255,255,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.3) 1px, transparent 1px)",
-          backgroundSize: "48px 48px",
-        }}
-      />
-
-      {/* Glass card */}
-      <div
-        className="relative z-10 w-full max-w-[380px] rounded-2xl p-8"
-        style={{
-          background: "rgba(255,255,255,0.04)",
-          border: "1px solid rgba(255,255,255,0.10)",
-          backdropFilter: "blur(20px)",
-          WebkitBackdropFilter: "blur(20px)",
-          boxShadow: "0 32px 64px rgba(0,0,0,0.40), 0 0 0 1px rgba(255,255,255,0.05) inset",
+          background: "linear-gradient(150deg, var(--brand-navy) 0%, var(--brand-blue) 100%)",
         }}
       >
-        {/* Logo */}
-        <div className="flex flex-col items-center mb-7">
-          <img
-            src="https://tabghamkt.com.br/wp-content/uploads/2025/05/logo_tabgha_health_mkt_caixa_alta-04-scaled-e1747895382243.png"
-            alt="Tabgha Health Marketing"
-            className="h-8 w-auto mb-5 brightness-0 invert"
+        <div
+          className="pointer-events-none absolute inset-0 opacity-[0.05]"
+          style={{
+            backgroundImage:
+              "linear-gradient(rgba(255,255,255,0.35) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.35) 1px, transparent 1px)",
+            backgroundSize: "48px 48px",
+          }}
+        />
+        <div className="relative z-10 flex flex-col items-center text-center">
+          <TabghaLogo tone="claro" altura={72} className="md:!h-24" />
+          <p className="mt-5 text-[11px] font-semibold uppercase tracking-[0.28em] text-white/55 sm:text-[13px]">
+            Health Growth Operating System
+          </p>
+          <span
+            className="mt-6 h-[3px] w-16 rounded-full"
+            style={{ background: "var(--accent-orange)" }}
           />
-          <p className="text-[10px] font-semibold tracking-[0.2em] uppercase text-white/30">
-            Plataforma de Gestão
+          <p className="mt-6 hidden max-w-sm text-sm leading-relaxed text-white/45 md:block">
+            Estratégia, IA, CRM, automação e dados na mesma operação — para clínicas que querem
+            crescimento previsível.
           </p>
         </div>
-
-        {/* Access type switcher */}
-        <div
-          className="mb-6 grid grid-cols-2 rounded-xl p-1 gap-1"
-          style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.08)" }}
-        >
-          {(["equipe", "cliente"] as AccessType[]).map((t) => (
-            <button
-              key={t}
-              type="button"
-              onClick={() => { setAccess(t); setError(null); }}
-              className="rounded-lg px-3 py-2 text-[12px] font-semibold transition-all duration-200"
-              style={
-                access === t
-                  ? { background: "#1A5FAD", color: "#ffffff", boxShadow: "0 2px 8px rgba(30,92,200,0.40)" }
-                  : { color: "rgba(255,255,255,0.45)" }
-              }
-            >
-              {t === "equipe" ? "Equipe Tabgha" : "Portal do Cliente"}
-            </button>
-          ))}
-        </div>
-
-        {/* Form */}
-        <form onSubmit={onSubmit} className="space-y-3">
-          <input
-            type="email"
-            required
-            autoComplete="email"
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="w-full rounded-xl px-4 py-3 text-sm text-white placeholder-white/30 outline-none transition-all"
-            style={{
-              background: "rgba(255,255,255,0.07)",
-              border: "1px solid rgba(255,255,255,0.10)",
-            }}
-            onFocus={(e) => (e.currentTarget.style.border = "1px solid rgba(30,92,200,0.70)")}
-            onBlur={(e) => (e.currentTarget.style.border = "1px solid rgba(255,255,255,0.10)")}
-          />
-          <input
-            type="password"
-            required
-            autoComplete="current-password"
-            placeholder="Senha"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full rounded-xl px-4 py-3 text-sm text-white placeholder-white/30 outline-none transition-all"
-            style={{
-              background: "rgba(255,255,255,0.07)",
-              border: "1px solid rgba(255,255,255,0.10)",
-            }}
-            onFocus={(e) => (e.currentTarget.style.border = "1px solid rgba(30,92,200,0.70)")}
-            onBlur={(e) => (e.currentTarget.style.border = "1px solid rgba(255,255,255,0.10)")}
-          />
-
-          {error && (
-            <p className="rounded-lg px-3 py-2 text-xs text-red-300" style={{ background: "rgba(239,68,68,0.12)", border: "1px solid rgba(239,68,68,0.20)" }}>
-              {error}
-            </p>
-          )}
-
-          <div className="pt-1">
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full rounded-xl py-3 text-sm font-semibold text-white transition-all duration-200 disabled:opacity-50 flex items-center justify-center gap-2"
-              style={{ background: "linear-gradient(135deg, #1A5FAD 0%, #1749A0 100%)", boxShadow: "0 4px 14px rgba(30,92,200,0.35)" }}
-            >
-              {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-              {loading ? "Entrando…" : "Entrar"}
-            </button>
-          </div>
-        </form>
-
-        {/* Footer link */}
-        <p className="mt-6 text-center text-[11px] text-white/25">
-          Problemas com o acesso?{" "}
-          <a href="mailto:contato@tabghamkt.com.br" className="text-white/50 underline underline-offset-2 hover:text-white/70 transition-colors">
-            Fale com a equipe
-          </a>
-        </p>
       </div>
 
-      {/* Bottom badge */}
-      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 text-center">
-        <p className="text-[10px] text-white/20 tracking-wider">
-          TABGHA HEALTH MARKETING © 2025
-        </p>
+      {/* ── Lado direito · formulário ─────────────────────────────────────── */}
+      <div className="flex flex-1 items-center justify-center bg-card px-6 py-12">
+        <div className="w-full max-w-[380px]">
+          <h1 className="text-xl font-extrabold tracking-tight">Entrar</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Acesse com o e-mail cadastrado na Tabgha.
+          </p>
+
+          {/* Tipo de acesso */}
+          <div className="mt-6 grid grid-cols-2 gap-1 rounded-xl border border-border bg-secondary/50 p-1">
+            {(["equipe", "cliente"] as AccessType[]).map((t) => (
+              <button
+                key={t}
+                type="button"
+                onClick={() => {
+                  setAccess(t);
+                  setError(null);
+                }}
+                className={
+                  access === t
+                    ? "rounded-lg bg-primary px-3 py-2 text-[12px] font-semibold text-primary-foreground transition-all duration-200"
+                    : "rounded-lg px-3 py-2 text-[12px] font-semibold text-muted-foreground transition-all duration-200 hover:text-foreground"
+                }
+              >
+                {t === "equipe" ? "Equipe Tabgha" : "Portal do Cliente"}
+              </button>
+            ))}
+          </div>
+
+          <form onSubmit={onSubmit} className="mt-4 space-y-3">
+            <div className="space-y-1.5">
+              <Label htmlFor="login-email">E-mail</Label>
+              <Input
+                id="login-email"
+                type="email"
+                required
+                autoComplete="email"
+                placeholder="voce@clinica.com.br"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="login-senha">Senha</Label>
+              <Input
+                id="login-senha"
+                type="password"
+                required
+                autoComplete="current-password"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+            </div>
+
+            {error ? (
+              <p className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-700">
+                {error}
+              </p>
+            ) : null}
+
+            <Button type="submit" disabled={loading} className="w-full gap-2">
+              {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+              {loading ? "Entrando…" : "Entrar"}
+            </Button>
+          </form>
+
+          <p className="mt-6 text-center text-[11px] text-muted-foreground">
+            Problemas com o acesso?{" "}
+            <a
+              href="mailto:contato@tabghamkt.com.br"
+              className="font-medium text-primary underline-offset-2 transition-colors hover:text-[var(--accent-orange)] hover:underline"
+            >
+              Fale com a equipe
+            </a>
+          </p>
+
+          <p className="mt-10 text-center text-[10.5px] text-muted-foreground/70">
+            © 2026 Tabgha · Todos os direitos reservados
+          </p>
+        </div>
       </div>
     </div>
   );

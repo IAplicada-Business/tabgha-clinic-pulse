@@ -2,11 +2,7 @@
  * Permission helpers — array text[] no banco, com `*` como wildcard total.
  * Usado pelo AppLayout p/ filtrar sidebar e por guards de rota.
  */
-import {
-  type AppRole,
-  type StaffRole,
-  ROLE_LABELS,
-} from "@/lib/roles";
+import { type AppRole, type StaffRole, ROLE_LABELS } from "@/lib/roles";
 
 export function hasPermission(permissoes: string[] | null | undefined, required: string): boolean {
   if (!permissoes || permissoes.length === 0) return false;
@@ -23,19 +19,27 @@ export function hasAnyPermission(
   return required.some((r) => hasPermission(permissoes, r));
 }
 
-/** Grupos canônicos de permissão admin (notação dot, espelhada na sidebar) */
+/**
+ * Grupos canônicos de permissão admin (notação dot, espelhada na sidebar).
+ * Um grupo por linha da matriz roles_permissoes — mesma granularidade do banco.
+ */
 export const ADMIN_PERMISSION_GROUPS = {
   dashboard: "admin.dashboard",
+  dashboard_executivo: "admin.dashboard_executivo",
   clientes: "admin.clientes",
-  estrategia: "admin.estrategia",
-  operacao: "admin.operacao",
+  crm: "admin.crm",
+  pipeline: "admin.pipeline",
   atendimento: "admin.atendimento",
+  cerebro: "admin.cerebro",
+  nutricao: "admin.nutricao",
+  estrategia: "admin.estrategia",
+  calendario: "admin.calendario",
+  biblioteca: "admin.biblioteca",
   meta_ads: "admin.meta_ads",
+  diagnosticos: "admin.diagnosticos",
+  financeiro: "admin.financeiro",
   roi: "admin.roi",
   usuarios: "admin.usuarios",
-  diagnosticos: "admin.diagnosticos",
-  /** Fase B — Pipeline B2B (rota ainda não existe; preset Growth Manager já inclui) */
-  pipeline: "admin.pipeline",
 } as const;
 
 export type AdminPermissionGroup = keyof typeof ADMIN_PERMISSION_GROUPS;
@@ -43,15 +47,21 @@ export type AdminPermissionGroup = keyof typeof ADMIN_PERMISSION_GROUPS;
 /** Rótulos alinhados ao menu admin (AppLayout) */
 export const ADMIN_PERMISSION_LABELS: Record<AdminPermissionGroup, string> = {
   dashboard: "Dashboard",
-  roi: "ROI da operação",
-  meta_ads: "Marketing Pago",
-  clientes: "Clientes",
-  diagnosticos: "Diagnósticos",
-  atendimento: "Atendimento WhatsApp",
-  estrategia: "Estratégia editorial",
-  operacao: "Automações & Operação",
-  usuarios: "Usuários & acessos",
+  dashboard_executivo: "Dashboard de clientes",
+  clientes: "Carteira de clientes",
+  crm: "Funil de pacientes",
   pipeline: "Pipeline comercial B2B",
+  atendimento: "Atendimento WhatsApp",
+  cerebro: "Cérebro Pietro",
+  nutricao: "Automações & nutrição",
+  estrategia: "Estratégia editorial",
+  calendario: "Calendário editorial",
+  biblioteca: "Biblioteca criativa",
+  meta_ads: "Marketing pago",
+  diagnosticos: "Diagnósticos",
+  financeiro: "Financeiro",
+  roi: "Resultados & ROI",
+  usuarios: "Usuários & acessos",
 };
 
 /** Grupos canônicos do portal do médico */
@@ -87,53 +97,42 @@ export const CLIENT_PERMISSION_LABELS: Record<ClientPermissionGroup, string> = {
 
 const ALL_CLIENT_PERMS = Object.values(CLIENT_PERMISSION_GROUPS);
 
+const A = ADMIN_PERMISSION_GROUPS;
+
 /**
- * Presets nomeados dos 8 perfis do Blueprint.
- *
- * // PLACEHOLDER — revisar com Pietro matriz exata de telas por perfil
- * // (Blueprint lista os 8 papéis; granularidade fina ainda não validada).
+ * Matriz perfil × permissão — espelho do que a migration
+ * 20260903180000_perfis_acesso gravou em public.roles_permissoes.
+ * O banco é a origem (permissoes_do_perfil lê de lá ao provisionar usuário);
+ * esta cópia serve ao guarda de rota e à sidebar, que precisam ser síncronos.
  */
 export const ROLE_PERMISSION_PRESETS: Record<AppRole, string[]> = {
-  admin: ["*"],
+  super_admin: ["*"],
   gestor_estrategico: [
-    ADMIN_PERMISSION_GROUPS.dashboard,
-    ADMIN_PERMISSION_GROUPS.clientes,
-    ADMIN_PERMISSION_GROUPS.estrategia,
-    ADMIN_PERMISSION_GROUPS.roi,
-    ADMIN_PERMISSION_GROUPS.diagnosticos,
-    ADMIN_PERMISSION_GROUPS.operacao,
-    ADMIN_PERMISSION_GROUPS.meta_ads,
+    A.dashboard,
+    A.dashboard_executivo,
+    A.clientes,
+    A.crm,
+    A.pipeline,
+    A.diagnosticos,
+    A.financeiro,
+    A.roi,
   ],
   growth_manager: [
-    ADMIN_PERMISSION_GROUPS.dashboard,
-    ADMIN_PERMISSION_GROUPS.clientes,
-    ADMIN_PERMISSION_GROUPS.operacao,
-    ADMIN_PERMISSION_GROUPS.meta_ads,
-    ADMIN_PERMISSION_GROUPS.roi,
-    ADMIN_PERMISSION_GROUPS.pipeline,
+    A.dashboard,
+    A.clientes,
+    A.crm,
+    A.pipeline,
+    A.atendimento,
+    A.cerebro,
+    A.nutricao,
+    A.biblioteca,
+    A.calendario,
+    A.roi,
   ],
-  social_media: [
-    ADMIN_PERMISSION_GROUPS.estrategia,
-    ADMIN_PERMISSION_GROUPS.operacao,
-    ADMIN_PERMISSION_GROUPS.clientes,
-  ],
-  performance: [
-    ADMIN_PERMISSION_GROUPS.dashboard,
-    ADMIN_PERMISSION_GROUPS.meta_ads,
-    ADMIN_PERMISSION_GROUPS.roi,
-    ADMIN_PERMISSION_GROUPS.clientes,
-  ],
-  atendimento_cs: [
-    ADMIN_PERMISSION_GROUPS.atendimento,
-    ADMIN_PERMISSION_GROUPS.clientes,
-    ADMIN_PERMISSION_GROUPS.diagnosticos,
-    ADMIN_PERMISSION_GROUPS.operacao,
-  ],
-  financeiro: [
-    ADMIN_PERMISSION_GROUPS.roi,
-    ADMIN_PERMISSION_GROUPS.dashboard,
-    ADMIN_PERMISSION_GROUPS.clientes,
-  ],
+  social_media: [A.clientes, A.estrategia, A.biblioteca, A.calendario, A.roi],
+  performance: [A.dashboard, A.clientes, A.meta_ads, A.roi],
+  atendimento_cs: [A.dashboard, A.clientes, A.crm, A.atendimento, A.diagnosticos],
+  financeiro: [A.dashboard, A.clientes, A.financeiro],
   cliente: [...ALL_CLIENT_PERMS],
 };
 
@@ -143,39 +142,39 @@ export const ROLE_PRESET_OPTIONS: Array<{
   description: string;
 }> = [
   {
-    role: "admin",
-    label: ROLE_LABELS.admin,
+    role: "super_admin",
+    label: ROLE_LABELS.super_admin,
     description: "Acesso total ao painel interno (e gestão de usuários).",
   },
   {
     role: "gestor_estrategico",
     label: ROLE_LABELS.gestor_estrategico,
-    description: "Visão ampla: clientes, estratégia, ROI e diagnósticos.",
+    description: "Visão ampla: clientes, funil, diagnósticos, financeiro e ROI.",
   },
   {
     role: "growth_manager",
     label: ROLE_LABELS.growth_manager,
-    description: "Aquisição B2B, funil, Meta Ads e pipeline comercial.",
+    description: "Funil, atendimento, nutrição, conteúdo e pipeline comercial.",
   },
   {
     role: "social_media",
     label: ROLE_LABELS.social_media,
-    description: "Estratégia editorial, calendário e operação de conteúdo.",
+    description: "Estratégia editorial, calendário e biblioteca criativa.",
   },
   {
     role: "performance",
     label: ROLE_LABELS.performance,
-    description: "Mídia paga, ROI e dashboards de performance.",
+    description: "Meta Ads, conexões, ROI e dashboard de performance.",
   },
   {
     role: "atendimento_cs",
     label: ROLE_LABELS.atendimento_cs,
-    description: "WhatsApp, clientes e acompanhamento de diagnósticos.",
+    description: "WhatsApp, funil de pacientes e diagnósticos.",
   },
   {
     role: "financeiro",
     label: ROLE_LABELS.financeiro,
-    description: "ROI da operação e visão financeira por cliente.",
+    description: "Contratos, cobranças, MRR e inadimplência.",
   },
   {
     role: "cliente",
@@ -186,7 +185,7 @@ export const ROLE_PRESET_OPTIONS: Array<{
 
 /** Aplica preset de um perfil staff; opcionalmente une permissões do portal. */
 export function permissionsForRoles(roles: AppRole[]): string[] {
-  if (roles.includes("admin")) return ["*"];
+  if (roles.includes("super_admin")) return ["*"];
   const set = new Set<string>();
   for (const role of roles) {
     for (const p of ROLE_PERMISSION_PRESETS[role] ?? []) set.add(p);
@@ -207,8 +206,7 @@ export function summarizePermissions(
   if (permissoes.includes("*")) return "Acesso total";
 
   const roleList = Array.isArray(role) ? role : role ? [role] : [];
-  const includeAdmin =
-    roleList.some((r) => r !== "cliente") || roleList.length === 0;
+  const includeAdmin = roleList.some((r) => r !== "cliente") || roleList.length === 0;
   const includeCliente = roleList.includes("cliente") || roleList.length === 0;
 
   const matched: string[] = [];
@@ -242,8 +240,7 @@ export function canSeeNavPermission(
   if (
     opts?.simulatingAsCliente &&
     required.startsWith("cliente.") &&
-    (hasPermission(permissoes, "*") ||
-      (permissoes ?? []).some((p) => p.startsWith("admin.")))
+    (hasPermission(permissoes, "*") || (permissoes ?? []).some((p) => p.startsWith("admin.")))
   ) {
     return true;
   }

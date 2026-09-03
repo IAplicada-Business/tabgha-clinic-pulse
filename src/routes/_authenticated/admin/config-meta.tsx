@@ -35,7 +35,7 @@ type ClienteMetaRow = {
 
 export const Route = createFileRoute("/_authenticated/admin/config-meta")({
   component: ConfigMetaPage,
-  head: () => ({ meta: [{ title: "Conectar Meta BM — Admin" }] }),
+  head: () => ({ meta: [{ title: "Conexões Meta · Tabgha OS" }] }),
 });
 
 type MetaExtras = {
