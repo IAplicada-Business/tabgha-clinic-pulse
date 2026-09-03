@@ -36,6 +36,7 @@ import {
   Megaphone,
   DollarSign,
   Images,
+  Settings,
 } from "lucide-react";
 
 type NavChild = {
@@ -212,6 +213,12 @@ const ADMIN_ITEMS = {
     icon: UserCog,
     perm: "admin.usuarios",
   },
+  configuracoes: {
+    to: "/admin/configuracoes",
+    label: "Configurações",
+    icon: Settings,
+    perm: "admin.usuarios",
+  },
   conexoesMeta: {
     to: "/admin/config-meta",
     label: "Conexões Meta",
@@ -244,7 +251,10 @@ const ADMIN_NAV_BY_ROLE: Record<StaffRole, NavGroup[]> = {
       items: [ADMIN_ITEMS.estrategia, ADMIN_ITEMS.biblioteca, ADMIN_ITEMS.calendario],
     },
     { group: "Comercial Tabgha", items: [ADMIN_ITEMS.pipelineB2b, ADMIN_ITEMS.financeiro] },
-    { group: "Administração", items: [ADMIN_ITEMS.usuarios, ADMIN_ITEMS.conexoesMeta] },
+    {
+      group: "Administração",
+      items: [ADMIN_ITEMS.usuarios, ADMIN_ITEMS.conexoesMeta, ADMIN_ITEMS.configuracoes],
+    },
   ],
   gestor_estrategico: [
     { group: "Visão estratégica", items: [ADMIN_ITEMS.dashboard, ADMIN_ITEMS.roi] },

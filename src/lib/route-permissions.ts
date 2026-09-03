@@ -17,6 +17,9 @@ type RouteRule = {
  */
 const ADMIN_ROUTE_RULES: RouteRule[] = [
   { prefix: "/admin/usuarios", perm: ADMIN_PERMISSION_GROUPS.usuarios },
+  // Configurações é super-admin-only; reaproveita a permissão de usuários em vez
+  // de criar um grupo novo para uma tela só.
+  { prefix: "/admin/configuracoes", perm: ADMIN_PERMISSION_GROUPS.usuarios },
   { prefix: "/admin/diagnosticos", perm: ADMIN_PERMISSION_GROUPS.diagnosticos },
   { prefix: "/admin/estrategia", perm: ADMIN_PERMISSION_GROUPS.estrategia },
   { prefix: "/admin/biblioteca-criativa", perm: ADMIN_PERMISSION_GROUPS.biblioteca },
@@ -92,6 +95,7 @@ export function firstAllowedAdminPath(permissoes: string[] | null | undefined): 
     "/admin/pipeline-comercial",
     "/admin/usuarios",
     "/admin/config-meta",
+    "/admin/configuracoes",
   ];
   for (const path of candidates) {
     const required = requiredPermissionForPath(path);

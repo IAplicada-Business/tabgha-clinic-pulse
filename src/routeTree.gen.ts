@@ -24,6 +24,7 @@ import { Route as AuthenticatedAdminBibliotecaCriativaRouteImport } from './rout
 import { Route as AuthenticatedAdminCalendarioRouteImport } from './routes/_authenticated/admin/calendario'
 import { Route as AuthenticatedAdminCerebroPietroRouteImport } from './routes/_authenticated/admin/cerebro-pietro'
 import { Route as AuthenticatedAdminConfigMetaRouteImport } from './routes/_authenticated/admin/config-meta'
+import { Route as AuthenticatedAdminConfiguracoesRouteImport } from './routes/_authenticated/admin/configuracoes'
 import { Route as AuthenticatedAdminDashboardRouteImport } from './routes/_authenticated/admin/dashboard'
 import { Route as AuthenticatedAdminDashboardClientesRouteImport } from './routes/_authenticated/admin/dashboard-clientes'
 import { Route as AuthenticatedAdminDiagnosticosRouteImport } from './routes/_authenticated/admin/diagnosticos'
@@ -128,6 +129,12 @@ const AuthenticatedAdminConfigMetaRoute =
   AuthenticatedAdminConfigMetaRouteImport.update({
     id: '/config-meta',
     path: '/config-meta',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
+const AuthenticatedAdminConfiguracoesRoute =
+  AuthenticatedAdminConfiguracoesRouteImport.update({
+    id: '/configuracoes',
+    path: '/configuracoes',
     getParentRoute: () => AuthenticatedAdminRouteRoute,
   } as any)
 const AuthenticatedAdminDashboardRoute =
@@ -287,6 +294,7 @@ export interface FileRoutesByFullPath {
   '/admin/calendario': typeof AuthenticatedAdminCalendarioRoute
   '/admin/cerebro-pietro': typeof AuthenticatedAdminCerebroPietroRoute
   '/admin/config-meta': typeof AuthenticatedAdminConfigMetaRoute
+  '/admin/configuracoes': typeof AuthenticatedAdminConfiguracoesRoute
   '/admin/dashboard': typeof AuthenticatedAdminDashboardRoute
   '/admin/dashboard-clientes': typeof AuthenticatedAdminDashboardClientesRoute
   '/admin/diagnosticos': typeof AuthenticatedAdminDiagnosticosRoute
@@ -327,6 +335,7 @@ export interface FileRoutesByTo {
   '/admin/calendario': typeof AuthenticatedAdminCalendarioRoute
   '/admin/cerebro-pietro': typeof AuthenticatedAdminCerebroPietroRoute
   '/admin/config-meta': typeof AuthenticatedAdminConfigMetaRoute
+  '/admin/configuracoes': typeof AuthenticatedAdminConfiguracoesRoute
   '/admin/dashboard': typeof AuthenticatedAdminDashboardRoute
   '/admin/dashboard-clientes': typeof AuthenticatedAdminDashboardClientesRoute
   '/admin/diagnosticos': typeof AuthenticatedAdminDiagnosticosRoute
@@ -369,6 +378,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/calendario': typeof AuthenticatedAdminCalendarioRoute
   '/_authenticated/admin/cerebro-pietro': typeof AuthenticatedAdminCerebroPietroRoute
   '/_authenticated/admin/config-meta': typeof AuthenticatedAdminConfigMetaRoute
+  '/_authenticated/admin/configuracoes': typeof AuthenticatedAdminConfiguracoesRoute
   '/_authenticated/admin/dashboard': typeof AuthenticatedAdminDashboardRoute
   '/_authenticated/admin/dashboard-clientes': typeof AuthenticatedAdminDashboardClientesRoute
   '/_authenticated/admin/diagnosticos': typeof AuthenticatedAdminDiagnosticosRoute
@@ -411,6 +421,7 @@ export interface FileRouteTypes {
     | '/admin/calendario'
     | '/admin/cerebro-pietro'
     | '/admin/config-meta'
+    | '/admin/configuracoes'
     | '/admin/dashboard'
     | '/admin/dashboard-clientes'
     | '/admin/diagnosticos'
@@ -451,6 +462,7 @@ export interface FileRouteTypes {
     | '/admin/calendario'
     | '/admin/cerebro-pietro'
     | '/admin/config-meta'
+    | '/admin/configuracoes'
     | '/admin/dashboard'
     | '/admin/dashboard-clientes'
     | '/admin/diagnosticos'
@@ -492,6 +504,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/calendario'
     | '/_authenticated/admin/cerebro-pietro'
     | '/_authenticated/admin/config-meta'
+    | '/_authenticated/admin/configuracoes'
     | '/_authenticated/admin/dashboard'
     | '/_authenticated/admin/dashboard-clientes'
     | '/_authenticated/admin/diagnosticos'
@@ -633,6 +646,13 @@ declare module '@tanstack/react-router' {
       path: '/config-meta'
       fullPath: '/admin/config-meta'
       preLoaderRoute: typeof AuthenticatedAdminConfigMetaRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
+    '/_authenticated/admin/configuracoes': {
+      id: '/_authenticated/admin/configuracoes'
+      path: '/configuracoes'
+      fullPath: '/admin/configuracoes'
+      preLoaderRoute: typeof AuthenticatedAdminConfiguracoesRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
     }
     '/_authenticated/admin/dashboard': {
@@ -813,6 +833,7 @@ interface AuthenticatedAdminRouteRouteChildren {
   AuthenticatedAdminCalendarioRoute: typeof AuthenticatedAdminCalendarioRoute
   AuthenticatedAdminCerebroPietroRoute: typeof AuthenticatedAdminCerebroPietroRoute
   AuthenticatedAdminConfigMetaRoute: typeof AuthenticatedAdminConfigMetaRoute
+  AuthenticatedAdminConfiguracoesRoute: typeof AuthenticatedAdminConfiguracoesRoute
   AuthenticatedAdminDashboardRoute: typeof AuthenticatedAdminDashboardRoute
   AuthenticatedAdminDashboardClientesRoute: typeof AuthenticatedAdminDashboardClientesRoute
   AuthenticatedAdminDiagnosticosRoute: typeof AuthenticatedAdminDiagnosticosRoute
@@ -838,6 +859,7 @@ const AuthenticatedAdminRouteRouteChildren: AuthenticatedAdminRouteRouteChildren
     AuthenticatedAdminCalendarioRoute: AuthenticatedAdminCalendarioRoute,
     AuthenticatedAdminCerebroPietroRoute: AuthenticatedAdminCerebroPietroRoute,
     AuthenticatedAdminConfigMetaRoute: AuthenticatedAdminConfigMetaRoute,
+    AuthenticatedAdminConfiguracoesRoute: AuthenticatedAdminConfiguracoesRoute,
     AuthenticatedAdminDashboardRoute: AuthenticatedAdminDashboardRoute,
     AuthenticatedAdminDashboardClientesRoute:
       AuthenticatedAdminDashboardClientesRoute,

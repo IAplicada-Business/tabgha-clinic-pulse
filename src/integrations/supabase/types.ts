@@ -16,6 +16,7 @@ export type Database = {
     Tables: {
       agendamentos: {
         Row: {
+          is_demo: boolean
           cliente_id: string
           criado_em: string
           descricao: string | null
@@ -27,6 +28,7 @@ export type Database = {
           visivel_cliente: boolean
         }
         Insert: {
+          is_demo?: boolean
           cliente_id: string
           criado_em?: string
           descricao?: string | null
@@ -38,6 +40,7 @@ export type Database = {
           visivel_cliente?: boolean
         }
         Update: {
+          is_demo?: boolean
           cliente_id?: string
           criado_em?: string
           descricao?: string | null
@@ -199,6 +202,7 @@ export type Database = {
       }
       conteudos: {
         Row: {
+          is_demo: boolean
           arquivos: Json
           atualizado_em: string
           autor_id: string | null
@@ -224,6 +228,7 @@ export type Database = {
           versao_de: string | null
         }
         Insert: {
+          is_demo?: boolean
           arquivos?: Json
           atualizado_em?: string
           autor_id?: string | null
@@ -249,6 +254,7 @@ export type Database = {
           versao_de?: string | null
         }
         Update: {
+          is_demo?: boolean
           arquivos?: Json
           atualizado_em?: string
           autor_id?: string | null
@@ -285,6 +291,7 @@ export type Database = {
       }
       contratos: {
         Row: {
+          is_demo: boolean
           atualizado_em: string
           cliente_id: string
           criado_em: string
@@ -300,6 +307,7 @@ export type Database = {
           vigencia_inicio: string
         }
         Insert: {
+          is_demo?: boolean
           atualizado_em?: string
           cliente_id: string
           criado_em?: string
@@ -315,6 +323,7 @@ export type Database = {
           vigencia_inicio?: string
         }
         Update: {
+          is_demo?: boolean
           atualizado_em?: string
           cliente_id?: string
           criado_em?: string
@@ -460,6 +469,7 @@ export type Database = {
       }
       diagnostico_respostas: {
         Row: {
+          is_demo: boolean
           atualizado_em: string
           cliente_id: string
           criado_em: string
@@ -470,6 +480,7 @@ export type Database = {
           valor_texto: string | null
         }
         Insert: {
+          is_demo?: boolean
           atualizado_em?: string
           cliente_id: string
           criado_em?: string
@@ -480,6 +491,7 @@ export type Database = {
           valor_texto?: string | null
         }
         Update: {
+          is_demo?: boolean
           atualizado_em?: string
           cliente_id?: string
           criado_em?: string
@@ -599,6 +611,7 @@ export type Database = {
       }
       faturas: {
         Row: {
+          is_demo: boolean
           atualizado_em: string
           cliente_id: string
           contrato_id: string | null
@@ -616,6 +629,7 @@ export type Database = {
           vencimento: string
         }
         Insert: {
+          is_demo?: boolean
           atualizado_em?: string
           cliente_id: string
           contrato_id?: string | null
@@ -633,6 +647,7 @@ export type Database = {
           vencimento: string
         }
         Update: {
+          is_demo?: boolean
           atualizado_em?: string
           cliente_id?: string
           contrato_id?: string | null
@@ -668,6 +683,7 @@ export type Database = {
       }
       leads: {
         Row: {
+          is_demo: boolean
           atualizado_em: string
           canal: string | null
           cliente_id: string
@@ -695,6 +711,7 @@ export type Database = {
           utm_term: string | null
         }
         Insert: {
+          is_demo?: boolean
           atualizado_em?: string
           canal?: string | null
           cliente_id: string
@@ -722,6 +739,7 @@ export type Database = {
           utm_term?: string | null
         }
         Update: {
+          is_demo?: boolean
           atualizado_em?: string
           canal?: string | null
           cliente_id?: string
@@ -760,6 +778,7 @@ export type Database = {
       }
       metricas_ads: {
         Row: {
+          is_demo: boolean
           ad_id: string
           anuncio: string | null
           campanha: string
@@ -779,6 +798,7 @@ export type Database = {
           roas: number | null
         }
         Insert: {
+          is_demo?: boolean
           ad_id?: string
           anuncio?: string | null
           campanha?: string
@@ -798,6 +818,7 @@ export type Database = {
           roas?: number | null
         }
         Update: {
+          is_demo?: boolean
           ad_id?: string
           anuncio?: string | null
           campanha?: string
@@ -1092,6 +1113,7 @@ export type Database = {
       }
       whatsapp_conversations: {
         Row: {
+          is_demo: boolean
           atualizado_em: string
           bot_notes: Json | null
           bot_score: number | null
@@ -1111,6 +1133,7 @@ export type Database = {
           step_count: number
         }
         Insert: {
+          is_demo?: boolean
           atualizado_em?: string
           bot_notes?: Json | null
           bot_score?: number | null
@@ -1130,6 +1153,7 @@ export type Database = {
           step_count?: number
         }
         Update: {
+          is_demo?: boolean
           atualizado_em?: string
           bot_notes?: Json | null
           bot_score?: number | null
@@ -1217,6 +1241,7 @@ export type Database = {
       }
       whatsapp_messages: {
         Row: {
+          is_demo: boolean
           body: string
           cliente_id: string
           conversation_id: string
@@ -1230,6 +1255,7 @@ export type Database = {
           zapi_message_id: string | null
         }
         Insert: {
+          is_demo?: boolean
           body: string
           cliente_id: string
           conversation_id: string
@@ -1243,6 +1269,7 @@ export type Database = {
           zapi_message_id?: string | null
         }
         Update: {
+          is_demo?: boolean
           body?: string
           cliente_id?: string
           conversation_id?: string
@@ -1440,6 +1467,7 @@ export type Database = {
         Returns: boolean
       }
       is_staff: { Args: { _user_id: string }; Returns: boolean }
+      limpar_dados_demo: { Args: never; Returns: Json }
       log_ticket_converted: {
         Args: { _lead_id: string; _ticket: number }
         Returns: undefined
@@ -1474,6 +1502,7 @@ export type Database = {
         Returns: undefined
       }
       registrar_acesso: { Args: never; Returns: undefined }
+      seed_demo_tabgha: { Args: { _cliente_id: string }; Returns: Json }
       responder_conteudo: {
         Args: { _acao?: string; _aprovada: boolean; _feedback?: string; _id: string }
         Returns: undefined
