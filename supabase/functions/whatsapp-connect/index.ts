@@ -92,13 +92,19 @@ Deno.serve(async (req) => {
     } = await userClient.auth.getUser();
     if (userError || !user) return json({ ok: false, error: "unauthorized" }, 401);
 
-    const [{ data: roleRow }, { data: profile }] = await Promise.all([
-      admin.from("user_roles").select("role").eq("user_id", user.id).maybeSingle(),
+    // Um usuário pode ter equipe + portal; maybeSingle() dava erro nesse caso.
+    const [{ data: roleRows }, { data: profile }] = await Promise.all([
+      admin.from("user_roles").select("role").eq("user_id", user.id),
       admin.from("profiles").select("cliente_id").eq("id", user.id).maybeSingle(),
     ]);
-    callerRole = roleRow?.role ?? null;
+    const papeis = (roleRows ?? []).map((r) => r.role as string);
+    callerRole = papeis.includes("super_admin")
+      ? "super_admin"
+      : papeis.includes("cliente")
+        ? "cliente"
+        : null;
     callerClienteId = profile?.cliente_id ?? null;
-    if (callerRole !== "super_admin" && callerRole !== "cliente") {
+    if (!callerRole) {
       return json({ ok: false, error: "forbidden" }, 403);
     }
   }
