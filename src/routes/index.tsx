@@ -408,6 +408,34 @@ function Nav() {
 
 // ─── Hero product cards ────────────────────────────────────────────────────────
 
+/**
+ * Os cards do hero e do carrossel são ilustrações da interface, não resultados
+ * de clientes. Números concretos (ROAS, leads, CPL, conversão) saíram junto com
+ * o bloco de métricas não autorizadas — no lugar entra esta barra neutra, que
+ * mostra a forma da tela sem afirmar desempenho nenhum.
+ */
+function ValorIlustrativo({
+  largura = 64,
+  altura = 22,
+  claro = false,
+}: {
+  largura?: number;
+  altura?: number;
+  claro?: boolean;
+}) {
+  return (
+    <div
+      aria-hidden
+      style={{
+        width: largura,
+        height: altura,
+        borderRadius: 6,
+        background: claro ? "rgba(255,255,255,0.18)" : "rgba(13,27,62,0.12)",
+      }}
+    />
+  );
+}
+
 function ProductCard1() {
   return (
     <div style={{
@@ -427,8 +455,10 @@ function ProductCard1() {
         </div>
         <span style={{ fontSize: 10, fontWeight: 600, color: "#16a34a", background: "#dcfce7", borderRadius: 20, padding: "2px 8px" }}>hoje</span>
       </div>
-      <div style={{ fontSize: 28, fontWeight: 700, color: "#0D1B3E", lineHeight: 1 }}>12</div>
-      <div style={{ fontSize: 11, color: "#64748b", marginTop: 4 }}>↑ 3 vs. ontem</div>
+      <ValorIlustrativo largura={72} altura={26} />
+      <div style={{ marginTop: 6 }}>
+        <ValorIlustrativo largura={96} altura={10} />
+      </div>
     </div>
   );
 }
@@ -450,7 +480,7 @@ function ProductCard2() {
         </div>
         <span style={{ fontSize: 12, fontWeight: 600, color: "#0D1B3E" }}>ROAS</span>
       </div>
-      <div style={{ fontSize: 28, fontWeight: 700, color: "#0D1B3E", lineHeight: 1 }}>4.1x</div>
+      <ValorIlustrativo largura={72} altura={26} />
       <div style={{ display: "flex", alignItems: "flex-end", gap: 3, marginTop: 10, height: 36 }}>
         {bars.map((h, i) => (
           <div
@@ -493,16 +523,16 @@ function ProductCard3() {
           fontWeight: 700,
           color: "#fff",
         }}>
-          AC
+          <CheckCircle style={{ width: 15, height: 15, color: "#fff" }} />
         </div>
         <div>
           <div style={{ fontSize: 11, fontWeight: 600, color: "#0D1B3E" }}>Conteúdo aprovado</div>
-          <div style={{ fontSize: 10, color: "#94a3b8" }}>Dra. Ana Claudia</div>
+          <div style={{ fontSize: 10, color: "#94a3b8" }}>Portal do médico</div>
         </div>
       </div>
       <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 12px", background: "#f0fdf4", borderRadius: 10 }}>
         <CheckCircle style={{ width: 16, height: 16, color: "#16a34a" }} />
-        <span style={{ fontSize: 11, fontWeight: 600, color: "#16a34a" }}>3 posts aprovados</span>
+        <span style={{ fontSize: 11, fontWeight: 600, color: "#16a34a" }}>Aprovado em um clique</span>
       </div>
       <div style={{ fontSize: 10, color: "#94a3b8", marginTop: 8 }}>Próxima publicação: amanhã</div>
     </div>
@@ -818,7 +848,7 @@ function TrustBar() {
               color: "#1A5FAD",
             }}
           >
-            Especialidades que confiam na Tabgha
+            Especialidades atendidas pelo framework
           </span>
         </div>
         <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "center", gap: 10 }}>
@@ -1247,10 +1277,10 @@ function HowItWorks() {
             Dashboard de ROI
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-            {[["ROAS", "4.1x"], ["Leads", "+127"], ["CPL", "R$ 48"], ["Conv.", "22%"]].map(([label, val]) => (
+            {["ROAS", "Leads", "CPL", "Conversão"].map((label) => (
               <div key={label} style={{ background: "rgba(255,255,255,0.07)", borderRadius: 10, padding: "12px 14px" }}>
-                <div style={{ fontSize: 10, color: "rgba(255,255,255,0.5)", marginBottom: 4 }}>{label}</div>
-                <div style={{ fontSize: 20, fontWeight: 700, color: "#fff" }}>{val}</div>
+                <div style={{ fontSize: 10, color: "rgba(255,255,255,0.5)", marginBottom: 6 }}>{label}</div>
+                <ValorIlustrativo largura={58} altura={18} claro />
               </div>
             ))}
           </div>
