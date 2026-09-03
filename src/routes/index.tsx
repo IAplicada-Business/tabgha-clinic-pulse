@@ -12,10 +12,10 @@ import {
   X,
   Star,
   Brain,
-  Target,
-  Rocket,
   Instagram,
   BarChart2,
+  Settings2,
+  ShieldCheck,
 } from "lucide-react";
 
 export const Route = createFileRoute("/")({
@@ -121,27 +121,23 @@ const SPECIALTIES = [
  */
 const PILARES_LP = [
   {
-    emoji: "🏥",
     icon: Users,
     titulo: "Múltiplas especialidades",
     descricao:
       "Framework aplicável a consultórios, clínicas e instituições de qualquer porte",
   },
   {
-    emoji: "⚙️",
-    icon: Rocket,
+    icon: Settings2,
     titulo: "Operação estruturada",
     descricao: "Processos, automações e IA integrados em uma única plataforma",
   },
   {
-    emoji: "📊",
     icon: TrendingUp,
     titulo: "Resultados mensuráveis",
     descricao: "Cada decisão sustentada por dados em tempo real",
   },
   {
-    emoji: "🔒",
-    icon: Target,
+    icon: ShieldCheck,
     titulo: "Compliance médico",
     descricao: "Desenvolvido seguindo boas práticas de CFM e LGPD",
   },
@@ -757,21 +753,34 @@ function Hero() {
             overflow: "hidden",
           }}
         >
-          {PILARES_LP.map((s, i) => (
-            <div
-              key={s.titulo}
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                padding: "20px 16px",
-                borderLeft: i > 0 ? "1px solid rgba(255,255,255,0.08)" : undefined,
-              }}
-            >
-              <span style={{ fontSize: 22, lineHeight: 1 }}>{s.emoji}</span>
-              <span style={{ marginTop: 6, fontSize: 10.5, fontWeight: 600, color: "rgba(255,255,255,0.8)", textAlign: "center" }}>{s.titulo}</span>
-            </div>
-          ))}
+          {PILARES_LP.map((s, i) => {
+            const Icone = s.icon;
+            return (
+              <div
+                key={s.titulo}
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  padding: "20px 16px",
+                  borderLeft: i > 0 ? "1px solid rgba(255,255,255,0.08)" : undefined,
+                }}
+              >
+                <Icone style={{ width: 22, height: 22, color: "#60C3E8" }} />
+                <span
+                  style={{
+                    marginTop: 6,
+                    fontSize: 10.5,
+                    fontWeight: 600,
+                    color: "rgba(255,255,255,0.8)",
+                    textAlign: "center",
+                  }}
+                >
+                  {s.titulo}
+                </span>
+              </div>
+            );
+          })}
         </div>
       </div>
 
@@ -892,19 +901,16 @@ function TrustBar() {
 function ProblemSection() {
   const segments = [
     {
-      emoji: "📉",
       label: "Médicos & Consultórios",
       title: "Agenda com buracos todo mês",
       desc: "Sem estratégia, cada mês começa do zero. Você depende de indicação e torce para o telefone tocar.",
     },
     {
-      emoji: "🌀",
       label: "Clínicas Especializadas",
       title: "Agência que não entende saúde",
       desc: "Posts genéricos, copy que viola o CFM, métricas de vaidade. Dinheiro gasto sem retorno mensurável.",
     },
     {
-      emoji: "🔍",
       label: "Redes de Clínicas",
       title: "Zero visibilidade sobre o que funciona",
       desc: "Não sabe quantos leads vieram de cada canal, qual campanha converteu, nem quanto custa um paciente novo.",
@@ -1466,9 +1472,8 @@ function PilarCard({ pilar }: { pilar: (typeof PILARES_LP)[0] }) {
         boxShadow: "0 12px 40px rgba(43,108,176,0.28)",
       }}
     >
-      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
-        <span style={{ fontSize: 26, lineHeight: 1 }}>{pilar.emoji}</span>
-        <Icon style={{ width: 22, height: 22, color: "rgba(255,255,255,0.55)" }} />
+      <div style={{ display: "flex", alignItems: "center", marginBottom: 16 }}>
+        <Icon style={{ width: 28, height: 28, color: "#60C3E8" }} />
       </div>
       <span
         style={{
@@ -1976,9 +1981,13 @@ function CTASection() {
                   color: "#60C3E8",
                   fontSize: 15,
                   fontWeight: 500,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 10,
                 }}
               >
-                ✓ Recebemos sua mensagem. O time da Tabgha vai te chamar em até 1 dia útil.
+                <CheckCircle style={{ width: 18, height: 18, flexShrink: 0 }} />
+                Recebemos sua mensagem. O time da Tabgha vai te chamar em até 1 dia útil.
               </div>
             ) : (
             <form
