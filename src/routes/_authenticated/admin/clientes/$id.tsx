@@ -63,6 +63,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { CreateLeadDialog } from "@/components/crm/CreateLeadDialog";
 import { LeadDetailDialog } from "@/components/crm/LeadDetailDialog";
 import type { Lead as CrmLead } from "@/hooks/useLeads";
+import { syncAgenteAtivoInstances } from "@/lib/pietro";
 
 export const Route = createFileRoute("/_authenticated/admin/clientes/$id")({
   component: ClienteFichaPage,
@@ -1271,6 +1272,7 @@ function TabConexoes({ cliente }: { cliente: Cliente }) {
   const [metodo, setMetodo] = useState(agenteIa.metodo_qualificacao ?? "");
   const [tom, setTom] = useState(agenteIa.tom ?? "acolhedor, claro e profissional");
   const [nomeAgente, setNomeAgente] = useState(agenteIa.nome_agente ?? "assistente");
+  const [systemPrompt, setSystemPrompt] = useState(agenteIa.system_prompt ?? "");
   const [agenteAtivo, setAgenteAtivo] = useState(
     zapi.agente_ativo === true || zapi.agente_ativo === "true",
   );
@@ -1283,6 +1285,7 @@ function TabConexoes({ cliente }: { cliente: Cliente }) {
     setMetodo(agenteIa.metodo_qualificacao ?? "");
     setTom(agenteIa.tom ?? "acolhedor, claro e profissional");
     setNomeAgente(agenteIa.nome_agente ?? "assistente");
+    setSystemPrompt(agenteIa.system_prompt ?? "");
     setAgenteAtivo(zapi.agente_ativo === true || zapi.agente_ativo === "true");
     setJson(JSON.stringify(extras, null, 2));
     // eslint-disable-next-line react-hooks/exhaustive-deps -- sync when cliente payload changes
@@ -1297,6 +1300,7 @@ function TabConexoes({ cliente }: { cliente: Cliente }) {
         ...base,
         agente_ia: {
           ...((base.agente_ia as object) ?? {}),
+          system_prompt: systemPrompt.trim() || null,
           metodo_qualificacao: metodo.trim() || null,
           tom: tom.trim() || "acolhedor, claro e profissional",
           nome_agente: nomeAgente.trim() || "assistente",
@@ -1316,28 +1320,15 @@ function TabConexoes({ cliente }: { cliente: Cliente }) {
         .eq("id", cliente.id);
       if (error) throw error;
 
-      const { data: instances } = await supabase
-        .from("whatsapp_instances")
-        .select("id, dados_extras")
-        .eq("cliente_id", cliente.id);
-
-      for (const instance of instances ?? []) {
-        const instanceExtras = {
-          ...((instance.dados_extras as Record<string, unknown> | null) ?? {}),
-          agente_ativo: agenteAtivo,
-        };
-        const { error: instanceError } = await supabase
-          .from("whatsapp_instances")
-          .update({ dados_extras: instanceExtras as Json })
-          .eq("id", instance.id);
-        if (instanceError) throw instanceError;
-      }
+      // Mesma flag que o Cérebro Pietro → aba Clientes grava (fonte lida pelo whatsapp-inbound).
+      await syncAgenteAtivoInstances(cliente.id, agenteAtivo);
 
       setJson(JSON.stringify(novoExtras, null, 2));
     },
     onSuccess: () => {
       toast.success("Agente WhatsApp salvo.");
       void qc.invalidateQueries({ queryKey: ["admin", "cliente", cliente.id] });
+      void qc.invalidateQueries({ queryKey: ["admin", "pietro-clientes"] });
       setJsonError("");
     },
     onError: (e: Error) => {
@@ -1719,29 +1710,57 @@ function TabConexoes({ cliente }: { cliente: Cliente }) {
             <div className="rounded-lg border border-border bg-secondary/20 px-3 py-2 text-xs text-muted-foreground">
               <p className="font-medium text-foreground">Como as mensagens nascem</p>
               <ul className="mt-1 list-disc space-y-1 pl-4">
-                <li>Não é template fixo: o Pietro gera 1–3 frases em português, no tom salvo.</li>
-                <li>Qualifica intenção, urgência, fit e capacidade; não inventa preço/horário.</li>
                 <li>
-                  Em emergência ou pedido de humano, faz handoff para a equipe no Atendimento.
+                  Prompt, modelo e parâmetros globais (Método 7 Fontes) ficam em{" "}
+                  <Link
+                    to="/admin/cerebro-pietro"
+                    className="font-medium text-sky-700 underline-offset-2 hover:underline"
+                  >
+                    Cérebro Pietro
+                  </Link>
+                  . O campo abaixo sobrepõe o prompt global só para este cliente.
+                </li>
+                <li>Não é template fixo: o Pietro gera respostas curtas em português.</li>
+                <li>
+                  Gatilhos de emergência, pedido de humano ou cancelamento passam para a equipe no
+                  Atendimento, sempre.
                 </li>
                 <li>
-                  Qualidade aparece como score (0–100) + notas na conversa e no detalhe do lead.
+                  Score (0–100), Fontes tocadas, maturidade e agendamento sugerido aparecem na
+                  conversa e no detalhe do lead.
                 </li>
               </ul>
             </div>
 
             <div className="space-y-1">
-              <Label htmlFor="metodo-agente">Metodologia de qualificação</Label>
+              <Label htmlFor="system-prompt-agente">Prompt do sistema (só este cliente)</Label>
+              <Textarea
+                id="system-prompt-agente"
+                rows={8}
+                placeholder="Vazio = usa o prompt global do Cérebro Pietro."
+                value={systemPrompt}
+                onChange={(e) => setSystemPrompt(e.target.value)}
+                className="resize-y font-mono text-[12px]"
+              />
+              <p className="text-[11px] text-muted-foreground">
+                Vazio = prompt global. Preenchido = substitui o global por completo para este
+                cliente (o formato de saída é acrescentado automaticamente).
+              </p>
+            </div>
+
+            <div className="space-y-1">
+              <Label htmlFor="metodo-agente">Metodologia de qualificação (modo legado)</Label>
               <Textarea
                 id="metodo-agente"
-                rows={7}
+                rows={4}
                 placeholder="Ex.: (1) o que busca (2) urgência (3) fit com a clínica (4) disposição para agendar. Sem interrogatório."
                 value={metodo}
                 onChange={(e) => setMetodo(e.target.value)}
                 className="resize-none text-sm"
               />
               <p className="text-[11px] text-muted-foreground">
-                Vazio = usa o padrão genérico do Pietro. O placeholder cinza não é dado salvo.
+                Nome, tom e metodologia só valem quando não há prompt de sistema (global nem deste
+                cliente). O placeholder cinza não é dado salvo.
               </p>
             </div>
 

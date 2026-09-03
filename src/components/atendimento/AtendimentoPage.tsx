@@ -11,6 +11,7 @@ import { useClientesOptions } from "@/hooks/useClientesOptions";
 import { supabase } from "@/integrations/supabase/client";
 import type { ConversationFilters, InboxTab, MobilePane, WhatsappConversation } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import { BOT_NOTE_FIELDS, formatBotNote } from "@/lib/pietro";
 import { sendWhatsappMessage } from "@/functions/whatsapp/send.functions";
 
 const FILTER_KEYS = {
@@ -448,20 +449,13 @@ export function AtendimentoPage({ isAdmin = false }: AtendimentoPageProps) {
                     Notas do Pietro
                   </p>
                   <div className="space-y-1 text-xs text-muted-foreground">
-                    {[
-                      "resumo",
-                      "intencao",
-                      "urgencia",
-                      "fit",
-                      "capacidade",
-                      "last_handoff_reason",
-                    ].map((key) => {
-                      const value = selected.bot_notes?.[key];
-                      if (value == null || value === "") return null;
+                    {BOT_NOTE_FIELDS.map(({ key, label }) => {
+                      const value = formatBotNote(key, selected.bot_notes?.[key]);
+                      if (value == null) return null;
                       return (
                         <p key={key}>
-                          <span className="font-semibold text-foreground">{key}: </span>
-                          {String(value)}
+                          <span className="font-semibold text-foreground">{label}: </span>
+                          {value}
                         </p>
                       );
                     })}

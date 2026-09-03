@@ -25,6 +25,7 @@ import {
   type PipelineStatus,
 } from "@/lib/pipeline";
 import { cn } from "@/lib/utils";
+import { BOT_NOTE_FIELDS, formatBotNote, isHiddenBotNote } from "@/lib/pietro";
 
 type Tab = "dados" | "insights" | "conversas";
 
@@ -37,14 +38,7 @@ type ConversationInsight = {
   atualizado_em: string;
 };
 
-const INSIGHT_KEYS = [
-  "resumo",
-  "intencao",
-  "urgencia",
-  "fit",
-  "capacidade",
-  "last_handoff_reason",
-] as const;
+const INSIGHT_KEYS = BOT_NOTE_FIELDS.map((f) => f.key);
 
 function asNotes(raw: unknown): Record<string, unknown> | null {
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
@@ -455,22 +449,21 @@ export function LeadDetailDialog({ lead, onClose }: Props) {
                       Notas da evolução
                     </p>
                     <div className="space-y-2">
-                      {INSIGHT_KEYS.map((key) => {
-                        const value = notes[key];
-                        if (value == null || value === "") return null;
+                      {BOT_NOTE_FIELDS.map(({ key, label }) => {
+                        const value = formatBotNote(key, notes[key]);
+                        if (value == null) return null;
                         return (
                           <div key={key}>
-                            <p className="text-[11px] font-semibold capitalize text-foreground">
-                              {key.replaceAll("_", " ")}
-                            </p>
-                            <p className="text-sm text-muted-foreground">{String(value)}</p>
+                            <p className="text-[11px] font-semibold text-foreground">{label}</p>
+                            <p className="text-sm text-muted-foreground">{value}</p>
                           </div>
                         );
                       })}
                       {Object.entries(notes)
                         .filter(
                           ([key, value]) =>
-                            !(INSIGHT_KEYS as readonly string[]).includes(key) &&
+                            !INSIGHT_KEYS.includes(key) &&
+                            !isHiddenBotNote(key) &&
                             value != null &&
                             value !== "",
                         )
