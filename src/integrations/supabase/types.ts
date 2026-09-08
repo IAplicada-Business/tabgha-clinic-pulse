@@ -16,37 +16,37 @@ export type Database = {
     Tables: {
       agendamentos: {
         Row: {
-          is_demo: boolean
           cliente_id: string
           criado_em: string
           descricao: string | null
           fim: string | null
           id: string
           inicio: string | null
+          is_demo: boolean
           tipo: string | null
           titulo: string | null
           visivel_cliente: boolean
         }
         Insert: {
-          is_demo?: boolean
           cliente_id: string
           criado_em?: string
           descricao?: string | null
           fim?: string | null
           id?: string
           inicio?: string | null
+          is_demo?: boolean
           tipo?: string | null
           titulo?: string | null
           visivel_cliente?: boolean
         }
         Update: {
-          is_demo?: boolean
           cliente_id?: string
           criado_em?: string
           descricao?: string | null
           fim?: string | null
           id?: string
           inicio?: string | null
+          is_demo?: boolean
           tipo?: string | null
           titulo?: string | null
           visivel_cliente?: boolean
@@ -192,6 +192,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "conteudo_comentarios_autor_id_fkey"
+            columns: ["autor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "conteudo_comentarios_conteudo_id_fkey"
             columns: ["conteudo_id"]
             isOneToOne: false
@@ -202,7 +209,6 @@ export type Database = {
       }
       conteudos: {
         Row: {
-          is_demo: boolean
           arquivos: Json
           atualizado_em: string
           autor_id: string | null
@@ -214,6 +220,7 @@ export type Database = {
           formato: string
           historico: Json
           id: string
+          is_demo: boolean
           legenda: string | null
           pilar: string
           rede: string | null
@@ -228,7 +235,6 @@ export type Database = {
           versao_de: string | null
         }
         Insert: {
-          is_demo?: boolean
           arquivos?: Json
           atualizado_em?: string
           autor_id?: string | null
@@ -240,6 +246,7 @@ export type Database = {
           formato?: string
           historico?: Json
           id?: string
+          is_demo?: boolean
           legenda?: string | null
           pilar?: string
           rede?: string | null
@@ -254,7 +261,6 @@ export type Database = {
           versao_de?: string | null
         }
         Update: {
-          is_demo?: boolean
           arquivos?: Json
           atualizado_em?: string
           autor_id?: string | null
@@ -266,6 +272,7 @@ export type Database = {
           formato?: string
           historico?: Json
           id?: string
+          is_demo?: boolean
           legenda?: string | null
           pilar?: string
           rede?: string | null
@@ -281,23 +288,37 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "conteudos_autor_id_fkey"
+            columns: ["autor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "conteudos_cliente_id_fkey"
             columns: ["cliente_id"]
             isOneToOne: false
             referencedRelation: "clientes"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "conteudos_versao_de_fkey"
+            columns: ["versao_de"]
+            isOneToOne: false
+            referencedRelation: "conteudos"
+            referencedColumns: ["id"]
+          },
         ]
       }
       contratos: {
         Row: {
-          is_demo: boolean
           atualizado_em: string
           cliente_id: string
           criado_em: string
           data_assinatura: string
           dia_vencimento: number
           id: string
+          is_demo: boolean
           metadados: Json
           observacoes: string | null
           plano: string
@@ -307,13 +328,13 @@ export type Database = {
           vigencia_inicio: string
         }
         Insert: {
-          is_demo?: boolean
           atualizado_em?: string
           cliente_id: string
           criado_em?: string
           data_assinatura?: string
           dia_vencimento?: number
           id?: string
+          is_demo?: boolean
           metadados?: Json
           observacoes?: string | null
           plano?: string
@@ -323,13 +344,13 @@ export type Database = {
           vigencia_inicio?: string
         }
         Update: {
-          is_demo?: boolean
           atualizado_em?: string
           cliente_id?: string
           criado_em?: string
           data_assinatura?: string
           dia_vencimento?: number
           id?: string
+          is_demo?: boolean
           metadados?: Json
           observacoes?: string | null
           plano?: string
@@ -443,8 +464,8 @@ export type Database = {
           gerado_em?: string
           gerado_por?: string | null
           id?: string
-          link_expira_em: string | null
-          link_token: string | null
+          link_expira_em?: string | null
+          link_token?: string | null
           por_fonte?: Json
           resumo_executivo?: string | null
           score_geral?: number | null
@@ -468,37 +489,44 @@ export type Database = {
             referencedRelation: "clientes"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "diagnostico_relatorios_gerado_por_fkey"
+            columns: ["gerado_por"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
         ]
       }
       diagnostico_respostas: {
         Row: {
-          is_demo: boolean
           atualizado_em: string
           cliente_id: string
           criado_em: string
           id: string
+          is_demo: boolean
           questao_id: string
           respondido_por: string | null
           valor_num: number | null
           valor_texto: string | null
         }
         Insert: {
-          is_demo?: boolean
           atualizado_em?: string
           cliente_id: string
           criado_em?: string
           id?: string
+          is_demo?: boolean
           questao_id: string
           respondido_por?: string | null
           valor_num?: number | null
           valor_texto?: string | null
         }
         Update: {
-          is_demo?: boolean
           atualizado_em?: string
           cliente_id?: string
           criado_em?: string
           id?: string
+          is_demo?: boolean
           questao_id?: string
           respondido_por?: string | null
           valor_num?: number | null
@@ -517,6 +545,13 @@ export type Database = {
             columns: ["questao_id"]
             isOneToOne: false
             referencedRelation: "diagnostico_questoes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "diagnostico_respostas_respondido_por_fkey"
+            columns: ["respondido_por"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -614,7 +649,6 @@ export type Database = {
       }
       faturas: {
         Row: {
-          is_demo: boolean
           atualizado_em: string
           cliente_id: string
           contrato_id: string | null
@@ -622,6 +656,7 @@ export type Database = {
           data_pagamento: string | null
           descricao: string
           id: string
+          is_demo: boolean
           link_pagamento: string | null
           metodo: string
           notificada_em: string | null
@@ -632,7 +667,6 @@ export type Database = {
           vencimento: string
         }
         Insert: {
-          is_demo?: boolean
           atualizado_em?: string
           cliente_id: string
           contrato_id?: string | null
@@ -640,6 +674,7 @@ export type Database = {
           data_pagamento?: string | null
           descricao?: string
           id?: string
+          is_demo?: boolean
           link_pagamento?: string | null
           metodo?: string
           notificada_em?: string | null
@@ -650,7 +685,6 @@ export type Database = {
           vencimento: string
         }
         Update: {
-          is_demo?: boolean
           atualizado_em?: string
           cliente_id?: string
           contrato_id?: string | null
@@ -658,6 +692,7 @@ export type Database = {
           data_pagamento?: string | null
           descricao?: string
           id?: string
+          is_demo?: boolean
           link_pagamento?: string | null
           metodo?: string
           notificada_em?: string | null
@@ -686,7 +721,6 @@ export type Database = {
       }
       leads: {
         Row: {
-          is_demo: boolean
           atualizado_em: string
           canal: string | null
           cliente_id: string
@@ -694,6 +728,7 @@ export type Database = {
           email: string | null
           icp: string | null
           id: string
+          is_demo: boolean
           meta_ad_id: string | null
           meta_ad_name: string | null
           meta_campaign_id: string | null
@@ -714,7 +749,6 @@ export type Database = {
           utm_term: string | null
         }
         Insert: {
-          is_demo?: boolean
           atualizado_em?: string
           canal?: string | null
           cliente_id: string
@@ -722,6 +756,7 @@ export type Database = {
           email?: string | null
           icp?: string | null
           id?: string
+          is_demo?: boolean
           meta_ad_id?: string | null
           meta_ad_name?: string | null
           meta_campaign_id?: string | null
@@ -742,7 +777,6 @@ export type Database = {
           utm_term?: string | null
         }
         Update: {
-          is_demo?: boolean
           atualizado_em?: string
           canal?: string | null
           cliente_id?: string
@@ -750,6 +784,7 @@ export type Database = {
           email?: string | null
           icp?: string | null
           id?: string
+          is_demo?: boolean
           meta_ad_id?: string | null
           meta_ad_name?: string | null
           meta_campaign_id?: string | null
@@ -781,7 +816,6 @@ export type Database = {
       }
       metricas_ads: {
         Row: {
-          is_demo: boolean
           ad_id: string
           anuncio: string | null
           campanha: string
@@ -795,13 +829,13 @@ export type Database = {
           id: string
           impressoes: number
           investimento: number
+          is_demo: boolean
           leads: number
           nivel: string
           plataforma: string
           roas: number | null
         }
         Insert: {
-          is_demo?: boolean
           ad_id?: string
           anuncio?: string | null
           campanha?: string
@@ -815,13 +849,13 @@ export type Database = {
           id?: string
           impressoes?: number
           investimento?: number
+          is_demo?: boolean
           leads?: number
           nivel?: string
           plataforma: string
           roas?: number | null
         }
         Update: {
-          is_demo?: boolean
           ad_id?: string
           anuncio?: string | null
           campanha?: string
@@ -835,6 +869,7 @@ export type Database = {
           id?: string
           impressoes?: number
           investimento?: number
+          is_demo?: boolean
           leads?: number
           nivel?: string
           plataforma?: string
@@ -1116,7 +1151,6 @@ export type Database = {
       }
       whatsapp_conversations: {
         Row: {
-          is_demo: boolean
           atualizado_em: string
           bot_notes: Json | null
           bot_score: number | null
@@ -1127,6 +1161,7 @@ export type Database = {
           contact_phone: string
           criado_em: string
           id: string
+          is_demo: boolean
           last_inbound_at: string | null
           last_outbound_at: string | null
           lead_id: string | null
@@ -1136,7 +1171,6 @@ export type Database = {
           step_count: number
         }
         Insert: {
-          is_demo?: boolean
           atualizado_em?: string
           bot_notes?: Json | null
           bot_score?: number | null
@@ -1147,6 +1181,7 @@ export type Database = {
           contact_phone: string
           criado_em?: string
           id?: string
+          is_demo?: boolean
           last_inbound_at?: string | null
           last_outbound_at?: string | null
           lead_id?: string | null
@@ -1156,7 +1191,6 @@ export type Database = {
           step_count?: number
         }
         Update: {
-          is_demo?: boolean
           atualizado_em?: string
           bot_notes?: Json | null
           bot_score?: number | null
@@ -1167,6 +1201,7 @@ export type Database = {
           contact_phone?: string
           criado_em?: string
           id?: string
+          is_demo?: boolean
           last_inbound_at?: string | null
           last_outbound_at?: string | null
           lead_id?: string | null
@@ -1244,13 +1279,13 @@ export type Database = {
       }
       whatsapp_messages: {
         Row: {
-          is_demo: boolean
           body: string
           cliente_id: string
           conversation_id: string
           delivery_status: string | null
           direction: string
           id: string
+          is_demo: boolean
           metadata: Json | null
           sender_type: string
           sender_user_id: string | null
@@ -1258,13 +1293,13 @@ export type Database = {
           zapi_message_id: string | null
         }
         Insert: {
-          is_demo?: boolean
           body: string
           cliente_id: string
           conversation_id: string
           delivery_status?: string | null
           direction: string
           id?: string
+          is_demo?: boolean
           metadata?: Json | null
           sender_type: string
           sender_user_id?: string | null
@@ -1272,13 +1307,13 @@ export type Database = {
           zapi_message_id?: string | null
         }
         Update: {
-          is_demo?: boolean
           body?: string
           cliente_id?: string
           conversation_id?: string
           delivery_status?: string | null
           direction?: string
           id?: string
+          is_demo?: boolean
           metadata?: Json | null
           sender_type?: string
           sender_user_id?: string | null
@@ -1332,15 +1367,6 @@ export type Database = {
           mrr_mes_anterior: number | null
           previsto_mes: number | null
           recebido_mes: number | null
-        }
-        Relationships: []
-      }
-      vw_mrr_mensal: {
-        Row: {
-          churn: number | null
-          mes: string | null
-          mrr: number | null
-          novo: number | null
         }
         Relationships: []
       }
@@ -1399,6 +1425,15 @@ export type Database = {
           taxa_fechamento_pct: number | null
           ticket_medio_b2b: number | null
           total_oportunidades: number | null
+        }
+        Relationships: []
+      }
+      vw_mrr_mensal: {
+        Row: {
+          churn: number | null
+          mes: string | null
+          mrr: number | null
+          novo: number | null
         }
         Relationships: []
       }
@@ -1469,7 +1504,9 @@ export type Database = {
         }
         Returns: boolean
       }
-      is_staff: { Args: { _user_id: string }; Returns: boolean }
+      is_staff:
+        | { Args: never; Returns: boolean }
+        | { Args: { _user_id: string }; Returns: boolean }
       limpar_dados_demo: { Args: never; Returns: Json }
       log_ticket_converted: {
         Args: { _lead_id: string; _ticket: number }
@@ -1477,12 +1514,6 @@ export type Database = {
       }
       marcar_fatura_paga: {
         Args: { _id: string; _valor?: number }
-        Returns: undefined
-      }
-      pode_ver_financeiro: { Args: { _user_id: string }; Returns: boolean }
-      reativar_contrato: { Args: { _contrato_id: string }; Returns: undefined }
-      suspender_contrato: {
-        Args: { _contrato_id: string; _motivo?: string }
         Returns: undefined
       }
       mover_lead_status: {
@@ -1497,6 +1528,8 @@ export type Database = {
         Args: { _role: Database["public"]["Enums"]["app_role"] }
         Returns: string[]
       }
+      pode_ver_financeiro: { Args: { _user_id: string }; Returns: boolean }
+      reativar_contrato: { Args: { _contrato_id: string }; Returns: undefined }
       recalcular_diagnostico_score: {
         Args: {
           _cliente_id: string
@@ -1505,26 +1538,40 @@ export type Database = {
         Returns: undefined
       }
       registrar_acesso: { Args: never; Returns: undefined }
-      seed_demo_tabgha: { Args: { _cliente_id: string }; Returns: Json }
-      responder_conteudo: {
-        Args: { _acao?: string; _aprovada: boolean; _feedback?: string; _id: string }
-        Returns: undefined
-      }
+      responder_conteudo:
+        | {
+            Args: { _aprovada: boolean; _feedback?: string; _id: string }
+            Returns: undefined
+          }
+        | {
+            Args: {
+              _acao?: string
+              _aprovada: boolean
+              _feedback?: string
+              _id: string
+            }
+            Returns: undefined
+          }
       responder_entrega: {
         Args: { _aprovada: boolean; _id: string; _resposta: string }
+        Returns: undefined
+      }
+      seed_demo_tabgha: { Args: { _cliente_id: string }; Returns: Json }
+      suspender_contrato: {
+        Args: { _contrato_id: string; _motivo?: string }
         Returns: undefined
       }
     }
     Enums: {
       app_role:
         | "super_admin"
+        | "cliente"
         | "gestor_estrategico"
         | "growth_manager"
         | "social_media"
         | "performance"
         | "atendimento_cs"
         | "financeiro"
-        | "cliente"
       fonte_diagnostico:
         | "posicionamento"
         | "presenca_digital"
@@ -1548,12 +1595,12 @@ export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
         DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -1577,11 +1624,11 @@ export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -1602,11 +1649,11 @@ export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -1627,11 +1674,11 @@ export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema["Enums"]
     | { schema: keyof DatabaseWithoutInternals },
-  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+  EnumName extends (DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -1644,11 +1691,11 @@ export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
     | { schema: keyof DatabaseWithoutInternals },
-  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+  CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-    : never = never,
+    : never) = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -1662,13 +1709,13 @@ export const Constants = {
     Enums: {
       app_role: [
         "super_admin",
+        "cliente",
         "gestor_estrategico",
         "growth_manager",
         "social_media",
         "performance",
         "atendimento_cs",
         "financeiro",
-        "cliente",
       ],
       fonte_diagnostico: [
         "posicionamento",
