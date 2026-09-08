@@ -99,6 +99,13 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   );
 }
 
+const ABAS_CLIENTE = [
+  { valor: "cadastro", label: "Cadastro" },
+  { valor: "leads", label: "Leads" },
+  { valor: "conteudo", label: "Conteúdo" },
+  { valor: "conexoes", label: "Conexões" },
+] as const;
+
 // ── Tab: Cadastro ─────────────────────────────────────────────────────────────
 function TabCadastro({ cliente }: { cliente: Cliente }) {
   const qc = useQueryClient();
@@ -1924,18 +1931,12 @@ function ClienteFichaPage() {
       </div>
 
       <Tabs defaultValue="cadastro">
-        <TabsList className="w-full justify-start border-b border-border rounded-none bg-transparent h-auto p-0 gap-0">
-          {["cadastro", "leads", "conteudo", "conexoes"].map((tab) => (
-            <TabsTrigger
-              key={tab}
-              value={tab}
-              className="rounded-none border-b-2 border-transparent px-4 pb-3 pt-1 text-sm font-medium text-muted-foreground data-[state=active]:border-primary data-[state=active]:text-foreground data-[state=active]:shadow-none data-[state=active]:bg-transparent capitalize"
-            >
-              {tab === "conexoes"
-                ? "Conexões"
-                : tab === "conteudo"
-                  ? "Conteúdo"
-                  : tab.charAt(0).toUpperCase() + tab.slice(1)}
+        {/* Mesmo segmented do resto do sistema (Cérebro, Financeiro, Nutrição,
+            portal do médico) — as subabas estavam com um sublinhado próprio. */}
+        <TabsList className="segmented h-auto w-full justify-start sm:w-fit">
+          {ABAS_CLIENTE.map((aba) => (
+            <TabsTrigger key={aba.valor} value={aba.valor} className="segmented-item">
+              {aba.label}
             </TabsTrigger>
           ))}
         </TabsList>
