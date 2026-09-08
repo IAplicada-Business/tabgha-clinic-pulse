@@ -77,7 +77,6 @@ function ConfigMetaPage() {
   const [syncingLeads, setSyncingLeads] = useState(false);
   const [adAccountId, setAdAccountId] = useState("");
   const [painelAberto, setPainelAberto] = useState(false);
-  const [setupAberto, setSetupAberto] = useState(false);
 
   useEffect(() => {
     if (!clienteId && clientes[0]?.id) {
@@ -638,57 +637,6 @@ function ConfigMetaPage() {
                 )}
               </div>
             )}
-          </div>
-        ) : null}
-      </section>
-
-      <section className="w-full overflow-hidden rounded-2xl border border-border bg-card shadow-[var(--shadow-card)]">
-        <button
-          type="button"
-          onClick={() => setSetupAberto((v) => !v)}
-          className="flex w-full items-center gap-3 px-5 py-3.5 text-left transition-colors hover:bg-secondary/30 sm:px-6"
-        >
-          <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold text-foreground">Setup técnico Meta</p>
-            <p className="mt-0.5 text-xs text-muted-foreground">
-              Permissões, webhook e secrets — só se precisar configurar o app Developers
-            </p>
-          </div>
-          <ChevronDown
-            className={cn(
-              "h-5 w-5 shrink-0 text-muted-foreground transition-transform duration-200",
-              setupAberto && "rotate-180",
-            )}
-          />
-        </button>
-        {setupAberto ? (
-          <div className="border-t border-border px-5 py-4 text-sm leading-relaxed text-muted-foreground sm:px-6">
-            <ol className="list-decimal space-y-2 pl-4">
-              <li>App em developers.facebook.com (conta IAplicada)</li>
-              <li>
-                Permissões: <code>leads_retrieval</code>, <code>ads_read</code>,{" "}
-                <code>pages_show_list</code>, <code>pages_manage_ads</code>,{" "}
-                <code>pages_manage_metadata</code>, <code>business_management</code>
-              </li>
-              <li>
-                Webhooks · Page · <code>leadgen</code> (verify token já validado no app)
-              </li>
-              <li className="break-all">
-                Callback: <code>{SUPABASE_URL}/functions/v1/webhook_meta_lead</code>
-              </li>
-              <li>
-                Verify token = secret <code>META_WEBHOOK_VERIFY_TOKEN</code>
-              </li>
-              <li>
-                Após conectar, escolha o Ad Account certo e clique em{" "}
-                <strong>Sincronizar métricas</strong> (cron diário também roda com 7 dias)
-              </li>
-              <li>
-                Leads novos entram pelo webhook <code>leadgen</code>. Para leads antigos dos
-                formulários, use <strong>Importar leads dos formulários</strong> (requer reconectar
-                com as permissões acima se der erro 200).
-              </li>
-            </ol>
           </div>
         ) : null}
       </section>

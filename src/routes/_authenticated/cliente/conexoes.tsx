@@ -150,7 +150,7 @@ function ConexoesPage() {
           </p>
         </div>
 
-        {clienteId ? <WhatsappConnectCard clienteId={clienteId} /> : null}
+        {clienteId ? <WhatsappConnectCard clienteId={clienteId} audiencia="cliente" /> : null}
 
         <div className="rounded-2xl border border-border bg-card px-5 py-4 text-sm">
           <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">

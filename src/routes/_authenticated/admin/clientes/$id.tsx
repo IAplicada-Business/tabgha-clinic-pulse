@@ -5,7 +5,6 @@ import {
   Loader2,
   ArrowLeft,
   Save,
-  ChevronDown,
   Stethoscope,
   Trash2,
   UserPlus,
@@ -52,7 +51,6 @@ import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import type { Json, Tables } from "@/integrations/supabase/types";
 import { WhatsappConnectCard } from "@/components/whatsapp/WhatsappConnectCard";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { CreateLeadDialog } from "@/components/crm/CreateLeadDialog";
 import { LeadDetailDialog } from "@/components/crm/LeadDetailDialog";
 import type { Lead as CrmLead } from "@/hooks/useLeads";
@@ -716,9 +714,7 @@ function TabConexoes({ cliente }: { cliente: Cliente }) {
   const [agenteAtivo, setAgenteAtivo] = useState(
     zapi.agente_ativo === true || zapi.agente_ativo === "true",
   );
-  const [jsonOpen, setJsonOpen] = useState(false);
-  const [json, setJson] = useState(JSON.stringify(extras, null, 2));
-  const [jsonError, setJsonError] = useState("");
+  const [agenteError, setAgenteError] = useState("");
   const [copiedWebhook, setCopiedWebhook] = useState(false);
 
   useEffect(() => {
@@ -727,7 +723,6 @@ function TabConexoes({ cliente }: { cliente: Cliente }) {
     setNomeAgente(agenteIa.nome_agente ?? "assistente");
     setSystemPrompt(agenteIa.system_prompt ?? "");
     setAgenteAtivo(zapi.agente_ativo === true || zapi.agente_ativo === "true");
-    setJson(JSON.stringify(extras, null, 2));
     // eslint-disable-next-line react-hooks/exhaustive-deps -- sync when cliente payload changes
   }, [cliente.id, cliente.dados_extras]);
 
@@ -762,43 +757,15 @@ function TabConexoes({ cliente }: { cliente: Cliente }) {
 
       // Mesma flag que o Cérebro Pietro → aba Clientes grava (fonte lida pelo whatsapp-inbound).
       await syncAgenteAtivoInstances(cliente.id, agenteAtivo);
-
-      setJson(JSON.stringify(novoExtras, null, 2));
     },
     onSuccess: () => {
       toast.success("Agente WhatsApp salvo.");
       void qc.invalidateQueries({ queryKey: ["admin", "cliente", cliente.id] });
       void qc.invalidateQueries({ queryKey: ["admin", "pietro-clientes"] });
-      setJsonError("");
     },
     onError: (e: Error) => {
       toast.error(e.message);
-      setJsonError(e.message);
-    },
-  });
-
-  const saveJson = useMutation({
-    mutationFn: async () => {
-      let parsed: unknown;
-      try {
-        parsed = JSON.parse(json);
-      } catch {
-        throw new Error("JSON inválido.");
-      }
-      const { error } = await supabase
-        .from("clientes")
-        .update({ dados_extras: parsed as Json })
-        .eq("id", cliente.id);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      toast.success("JSON salvo.");
-      void qc.invalidateQueries({ queryKey: ["admin", "cliente", cliente.id] });
-      setJsonError("");
-    },
-    onError: (e: Error) => {
-      toast.error(e.message);
-      setJsonError(e.message);
+      setAgenteError(e.message);
     },
   });
 
@@ -1207,7 +1174,7 @@ function TabConexoes({ cliente }: { cliente: Cliente }) {
               </p>
             </div>
 
-            {jsonError ? <p className="text-xs text-destructive">{jsonError}</p> : null}
+            {agenteError ? <p className="text-xs text-destructive">{agenteError}</p> : null}
             <Button
               size="sm"
               onClick={() => saveAgente.mutate()}
@@ -1224,60 +1191,6 @@ function TabConexoes({ cliente }: { cliente: Cliente }) {
           </div>
         </div>
       </div>
-
-      <Collapsible open={jsonOpen} onOpenChange={setJsonOpen}>
-        <div className="rounded-2xl border border-border bg-card">
-          <CollapsibleTrigger asChild>
-            <button
-              type="button"
-              className="flex w-full items-center justify-between px-5 py-3 text-left"
-            >
-              <div>
-                <p className="text-[10.5px] font-bold uppercase tracking-widest text-muted-foreground">
-                  Avançado · JSON técnico
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  Só para suporte. Prefira os formulários acima.
-                </p>
-              </div>
-              <ChevronDown
-                className={cn(
-                  "h-4 w-4 text-muted-foreground transition-transform",
-                  jsonOpen && "rotate-180",
-                )}
-              />
-            </button>
-          </CollapsibleTrigger>
-          <CollapsibleContent>
-            <div className="space-y-3 border-t border-border px-5 py-4">
-              <Textarea
-                className="resize-none font-mono text-xs"
-                rows={8}
-                value={json}
-                onChange={(e) => {
-                  setJson(e.target.value);
-                  setJsonError("");
-                }}
-              />
-              {jsonError ? <p className="text-xs text-destructive">{jsonError}</p> : null}
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => saveJson.mutate()}
-                disabled={saveJson.isPending}
-                className="gap-2"
-              >
-                {saveJson.isPending ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Save className="h-4 w-4" />
-                )}
-                Salvar JSON
-              </Button>
-            </div>
-          </CollapsibleContent>
-        </div>
-      </Collapsible>
     </div>
   );
 }
