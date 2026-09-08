@@ -38,9 +38,20 @@ function ClienteDashboard() {
     staleTime: 60_000,
     queryFn: async () => {
       const [leadsRes, novosMesRes, entregasRes] = await Promise.all([
-        supabase.from("leads").select("id", { count: "exact", head: true }).eq("cliente_id", clienteId!),
-        supabase.from("leads").select("id", { count: "exact", head: true }).eq("cliente_id", clienteId!).gte("criado_em", startOfMonth.toISOString()),
-        supabase.from("entregas").select("id", { count: "exact", head: true }).eq("cliente_id", clienteId!).eq("status", "pendente"),
+        supabase
+          .from("leads")
+          .select("id", { count: "exact", head: true })
+          .eq("cliente_id", clienteId!),
+        supabase
+          .from("leads")
+          .select("id", { count: "exact", head: true })
+          .eq("cliente_id", clienteId!)
+          .gte("criado_em", startOfMonth.toISOString()),
+        supabase
+          .from("entregas")
+          .select("id", { count: "exact", head: true })
+          .eq("cliente_id", clienteId!)
+          .eq("status", "pendente"),
       ]);
       return {
         leads: leadsRes.count ?? 0,
@@ -55,24 +66,28 @@ function ClienteDashboard() {
     enabled: !!clienteId,
     staleTime: 60_000,
     queryFn: async () => {
-      const [{ data: cliente }, { data: instance }, conteudosPendentes] = await Promise.all([
-        supabase
-          .from("clientes")
-          .select("status, diagnostico, dados_extras")
-          .eq("id", clienteId!)
-          .single(),
-        supabase
-          .from("whatsapp_instances")
-          .select("status")
-          .eq("cliente_id", clienteId!)
-          .eq("status", "connected")
-          .maybeSingle(),
-        supabase
-          .from("conteudos")
-          .select("id", { count: "exact", head: true })
-          .eq("cliente_id", clienteId!)
-          .eq("status", "pendente_aprovacao"),
-      ]);
+      const [{ data: cliente }, { data: instance }, conteudosPendentes, { data: diag }] =
+        await Promise.all([
+          supabase.from("clientes").select("status, dados_extras").eq("id", clienteId!).single(),
+          supabase
+            .from("whatsapp_instances")
+            .select("status")
+            .eq("cliente_id", clienteId!)
+            .eq("status", "connected")
+            .maybeSingle(),
+          supabase
+            .from("conteudos")
+            .select("id", { count: "exact", head: true })
+            .eq("cliente_id", clienteId!)
+            .eq("status", "pendente_aprovacao"),
+          // O passo do diagnóstico é o 7 Fontes: conta as respostas do médico,
+          // não a coluna clientes.diagnostico (que era do fluxo por transcrição).
+          supabase
+            .from("vw_diagnostico_score_geral")
+            .select("respostas_total")
+            .eq("cliente_id", clienteId!)
+            .maybeSingle(),
+        ]);
 
       const redes = ((cliente?.dados_extras as Record<string, unknown> | null)?.redes ??
         {}) as Record<string, string>;
@@ -83,7 +98,7 @@ function ClienteDashboard() {
         {
           id: "diagnostico",
           label: "Diagnóstico preenchido",
-          done: Boolean(cliente?.diagnostico),
+          done: (diag?.respostas_total ?? 0) > 0,
           to: "/cliente/diagnostico" as const,
         },
         {
@@ -197,14 +212,18 @@ function ClienteDashboard() {
       <header className="animate-fade-up">
         <span className="eyebrow-pill">Portal do Cliente</span>
         <h1 className="mt-2 text-2xl font-extrabold tracking-tight">Dashboard</h1>
-        <p className="text-xs text-muted-foreground mt-0.5">Visão geral da sua operação de marketing</p>
+        <p className="text-xs text-muted-foreground mt-0.5">
+          Visão geral da sua operação de marketing
+        </p>
       </header>
 
       {onboarding && !onboarding.complete ? (
         <div className="animate-fade-up rounded-2xl border border-sky-100 bg-sky-50/70 p-5 shadow-[var(--shadow-card)]">
           <div className="mb-3 flex items-center justify-between gap-2">
             <div>
-              <p className="text-[10px] font-bold uppercase tracking-widest text-sky-700">Onboarding</p>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-sky-700">
+                Onboarding
+              </p>
               <p className="mt-1 text-sm font-medium">
                 Complete a configuração do consultório ({onboarding.doneCount}/{onboarding.total})
               </p>
@@ -225,7 +244,12 @@ function ClienteDashboard() {
                     : "border-border bg-card text-foreground hover:bg-secondary/40",
                 )}
               >
-                <CheckCircle2 className={cn("h-4 w-4", step.done ? "text-emerald-600" : "text-muted-foreground/40")} />
+                <CheckCircle2
+                  className={cn(
+                    "h-4 w-4",
+                    step.done ? "text-emerald-600" : "text-muted-foreground/40",
+                  )}
+                />
                 {step.label}
               </Link>
             ))}
@@ -236,7 +260,12 @@ function ClienteDashboard() {
       {/* KPI cards */}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         {kpiCards.map((card) => (
-          <Link key={card.label} to={card.to} className="animate-fade-up block" style={{ animationDelay: `${card.delay}ms` }}>
+          <Link
+            key={card.label}
+            to={card.to}
+            className="animate-fade-up block"
+            style={{ animationDelay: `${card.delay}ms` }}
+          >
             <KpiCard
               label={card.label}
               value={card.value}
@@ -254,24 +283,33 @@ function ClienteDashboard() {
         <div className="animate-fade-up delay-225 card-lift rounded-2xl border border-border bg-card p-5 shadow-[var(--shadow-card)]">
           <div className="mb-4 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Aprovações pendentes</p>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                Aprovações pendentes
+              </p>
               {(aprovacoes?.length ?? 0) > 0 && (
                 <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-amber-100 px-1.5 text-[11px] font-bold text-amber-700">
                   {aprovacoes!.length}
                 </span>
               )}
             </div>
-            <Link to="/cliente/conteudo" className="flex items-center gap-1 text-xs text-primary hover:underline">
+            <Link
+              to="/cliente/conteudo"
+              className="flex items-center gap-1 text-xs text-primary hover:underline"
+            >
               Revisar <ArrowRight className="h-3 w-3" />
             </Link>
           </div>
           {loadingAprovacoes ? (
-            <div className="flex justify-center py-8"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>
+            <div className="flex justify-center py-8">
+              <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+            </div>
           ) : (aprovacoes ?? []).length === 0 ? (
             <div className="flex flex-col items-center justify-center py-8 text-center">
               <CheckCircle2 className="h-8 w-8 text-emerald-400 mb-2" />
               <p className="text-sm font-medium">Tudo aprovado!</p>
-              <p className="text-xs text-muted-foreground mt-0.5">Nenhum conteúdo aguarda revisão</p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Nenhum conteúdo aguarda revisão
+              </p>
             </div>
           ) : (
             <div className="space-y-2">
@@ -288,7 +326,9 @@ function ClienteDashboard() {
                 >
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-medium">{c.titulo ?? "Sem título"}</p>
-                    <p className="text-[10.5px] text-muted-foreground">{[c.rede, c.tipo].filter(Boolean).join(" · ")}</p>
+                    <p className="text-[10.5px] text-muted-foreground">
+                      {[c.rede, c.tipo].filter(Boolean).join(" · ")}
+                    </p>
                   </div>
                   {c.data_postagem && (
                     <span className="shrink-0 flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-medium text-amber-700">
@@ -305,13 +345,20 @@ function ClienteDashboard() {
         {/* Conversas recentes */}
         <div className="animate-fade-up delay-300 card-lift rounded-2xl border border-border bg-card p-5 shadow-[var(--shadow-card)]">
           <div className="mb-4 flex items-center justify-between">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Conversas recentes</p>
-            <Link to="/cliente/atendimento" className="flex items-center gap-1 text-xs text-primary hover:underline">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+              Conversas recentes
+            </p>
+            <Link
+              to="/cliente/atendimento"
+              className="flex items-center gap-1 text-xs text-primary hover:underline"
+            >
               Ver todas <ArrowRight className="h-3 w-3" />
             </Link>
           </div>
           {loadingConversas ? (
-            <div className="flex justify-center py-8"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>
+            <div className="flex justify-center py-8">
+              <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+            </div>
           ) : (conversas ?? []).length === 0 ? (
             <div className="flex flex-col items-center justify-center py-8 text-center">
               <MessageCircle className="h-8 w-8 text-muted-foreground/30 mb-2" />
@@ -334,12 +381,19 @@ function ClienteDashboard() {
                     {(c.contact_name ?? c.contact_phone ?? "?")[0].toUpperCase()}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium">{c.contact_name ?? c.contact_phone}</p>
-                    <p className="truncate text-[10.5px] text-muted-foreground">{c.contact_phone}</p>
+                    <p className="truncate text-sm font-medium">
+                      {c.contact_name ?? c.contact_phone}
+                    </p>
+                    <p className="truncate text-[10.5px] text-muted-foreground">
+                      {c.contact_phone}
+                    </p>
                   </div>
                   {c.atualizado_em && (
                     <span className="shrink-0 text-[10.5px] text-muted-foreground">
-                      {formatDistanceToNow(new Date(c.atualizado_em), { locale: ptBR, addSuffix: false })}
+                      {formatDistanceToNow(new Date(c.atualizado_em), {
+                        locale: ptBR,
+                        addSuffix: false,
+                      })}
                     </span>
                   )}
                 </Link>
@@ -352,13 +406,20 @@ function ClienteDashboard() {
       {/* Próximos agendamentos */}
       <div className="animate-fade-up delay-375">
         <div className="mb-4 flex items-center justify-between">
-          <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Próximos agendamentos</p>
-          <Link to="/cliente/calendario" className="flex items-center gap-1 text-xs text-primary hover:underline">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+            Próximos agendamentos
+          </p>
+          <Link
+            to="/cliente/calendario"
+            className="flex items-center gap-1 text-xs text-primary hover:underline"
+          >
             Ver calendário <ArrowRight className="h-3 w-3" />
           </Link>
         </div>
         {loadingAgendamentos ? (
-          <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
+          <div className="flex justify-center py-8">
+            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+          </div>
         ) : (proximos ?? []).length === 0 ? (
           <EmptyState icon={<Calendar className="h-5 w-5" />} title="Nenhum agendamento próximo" />
         ) : (
@@ -373,10 +434,16 @@ function ClienteDashboard() {
                   <div className="icon-chip icon-chip-blue h-11 w-11 shrink-0 flex-col">
                     {ag.inicio ? (
                       <>
-                        <span className="text-base font-extrabold leading-none">{format(new Date(ag.inicio), "dd")}</span>
-                        <span className="text-[9px] font-semibold uppercase opacity-70">{format(new Date(ag.inicio), "MMM", { locale: ptBR })}</span>
+                        <span className="text-base font-extrabold leading-none">
+                          {format(new Date(ag.inicio), "dd")}
+                        </span>
+                        <span className="text-[9px] font-semibold uppercase opacity-70">
+                          {format(new Date(ag.inicio), "MMM", { locale: ptBR })}
+                        </span>
                       </>
-                    ) : "—"}
+                    ) : (
+                      "—"
+                    )}
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-semibold truncate">{ag.titulo}</p>

@@ -51,9 +51,6 @@ verify_jwt = false
 [functions.admin-update-user-email]
 verify_jwt = false
 
-[functions.gerar_diagnostico]
-verify_jwt = false
-
 # ── Exige JWT na borda (repassa o token pro client Supabase, RLS decide) ────
 [functions.gerar-diagnostico-7f]
 verify_jwt = true
