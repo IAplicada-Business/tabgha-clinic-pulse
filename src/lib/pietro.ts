@@ -62,7 +62,7 @@ export async function loadPietroDefaults(): Promise<PietroDefaults> {
     .eq("chave", PIETRO_DEFAULTS_KEY)
     .maybeSingle();
   if (error) throw error;
-  return ((data?.valor ?? {}) as PietroDefaults) ?? {};
+  return (data?.valor ?? {}) as PietroDefaults;
 }
 
 /** Merge raso com o que já existe no banco (não apaga chaves desconhecidas). */
