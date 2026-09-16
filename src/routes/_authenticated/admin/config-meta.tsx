@@ -47,11 +47,22 @@ type MetaExtras = {
   expires_at?: string;
   connected_at?: string;
   leadgen_subscribed?: boolean;
+  campanhas?: CampanhaPermitida[] | null;
+};
+
+type CampanhaPermitida = { id: string; nome?: string | null };
+
+type CampanhaDisponivel = {
+  id: string;
+  nome: string;
+  investimento: number;
+  selecionada: boolean;
 };
 
 const META_APP_ID = import.meta.env.VITE_META_APP_ID as string | undefined;
 const SUPABASE_URL = (import.meta.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL) as
-  string | undefined;
+  | string
+  | undefined;
 
 function buildOAuthUrl(clienteId: string) {
   if (!META_APP_ID || !SUPABASE_URL) return null;
@@ -77,6 +88,10 @@ function ConfigMetaPage() {
   const [syncingLeads, setSyncingLeads] = useState(false);
   const [adAccountId, setAdAccountId] = useState("");
   const [painelAberto, setPainelAberto] = useState(false);
+  const [campanhas, setCampanhas] = useState<CampanhaDisponivel[] | null>(null);
+  const [carregandoCampanhas, setCarregandoCampanhas] = useState(false);
+  const [salvandoCampanhas, setSalvandoCampanhas] = useState(false);
+  const [selecionadas, setSelecionadas] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (!clienteId && clientes[0]?.id) {
@@ -155,6 +170,14 @@ function ConfigMetaPage() {
     setAdAccountId(meta?.ad_account_id ?? "");
   }, [meta?.ad_account_id]);
 
+  // Trocou de cliente → a lista da conta anterior não vale mais.
+  useEffect(() => {
+    setCampanhas(null);
+    setSelecionadas(
+      new Set((meta?.campanhas ?? []).map((c) => String(c?.id ?? "")).filter(Boolean)),
+    );
+  }, [clienteId, meta?.campanhas]);
+
   const oauthUrl = clienteId ? buildOAuthUrl(clienteId) : null;
   const connected = Boolean(meta?.access_token && meta?.page_id);
   const clienteNome = cliente?.nome ?? clientes.find((c) => c.id === clienteId)?.nome ?? "—";
@@ -194,6 +217,65 @@ function ConfigMetaPage() {
       toast.error("Não foi possível salvar o Ad Account ID.");
     } finally {
       setSavingAccount(false);
+    }
+  }
+
+  async function carregarCampanhas() {
+    if (!clienteId) return;
+    setCarregandoCampanhas(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("meta_list_campaigns", {
+        body: { cliente_id: clienteId, days: 90 },
+      });
+      if (error) throw error;
+      const payload = data as { ok?: boolean; error?: string; campanhas?: CampanhaDisponivel[] };
+      if (!payload?.ok) throw new Error(payload?.error || "Não foi possível listar campanhas.");
+      setCampanhas(payload.campanhas ?? []);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message.slice(0, 180) : "Falha ao listar campanhas.");
+    } finally {
+      setCarregandoCampanhas(false);
+    }
+  }
+
+  function alternarCampanha(id: string) {
+    setSelecionadas((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  async function salvarCampanhas() {
+    if (!clienteId || !cliente) return;
+    setSalvandoCampanhas(true);
+    try {
+      const extras = ((cliente.dados_extras as Record<string, unknown> | null) ?? {}) as Record<
+        string,
+        unknown
+      >;
+      const prevMeta = { ...((extras.meta as Record<string, unknown> | undefined) ?? {}) };
+      const nome = (id: string) => campanhas?.find((c) => c.id === id)?.nome ?? null;
+      const nextMeta = {
+        ...prevMeta,
+        campanhas: [...selecionadas].map((id) => ({ id, nome: nome(id) })),
+      };
+      const { error } = await supabase
+        .from("clientes")
+        .update({ dados_extras: { ...extras, meta: nextMeta } as Json })
+        .eq("id", clienteId);
+      if (error) throw error;
+      toast.success(
+        selecionadas.size === 0
+          ? "Nenhuma campanha liberada — o sync não vai importar nada para este cliente."
+          : `${selecionadas.size} campanha(s) liberada(s) para ${clienteNome}.`,
+      );
+      void queryClient.invalidateQueries({ queryKey: ["cliente-meta", clienteId] });
+    } catch {
+      toast.error("Não foi possível salvar as campanhas.");
+    } finally {
+      setSalvandoCampanhas(false);
     }
   }
 
@@ -278,7 +360,7 @@ function ConfigMetaPage() {
             erro?: string;
             erros?: string[];
             motivo?: string;
-            auto_switched?: boolean;
+            linhas_descartadas?: number;
             ad_account_id?: string;
           };
         }>;
@@ -287,6 +369,15 @@ function ConfigMetaPage() {
       const first = payload.resultados?.[0]?.meta;
       if (first?.erro || first?.erros?.length) {
         toast.error(`Sync com erros: ${first?.erro ?? first?.erros?.[0]}`);
+      } else if (first?.motivo === "campanhas_nao_selecionadas") {
+        toast.warning("Nenhuma campanha liberada para este cliente", {
+          description:
+            "Liste as campanhas da conta e marque as que são dele. Sem isso o sync não importa nada — é o que impede o investimento de um cliente aparecer no portal de outro.",
+        });
+      } else if (first?.motivo === "ad_account_missing") {
+        toast.warning("Ad Account não informado", {
+          description: "Informe e salve o Ad Account deste cliente antes de sincronizar.",
+        });
       } else if ((first?.inseridos ?? 0) === 0) {
         toast.message("Sync ok, mas sem insights no período", {
           description:
@@ -296,9 +387,12 @@ function ConfigMetaPage() {
         });
       } else {
         toast.success(
-          first?.auto_switched
-            ? `Conta corrigida para ${first.ad_account_id} · ${first.inseridos} linhas (30d).`
-            : `Métricas sincronizadas (${first?.inseridos ?? 0} linhas nos últimos 30 dias).`,
+          `Métricas sincronizadas (${first?.inseridos ?? 0} linhas nos últimos 30 dias).`,
+          (first?.linhas_descartadas ?? 0) > 0
+            ? {
+                description: `${first!.linhas_descartadas} linha(s) de campanhas não liberadas foram ignoradas.`,
+              }
+            : undefined,
         );
       }
       void queryClient.invalidateQueries({ queryKey: ["meta-ads-db"] });
@@ -561,9 +655,102 @@ function ConfigMetaPage() {
                   </div>
                   <p className="max-w-lg text-xs text-muted-foreground">
                     Só a conta deste cliente fica visível aqui. Outras contas da BM não são
-                    listadas. Se o sync vier sem insights, o servidor pode auto-corrigir a conta
-                    vinculada.
+                    listadas. A conta precisa ser informada — o servidor nunca escolhe sozinho.
                   </p>
+                </div>
+
+                {/* Uma conta de anúncio costuma abrigar campanhas de vários
+                    clientes. Sem marcar quais são deste, nada é importado. */}
+                <div className="space-y-2">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Label>Campanhas deste cliente</Label>
+                    <span
+                      className={cn(
+                        "rounded-full px-2 py-0.5 text-[11px] font-semibold",
+                        selecionadas.size > 0
+                          ? "bg-emerald-100 text-emerald-700"
+                          : "bg-amber-100 text-amber-800",
+                      )}
+                    >
+                      {selecionadas.size > 0
+                        ? `${selecionadas.size} liberada(s)`
+                        : "nenhuma liberada"}
+                    </span>
+                  </div>
+
+                  {selecionadas.size === 0 ? (
+                    <p className="max-w-lg text-xs text-amber-700">
+                      Enquanto nenhuma campanha estiver marcada, o sync não importa métrica nenhuma
+                      para {clienteNome}. É proposital: sem a lista não há como saber o que da conta
+                      é dele.
+                    </p>
+                  ) : null}
+
+                  <div className="flex max-w-lg flex-wrap gap-2">
+                    <Button
+                      variant="outline"
+                      onClick={() => void carregarCampanhas()}
+                      disabled={carregandoCampanhas || !adAccountId.trim()}
+                      className="shrink-0"
+                    >
+                      {carregandoCampanhas ? (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      ) : (
+                        <RefreshCw className="mr-2 h-4 w-4" />
+                      )}
+                      Listar campanhas da conta
+                    </Button>
+                    {campanhas ? (
+                      <Button
+                        onClick={() => void salvarCampanhas()}
+                        disabled={salvandoCampanhas}
+                        className="shrink-0"
+                      >
+                        {salvandoCampanhas ? (
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        ) : (
+                          <Save className="mr-2 h-4 w-4" />
+                        )}
+                        Salvar seleção
+                      </Button>
+                    ) : null}
+                  </div>
+
+                  {campanhas ? (
+                    campanhas.length === 0 ? (
+                      <p className="max-w-lg text-xs text-muted-foreground">
+                        Nenhuma campanha com veiculação nos últimos 90 dias nesta conta.
+                      </p>
+                    ) : (
+                      <ul className="max-h-72 max-w-lg divide-y divide-emerald-200/70 overflow-y-auto rounded-xl border border-emerald-200/80 bg-white/70">
+                        {campanhas.map((c) => (
+                          <li key={c.id}>
+                            <label className="flex cursor-pointer items-start gap-3 px-3 py-2.5 text-sm hover:bg-emerald-50/60">
+                              <input
+                                type="checkbox"
+                                checked={selecionadas.has(c.id)}
+                                onChange={() => alternarCampanha(c.id)}
+                                className="mt-0.5 h-4 w-4 shrink-0 accent-emerald-600"
+                              />
+                              <span className="min-w-0 flex-1">
+                                <span className="block truncate font-medium text-slate-900">
+                                  {c.nome}
+                                </span>
+                                <span className="block font-mono text-[11px] text-muted-foreground">
+                                  {c.id} ·{" "}
+                                  {c.investimento.toLocaleString("pt-BR", {
+                                    style: "currency",
+                                    currency: "BRL",
+                                  })}{" "}
+                                  em 90d
+                                </span>
+                              </span>
+                            </label>
+                          </li>
+                        ))}
+                      </ul>
+                    )
+                  ) : null}
                 </div>
 
                 <div className="flex flex-wrap gap-2">

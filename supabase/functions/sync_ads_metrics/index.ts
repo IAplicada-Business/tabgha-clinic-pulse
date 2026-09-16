@@ -1,4 +1,9 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import {
+  campanhasPermitidas,
+  filtrarPorCampanha,
+  type CampanhaPermitida,
+} from "../_shared/meta_campanhas.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -13,6 +18,7 @@ type MetaConfig = {
   ad_account_name?: string | null;
   page_name?: string;
   page_id?: string;
+  campanhas?: CampanhaPermitida[] | null;
 };
 
 type ClienteRow = {
@@ -83,8 +89,8 @@ async function fetchMetaInsights(
   const path = adAccountId.startsWith("act_") ? adAccountId : `act_${adAccountId}`;
   const fields =
     level === "ad"
-      ? "campaign_name,ad_id,ad_name,spend,impressions,clicks,actions,action_values,date_start"
-      : "campaign_name,spend,impressions,clicks,actions,action_values,date_start";
+      ? "campaign_id,campaign_name,ad_id,ad_name,spend,impressions,clicks,actions,action_values,date_start"
+      : "campaign_id,campaign_name,spend,impressions,clicks,actions,action_values,date_start";
   const url =
     `https://graph.facebook.com/${GRAPH_VERSION}/${path}/insights` +
     `?access_token=${encodeURIComponent(accessToken)}` +
@@ -104,15 +110,18 @@ async function fetchMetaInsights(
   return payload.data ?? [];
 }
 
-async function fetchCampaignOrAccountInsights(
+/**
+ * Só o nível "campaign" é usado: o fallback agregado por conta não carrega
+ * campaign_id e, numa conta compartilhada, misturaria o gasto de outros
+ * clientes na linha de um só.
+ */
+async function fetchCampaignInsights(
   accessToken: string,
   adAccountId: string,
   since: string,
   until: string,
 ): Promise<Array<Record<string, unknown>>> {
-  const campaignRows = await fetchMetaInsights(accessToken, adAccountId, since, until, "campaign");
-  if (campaignRows.length > 0) return campaignRows;
-  return fetchMetaInsights(accessToken, adAccountId, since, until, "account");
+  return fetchMetaInsights(accessToken, adAccountId, since, until, "campaign");
 }
 
 async function listAdAccounts(accessToken: string): Promise<AdAccount[]> {
@@ -236,23 +245,30 @@ async function syncMetaForClient(cliente: ClienteRow, since: string, until: stri
   const config = cliente.dados_extras?.meta;
   // Insights de Ads precisam do user token (ads_read). Page token fica para leadgen.
   const accessToken = config?.user_access_token || config?.access_token;
-  let adAccountId = config?.ad_account_id ? normalizeAccountId(config.ad_account_id) : null;
+  const adAccountId = config?.ad_account_id ? normalizeAccountId(config.ad_account_id) : null;
 
   if (!accessToken) {
     return { inseridos: 0, skipped: true, motivo: "meta_not_configured" };
+  }
+
+  // Falha fechado: sem campanhas escolhidas para este cliente não se importa
+  // nada. Uma conta de anúncio compartilhada entre clientes só pode ser
+  // repartida por uma lista explícita.
+  const permitidas = campanhasPermitidas(config);
+  if (permitidas.size === 0) {
+    return {
+      inseridos: 0,
+      skipped: true,
+      motivo: "campanhas_nao_selecionadas",
+    };
   }
 
   try {
     const accounts = await listAdAccounts(accessToken);
     const ranked = rankAdAccounts(accounts, config?.page_name);
 
-    if (!adAccountId) {
-      adAccountId = ranked[0]?.account_id ?? null;
-      if (adAccountId) {
-        await persistLinkedAdAccount(cliente, adAccountId, ranked[0]?.name);
-      }
-    }
-
+    // Escolher a conta sozinho (antes: a de maior gasto da BM) é como a conta
+    // da agência acabou vinculada a um cliente. A conta tem de ser explícita.
     if (!adAccountId) {
       return {
         inseridos: 0,
@@ -262,52 +278,33 @@ async function syncMetaForClient(cliente: ClienteRow, since: string, until: stri
       };
     }
 
-    let campaignRows = await fetchCampaignOrAccountInsights(
-      accessToken,
-      adAccountId,
-      since,
-      until,
-    );
-    let usedAccount = adAccountId;
-    let autoSwitched = false;
+    const usedAccount = adAccountId;
 
-    // Conta errada (comum: OAuth pega a 1ª com gasto 0) → tenta as demais por ranking.
-    if (campaignRows.length === 0 && ranked.length > 1) {
-      for (const candidate of ranked) {
-        if (candidate.account_id === adAccountId) continue;
-        const candidateRows = await fetchCampaignOrAccountInsights(
-          accessToken,
-          candidate.account_id,
-          since,
-          until,
-        );
-        if (candidateRows.length > 0) {
-          campaignRows = candidateRows;
-          usedAccount = candidate.account_id;
-          autoSwitched = true;
-          await persistLinkedAdAccount(cliente, usedAccount, candidate.name);
-          break;
-        }
-      }
-    } else if (accounts.length > 0 && !config?.ad_account_name) {
-      // Só grava o nome da conta vinculada (sem catálogo da BM).
+    // Nunca trocar de conta sozinho: vincular outra conta da BM ao cliente é
+    // como o investimento de um acabou no portal de outro.
+    if (accounts.length > 0 && !config?.ad_account_name) {
       const linked = ranked.find((a) => a.account_id === usedAccount);
       await persistLinkedAdAccount(cliente, usedAccount, linked?.name);
     }
 
-    let adRows: Array<Record<string, unknown>> = [];
+    const rawCampaignRows = await fetchCampaignInsights(accessToken, usedAccount, since, until);
+    const campanhaFiltro = filtrarPorCampanha(rawCampaignRows, permitidas);
+    const campaignRows = campanhaFiltro.mantidas;
+
+    let rawAdRows: Array<Record<string, unknown>> = [];
     try {
-      adRows = await fetchMetaInsights(accessToken, usedAccount, since, until, "ad");
+      rawAdRows = await fetchMetaInsights(accessToken, usedAccount, since, until, "ad");
     } catch (adError) {
       // Conta sem permissão de breakdown por ad — campanhas ainda valem.
       console.warn("meta_ad_insights_failed", adError);
     }
+    const adFiltro = filtrarPorCampanha(rawAdRows, permitidas);
+    const adRows = adFiltro.mantidas;
 
     let inseridos = 0;
     for (const row of campaignRows) {
       const date = String(row.date_start ?? since);
-      const hasCampaignName = Boolean(row.campaign_name);
-      await upsertMetrica(cliente.id, date, row, hasCampaignName ? "campaign" : "account");
+      await upsertMetrica(cliente.id, date, row, "campaign");
       inseridos += 1;
     }
     for (const row of adRows) {
@@ -331,7 +328,8 @@ async function syncMetaForClient(cliente: ClienteRow, since: string, until: stri
         anuncios: adRows.length,
         ad_account_id: usedAccount,
         ad_account_name: linkedName,
-        auto_switched: autoSwitched,
+        campanhas_permitidas: permitidas.size,
+        linhas_descartadas: campanhaFiltro.descartadas + adFiltro.descartadas,
         ad_accounts_count: ranked.length,
       },
     });
@@ -344,7 +342,8 @@ async function syncMetaForClient(cliente: ClienteRow, since: string, until: stri
       until,
       ad_account_id: usedAccount,
       ad_account_name: linkedName,
-      auto_switched: autoSwitched,
+      campanhas_permitidas: permitidas.size,
+      linhas_descartadas: campanhaFiltro.descartadas + adFiltro.descartadas,
       motivo:
         campaignRows.length === 0 && adRows.length === 0 ? "no_insights_in_range" : undefined,
       ad_accounts_count: ranked.length,
