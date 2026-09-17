@@ -3,12 +3,20 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader2, QrCode, RefreshCw, Unplug, Wifi } from "lucide-react";
 import { toast } from "sonner";
 
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 
 type WhatsappConnectCardProps = {
   clienteId: string;
   compact?: boolean;
+  /**
+   * "cliente" = portal do médico. O card é o mesmo dos dois lados, mas o
+   * médico não pode ler instrução interna: nome do provedor, Instance ID,
+   * Token ou o caminho da ficha no admin. Ele só precisa saber se está
+   * conectado e, quando der, escanear o QR.
+   */
+  audiencia?: "equipe" | "cliente";
 };
 
 type ConnectResponse = {
@@ -55,7 +63,11 @@ async function callConnect(action: "status" | "qr" | "disconnect", clienteId: st
   return json;
 }
 
-export function WhatsappConnectCard({ clienteId, compact = false }: WhatsappConnectCardProps) {
+export function WhatsappConnectCard({
+  clienteId,
+  compact = false,
+  audiencia = "equipe",
+}: WhatsappConnectCardProps) {
   const qc = useQueryClient();
   const [qrImage, setQrImage] = useState<string | null>(null);
 
@@ -100,49 +112,59 @@ export function WhatsappConnectCard({ clienteId, compact = false }: WhatsappConn
   const status = statusQuery.data?.status ?? "disconnected";
   const provisioned = statusQuery.data?.provisioned ?? false;
   const connected = status === "connected";
+  const statusTint = connected ? "green" : provisioned ? "amber" : "rose";
+  const StatusIcon = connected ? Wifi : provisioned ? QrCode : Unplug;
+  const badgeVariant = connected ? "success" : provisioned ? "warning" : "error";
+  const paraCliente = audiencia === "cliente";
+
+  const semCredenciaisTitulo = paraCliente
+    ? "Ainda não conectado"
+    : "Falta a Tabgha salvar as credenciais Z-API";
+  const semCredenciaisApoio = paraCliente
+    ? "A equipe Tabgha está preparando sua conexão. Avisamos assim que estiver pronta."
+    : "Peça à equipe Tabgha para preencher Instance ID + Token na ficha do cliente (Conexões).";
+  const semCredenciaisDetalhe = paraCliente
+    ? "Nada para fazer por enquanto — a conexão é preparada pela equipe."
+    : (statusQuery.data?.message ??
+      "Ainda sem credenciais Z-API neste cliente. Admin: Clientes → ficha → Conexões → Credenciais Z-API.");
 
   return (
-    <div className="rounded-2xl border border-border bg-card p-5 shadow-[0_1px_3px_rgba(15,27,53,0.04)]">
+    <div className="card-lift rounded-2xl border border-border bg-card p-5 shadow-[var(--shadow-card)]">
       <div className="mb-3 flex items-start justify-between gap-3">
-        <div>
-          <p className="text-[10px] font-bold uppercase tracking-widest text-emerald-700">
-            WhatsApp
-          </p>
-          <p className="mt-1 text-sm font-medium">
-            {connected
-              ? `Conectado${statusQuery.data?.phone ? ` · ${statusQuery.data.phone}` : ""}`
-              : provisioned
-                ? "Pronto para escanear o QR"
-                : "Falta a Tabgha salvar as credenciais Z-API"}
-          </p>
-          {!compact ? (
-            <p className="mt-1 text-xs text-muted-foreground">
-              {connected
-                ? "Conversas novas aparecem em Atendimento. Se o agente estiver ligado, o Pietro responde sozinho."
-                : provisioned
-                  ? "Escaneie com o WhatsApp do consultório (Aparelhos conectados)."
-                  : "Peça à equipe Tabgha para preencher Instance ID + Token na ficha do cliente (Conexões)."}
+        <div className="flex items-start gap-3">
+          <div className={`icon-chip icon-chip-${statusTint} h-10 w-10 shrink-0`}>
+            <StatusIcon className="h-4 w-4" />
+          </div>
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+              WhatsApp
             </p>
-          ) : null}
+            <p className="mt-1 text-sm font-medium">
+              {connected
+                ? `Conectado${statusQuery.data?.phone ? ` · ${statusQuery.data.phone}` : ""}`
+                : provisioned
+                  ? "Pronto para escanear o QR"
+                  : semCredenciaisTitulo}
+            </p>
+            {!compact ? (
+              <p className="mt-1 text-xs text-muted-foreground">
+                {connected
+                  ? "Conversas novas aparecem em Atendimento. Se o agente estiver ligado, o Pietro responde sozinho."
+                  : provisioned
+                    ? "Escaneie com o WhatsApp do consultório (Aparelhos conectados)."
+                    : semCredenciaisApoio}
+              </p>
+            ) : null}
+          </div>
         </div>
-        <span
-          className={
-            connected
-              ? "inline-flex items-center gap-1.5 rounded-full bg-emerald-100 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-700"
-              : "inline-flex items-center gap-1.5 rounded-full bg-amber-100 px-2.5 py-0.5 text-[11px] font-semibold text-amber-700"
-          }
-        >
-          <span
-            className={`h-1.5 w-1.5 rounded-full ${connected ? "bg-emerald-500" : "bg-amber-500"}`}
-          />
-          {connected ? "Online" : status}
-        </span>
+        <Badge variant={badgeVariant} className="shrink-0">
+          {connected ? "Online" : provisioned ? "Aguardando QR" : "Não conectado"}
+        </Badge>
       </div>
 
       {!provisioned ? (
         <p className="rounded-xl border border-dashed border-border bg-secondary/30 p-3 text-xs text-muted-foreground">
-          {statusQuery.data?.message ??
-            "Ainda sem credenciais Z-API neste cliente. Admin: Clientes → ficha → Conexões → Credenciais Z-API."}
+          {semCredenciaisDetalhe}
         </p>
       ) : (
         <div className="space-y-3">

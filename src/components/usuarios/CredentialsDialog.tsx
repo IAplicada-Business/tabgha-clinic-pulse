@@ -50,13 +50,13 @@ export function CredentialsDialog({ credentials, onClose }: Props) {
           </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-3 py-1">
+        <div className="space-y-4 py-1">
           <p className="text-sm text-muted-foreground">
             Envie estes dados ao usuário. Senha provisória padrão:{" "}
             <strong className="text-foreground">{credentials.temporary_password}</strong>.
           </p>
 
-          <div className="rounded-xl border border-border bg-muted/40 p-3 space-y-2">
+          <div className="rounded-xl border border-border bg-muted/40 p-4 space-y-3">
             <div className="flex items-center justify-between gap-2">
               <div className="min-w-0">
                 <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">

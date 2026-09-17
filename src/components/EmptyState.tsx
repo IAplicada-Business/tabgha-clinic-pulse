@@ -12,16 +12,18 @@ type Props = {
 
 export function EmptyState({ icon, title, description, action, className }: Props) {
   return (
-    <div className={cn("flex flex-col items-center justify-center py-16 text-center", className)}>
+    <div className={cn("flex flex-col items-center justify-center py-16 px-6 text-center", className)}>
       {icon && (
-        <div className="mb-4 rounded-full bg-muted p-4 text-muted-foreground">{icon}</div>
+        <div className="icon-chip icon-chip-blue mb-5 h-16 w-16 text-current [&_svg]:h-7 [&_svg]:w-7">
+          {icon}
+        </div>
       )}
       <h3 className="text-sm font-semibold text-foreground">{title}</h3>
       {description && (
-        <p className="mt-1 text-sm text-muted-foreground max-w-xs">{description}</p>
+        <p className="mt-1.5 max-w-xs text-sm leading-relaxed text-muted-foreground">{description}</p>
       )}
       {action && (
-        <Button className="mt-4" size="sm" onClick={action.onClick}>
+        <Button className="mt-5" size="sm" onClick={action.onClick}>
           {action.label}
         </Button>
       )}

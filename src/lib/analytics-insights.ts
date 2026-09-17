@@ -116,16 +116,16 @@ export function funnelStages(rows: { status: string }[]) {
 export function insightFromGap(adsLeads: number, crmLeads: number): string | null {
   if (adsLeads <= 0 && crmLeads <= 0) return null;
   if (adsLeads > 0 && crmLeads === 0) {
-    return "O anúncio está gerando interesse, mas esses contatos ainda não aparecem no funil. Vale checar se o WhatsApp/Meta está conectado direito.";
+    return `${adsLeads} é o que a Meta contabilizou no anúncio — ainda não são fichas no funil. Para virar nome e telefone, importe os formulários em Conexões Meta (permissão leads_retrieval).`;
   }
   if (crmLeads > adsLeads * 1.25) {
-    return "Mais gente está entrando pelo WhatsApp e indicação do que só pelos anúncios — bom sinal de marca, e a mídia paga não é a única porta.";
+    return "Mais gente está no funil (WhatsApp, indicação, manual) do que só o anúncio reportou. A mídia paga não é a única porta.";
   }
   if (adsLeads > crmLeads * 1.25) {
     const gap = adsLeads - crmLeads;
-    return `Cerca de ${gap} contatos dos anúncios não chegaram no funil. Pode ser atraso ou conexão incompleta — alguém da equipe precisa olhar.`;
+    return `${adsLeads} eventos Ads vs ${crmLeads} fichas no funil. Os ${gap} de diferença não estão “perdidos no gráfico”: a Meta contou o clique/formulário; o kanban só mostra quem já foi importado.`;
   }
-  return "Os números dos anúncios e do funil estão combinando. Dá para confiar nos dados deste período.";
+  return "Eventos da Meta e fichas no funil estão próximos neste período.";
 }
 
 export function daysBetween(isoDate: string, now = new Date()) {

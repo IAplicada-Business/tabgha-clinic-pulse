@@ -19,7 +19,7 @@ const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY") ?? Deno.env.get("SB_PUBLISHAB
 const admin = createClient(SUPABASE_URL, SERVICE_KEY);
 
 const APP_ROLES = [
-  "admin",
+  "super_admin",
   "gestor_estrategico",
   "growth_manager",
   "social_media",
@@ -136,10 +136,10 @@ async function assertCallerIsAdmin(authHeader: string) {
 
   const { data: isAdmin, error: roleErr } = await admin.rpc("has_role", {
     _user_id: userData.user.id,
-    _role: "admin",
+    _role: "super_admin",
   });
   if (roleErr || !isAdmin) {
-    return { ok: false as const, response: json({ ok: false, error: "apenas admin" }, 403) };
+    return { ok: false as const, response: json({ ok: false, error: "apenas super admin" }, 403) };
   }
 
   return { ok: true as const, userId: userData.user.id };
@@ -281,31 +281,37 @@ Deno.serve(async (req) => {
     if (!userId) return json({ ok: false, error: "Não foi possível obter o usuário." }, 500);
 
     const clienteId = wantsCliente ? body.cliente_id ?? null : null;
-    const permissoes = body.permissoes ?? ["*"];
 
     // Garante profile + ao menos o primeiro papel via RPC; depois sincroniza o conjunto.
     const primaryRole: AppRole =
-      staffRoles[0] ?? (wantsCliente ? "cliente" : "admin");
+      staffRoles[0] ?? (wantsCliente ? "cliente" : "super_admin");
+
+    // Sem permissões explícitas, o preset vem da matriz roles_permissoes.
+    // (Antes o default era ["*"], o que dava acesso total a qualquer perfil.)
     const { error: rpcError } = await admin.rpc("admin_upsert_profile_role", {
       _user_id: userId,
       _role: primaryRole,
       _cliente_id: clienteId ?? undefined,
-      _permissoes: permissoes,
+      _permissoes: body.permissoes ?? undefined,
     });
     if (rpcError) return json({ ok: false, error: rpcError.message }, 400);
 
     await syncRoles(userId, roles);
 
+    const perfilUpdate: Record<string, unknown> = { nome, email, cliente_id: clienteId };
+    if (body.permissoes) perfilUpdate.permissoes = body.permissoes;
+
     const { error: profileErr } = await admin
       .from("profiles")
-      .update({
-        nome,
-        email,
-        cliente_id: clienteId,
-        permissoes,
-      })
+      .update(perfilUpdate)
       .eq("id", userId);
     if (profileErr) return json({ ok: false, error: profileErr.message }, 400);
+
+    const { data: perfilFinal } = await admin
+      .from("profiles")
+      .select("permissoes")
+      .eq("id", userId)
+      .maybeSingle();
 
     return json({
       ok: true,
@@ -315,6 +321,7 @@ Deno.serve(async (req) => {
       email,
       role: primaryRole,
       roles,
+      permissoes: perfilFinal?.permissoes ?? [],
       message: reusedExisting
         ? "Usuário já existia — senha provisória redefinida para Tabgha{ano}."
         : "Usuário criado. Senha provisória: Tabgha{ano}.",

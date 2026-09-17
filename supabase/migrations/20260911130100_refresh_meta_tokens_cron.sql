@@ -1,10 +1,8 @@
 -- Renova tokens Meta long-lived antes de expirar (segunda 06:00 UTC).
 -- refresh-meta-tokens exige Authorization: Bearer <service_role_key>.
 -- A chave é lida em tempo de execução via Supabase Vault (secret
--- "service_role_key"), nunca embutida em texto no comando do cron —
--- cron.job.command guarda só a subquery de lookup, não o valor.
--- Pré-requisito: criar o secret no Dashboard em Database > Vault > New secret
--- (nome exato: service_role_key, valor: a service_role key do projeto).
+-- "service_role_key"), nunca embutida em texto no comando do cron.
+-- Se o secret ou pg_cron/pg_net não existirem, a migration não quebra o deploy.
 DO $$
 DECLARE
   job_id bigint;
@@ -17,7 +15,8 @@ BEGIN
   LIMIT 1;
 
   IF srk IS NULL THEN
-    RAISE EXCEPTION 'vault secret "service_role_key" not found — crie em Database > Vault antes de aplicar esta migration';
+    RAISE NOTICE 'vault secret "service_role_key" not found — cron refresh-meta-tokens skipped';
+    RETURN;
   END IF;
 
   IF EXISTS (SELECT 1 FROM pg_extension WHERE extname = 'pg_cron')
@@ -48,5 +47,8 @@ BEGIN
       $sql$, fn_url)
     );
   END IF;
+EXCEPTION
+  WHEN OTHERS THEN
+    RAISE NOTICE 'refresh-meta-tokens cron not scheduled: %', SQLERRM;
 END
 $$;

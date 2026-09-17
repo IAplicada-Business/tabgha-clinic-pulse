@@ -48,7 +48,7 @@ export const requireRoleAuth = createMiddleware({ type: "function" }).server(
     const roles = (roleResult.data ?? []).map((r) => r.role);
     // Prefer Super Admin, depois qualquer staff, depois cliente
     const primaryRole =
-      roles.find((r) => r === "admin") ??
+      roles.find((r) => r === "super_admin") ??
       roles.find((r) => r !== "cliente") ??
       roles[0] ??
       null;

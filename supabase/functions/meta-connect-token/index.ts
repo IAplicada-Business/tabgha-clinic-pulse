@@ -19,7 +19,9 @@ const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY") ?? Deno.env.get("SB_PUBLISHAB
 
 const admin = createClient(SUPABASE_URL, SERVICE_KEY);
 
+// Espelha src/lib/roles.ts: o enum real é super_admin (não "admin").
 const STAFF_ROLES = new Set([
+  "super_admin",
   "admin",
   "gestor_estrategico",
   "growth_manager",

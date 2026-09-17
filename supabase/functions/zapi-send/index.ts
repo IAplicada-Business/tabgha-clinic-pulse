@@ -1,7 +1,8 @@
 // Envia mensagem WhatsApp via provider (ZAPI) e grava outbound no banco.
 //
 // POST { cliente_id, telefone, body, conversation_id?, sender_type? }
-// Auth: Authorization Bearer = service_role OU JWT de usuário admin/cliente.
+// Auth: Authorization Bearer = service_role OU JWT de usuário com
+// admin.atendimento (equipe) ou do próprio cliente (portal).
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { getProvider, type WppInstance } from '../_shared/wpp_provider.ts'
@@ -76,15 +77,29 @@ Deno.serve(async (req) => {
 
     senderUserId = user.id
 
-    const [{ data: roleRow }, { data: profile }] = await Promise.all([
-      admin.from('user_roles').select('role').eq('user_id', user.id).maybeSingle(),
-      admin.from('profiles').select('cliente_id').eq('id', user.id).maybeSingle(),
+    // Um usuário pode ter equipe + portal; maybeSingle() dava erro nesse caso.
+    const [{ data: roleRows }, { data: profile }] = await Promise.all([
+      admin.from('user_roles').select('role').eq('user_id', user.id),
+      admin.from('profiles').select('cliente_id, permissoes, ativo').eq('id', user.id).maybeSingle(),
     ])
 
-    callerRole = roleRow?.role ?? null
+    if (profile?.ativo === false) {
+      return json({ ok: false, error: 'forbidden' }, 403)
+    }
+
+    const papeis = (roleRows ?? []).map((r) => r.role as string)
+    const permissoes = (profile?.permissoes ?? []) as string[]
+    // Quem atende o WhatsApp é quem tem admin.atendimento na matriz de perfis —
+    // antes só super admin passava, o que travava o time de Atendimento/CS.
+    const podeAtender =
+      permissoes.includes('*') ||
+      permissoes.includes('admin.atendimento') ||
+      permissoes.includes('admin.*')
+
+    callerRole = papeis.includes('cliente') && !podeAtender ? 'cliente' : 'staff'
     callerClienteId = profile?.cliente_id ?? null
 
-    if (callerRole !== 'admin' && callerRole !== 'cliente') {
+    if (!podeAtender && !papeis.includes('cliente')) {
       return json({ ok: false, error: 'forbidden' }, 403)
     }
   }

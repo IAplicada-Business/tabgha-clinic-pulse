@@ -1,15 +1,17 @@
 // Edge Function: gerar-diagnostico-7f
-// Gera o relatório executivo do Diagnóstico das 7 Fontes (diagnóstico +
-// oportunidades + plano de ação por Fonte) a partir das respostas/scores já
-// salvos em diagnostico_respostas/diagnostico_scores, e grava em
-// diagnostico_relatorios.
+// Gera o plano de ação do Diagnóstico das 7 Fontes a partir dos scores já
+// calculados em diagnostico_scores e grava em diagnostico_relatorios.
 //
 // POST { cliente_id: string }
 // Auth: JWT do caller, repassado pro client Supabase — RLS (is_staff) decide
 // quem pode ler/gravar. Não há bypass de service_role aqui de propósito.
 //
-// PLACEHOLDER: o questionário/rubrica que alimenta este relatório ainda é
-// provisório (diagnostico_questoes.placeholder = true), pendente do Pietro.
+// Saída (diagnostico_relatorios):
+//   resumo_executivo → parágrafo executivo + frase de convite
+//   por_fonte        → as 3 Fontes mais fracas, cada uma com diagnóstico,
+//                      ação de 30 dias e ferramenta Tabgha OS
+// As outras 4 Fontes aparecem na tela com a frase da faixa
+// (diagnostico_frases_por_faixa), não com texto de IA.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
@@ -20,6 +22,9 @@ const ANON_KEY =
   Deno.env.get("SUPABASE_ANON_KEY") ?? Deno.env.get("SUPABASE_PUBLISHABLE_KEY") ?? "";
 // @ts-expect-error Deno global
 const ANTHROPIC_KEY = Deno.env.get("ANTHROPIC_API_KEY") ?? "";
+
+/** Dias de validade do link público do relatório. */
+const LINK_VALIDADE_DIAS = 30;
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -36,14 +41,10 @@ function json(body: unknown, status = 200) {
 function extractJson(raw: string): string {
   let text = raw.trim();
   const fenceMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/i);
-  if (fenceMatch) {
-    text = fenceMatch[1].trim();
-  }
+  if (fenceMatch) text = fenceMatch[1].trim();
   const start = text.indexOf("{");
   const end = text.lastIndexOf("}");
-  if (start !== -1 && end !== -1 && end > start) {
-    text = text.slice(start, end + 1);
-  }
+  if (start !== -1 && end !== -1 && end > start) text = text.slice(start, end + 1);
   return text;
 }
 
@@ -68,9 +69,32 @@ const FONTE_LABEL: Record<Fonte, string> = {
   escala: "Escala",
 };
 
-type FonteRelatorio = { diagnostico: string; oportunidades: string[]; plano_acao: string[] };
+const FONTE_NUMERO: Record<Fonte, number> = {
+  posicionamento: 1,
+  presenca_digital: 2,
+  aquisicao_pacientes: 3,
+  conversao: 4,
+  experiencia_paciente: 5,
+  inteligencia_dados: 6,
+  escala: 7,
+};
 
-async function callClaude(system: string, userPrompt: string, maxTokens = 4096) {
+/** Mesma régua do frontend (src/lib/fontes.ts): 0-25 · 26-50 · 51-75 · 76-100. */
+function classificacao(score: number | null): string {
+  if (score == null) return "Sem resposta";
+  if (score <= 25) return "Iniciante";
+  if (score <= 50) return "Em desenvolvimento";
+  if (score <= 75) return "Consolidado";
+  return "Avançado";
+}
+
+type FontePrioridade = {
+  diagnostico: string;
+  acao_30_dias: string;
+  ferramenta_tabgha: string;
+};
+
+async function callClaude(system: string, userPrompt: string, maxTokens = 2000) {
   const res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: {
@@ -128,7 +152,7 @@ Deno.serve(async (req: Request) => {
   try {
     const { data: cliente, error: clienteErr } = await supabase
       .from("clientes")
-      .select("id, nome, especialidade")
+      .select("id, nome, especialidade, dados_extras")
       .eq("id", clienteId)
       .maybeSingle();
     if (clienteErr) throw clienteErr;
@@ -142,78 +166,83 @@ Deno.serve(async (req: Request) => {
       .eq("cliente_id", clienteId);
     if (scoresErr) throw scoresErr;
 
-    if (!scores || scores.length === 0) {
+    const comScore = (scores ?? []).filter((s) => s.score != null);
+    if (comScore.length === 0) {
       return json(
         {
           ok: false,
           error:
-            "Sem respostas suficientes na autoavaliação das 7 Fontes ainda. Peça ao cliente para preencher o questionário antes de gerar o relatório.",
+            "Sem respostas suficientes na autoavaliação das 7 Fontes ainda. Peça ao cliente para preencher o questionário antes de gerar o plano.",
         },
         400,
       );
     }
 
-    const { data: respostas, error: respostasErr } = await supabase
-      .from("diagnostico_respostas")
-      .select("valor_num, valor_texto, questao:diagnostico_questoes(fonte, pergunta, ordem)")
-      .eq("cliente_id", clienteId);
-    if (respostasErr) throw respostasErr;
-
-    type RespostaRow = {
-      valor_num: number | null;
-      valor_texto: string | null;
-      questao: { fonte: Fonte; pergunta: string; ordem: number } | null;
-    };
-
-    const porFonteInput = FONTES.map((fonte) => {
-      const score = scores.find((s) => s.fonte === fonte);
-      const perguntas = ((respostas ?? []) as RespostaRow[])
-        .filter((r) => r.questao?.fonte === fonte)
-        .sort((a, b) => (a.questao?.ordem ?? 0) - (b.questao?.ordem ?? 0))
-        .map((r) => `- ${r.questao?.pergunta}: ${r.valor_num ?? r.valor_texto ?? "sem resposta"}`)
-        .join("\n");
-      return `### ${FONTE_LABEL[fonte]} (score: ${score?.score != null ? `${score.score}/100` : "sem dados suficientes"})\n${perguntas || "sem respostas registradas"}`;
-    }).join("\n\n");
+    const scorePorFonte = new Map<string, number | null>();
+    for (const s of scores ?? []) scorePorFonte.set(s.fonte, s.score);
 
     const scoreGeral =
-      scores.length > 0
-        ? Math.round(
-            (scores.reduce((acc, s) => acc + Number(s.score ?? 0), 0) / scores.length) * 100,
-          ) / 100
-        : null;
+      Math.round(
+        (comScore.reduce((acc, s) => acc + Number(s.score ?? 0), 0) / comScore.length) * 100,
+      ) / 100;
 
-    const system = `Você é consultor de growth marketing para clínicas médicas, aplicando o Método das 7 Fontes da Tabgha.
-Analise a autoavaliação do cliente (respostas + score 0-100 por Fonte) e produza um relatório executivo.
+    // As 3 Fontes mais fracas — é sobre elas que o plano fala.
+    const maisFracas = [...comScore]
+      .sort((a, b) => Number(a.score ?? 0) - Number(b.score ?? 0))
+      .slice(0, 3)
+      .map((s) => s.fonte as Fonte);
 
-REGRAS:
-- Baseie-se SOMENTE nas respostas fornecidas; não invente dados que não foram informados.
-- Para cada Fonte: diagnóstico curto (2-3 frases, direto, sem jargão), 2-4 oportunidades concretas, 2-4 itens de plano de ação priorizados.
-- Score baixo (<40) = tom mais urgente; score alto (>=80) = reconhecer o que já funciona e sugerir próximo nível.
-- Português do Brasil, direto, sem enrolação.
-- Responda APENAS com o objeto JSON abaixo. Não inclua nenhum texto antes ou depois, não use
-  blocos de código markdown (\`\`\`), não escreva introdução nem conclusão — a resposta inteira
-  deve começar com { e terminar com }.
-- Formato exato:
+    const cidade =
+      ((cliente.dados_extras as Record<string, unknown> | null)?.cidade as string | undefined) ??
+      "não informada";
+
+    const linhasScore = FONTES.map(
+      (f) =>
+        `- Nota Fonte ${FONTE_NUMERO[f]} ${FONTE_LABEL[f]}: ${
+          scorePorFonte.get(f) != null ? `${scorePorFonte.get(f)}/100` : "sem resposta"
+        }`,
+    ).join("\n");
+
+    const system = `Você é um consultor sênior da Tabgha OS. Analise o diagnóstico 7 Fontes de um médico e gere um plano de ação personalizado.
+
+Gere:
+1. Um parágrafo executivo de 3-4 frases sintetizando o cenário atual da clínica.
+2. As 3 Fontes mais fracas em ordem, cada uma com:
+   - Diagnóstico em 2 linhas do que está travando.
+   - 1 ação prioritária concreta para os próximos 30 dias.
+   - Ferramenta ou processo Tabgha OS que endereça essa Fonte.
+3. Uma frase final convidando à sessão de aprofundamento.
+
+Tom: consultivo, direto, sem generalidades. Máximo 400 palavras no total.
+Não use bullets no parágrafo executivo. Baseie-se somente nas notas informadas — não invente dados sobre a clínica.
+
+Responda APENAS com o objeto JSON abaixo. Sem texto antes ou depois, sem blocos de código markdown — a resposta inteira começa com { e termina com }.
 {
-  "resumo_executivo": "string — 2-3 parágrafos com visão geral do consultório e prioridades",
-  "por_fonte": {
-    "posicionamento": { "diagnostico": "string", "oportunidades": ["string"], "plano_acao": ["string"] },
-    "presenca_digital": { "diagnostico": "string", "oportunidades": ["string"], "plano_acao": ["string"] },
-    "aquisicao_pacientes": { "diagnostico": "string", "oportunidades": ["string"], "plano_acao": ["string"] },
-    "conversao": { "diagnostico": "string", "oportunidades": ["string"], "plano_acao": ["string"] },
-    "experiencia_paciente": { "diagnostico": "string", "oportunidades": ["string"], "plano_acao": ["string"] },
-    "inteligencia_dados": { "diagnostico": "string", "oportunidades": ["string"], "plano_acao": ["string"] },
-    "escala": { "diagnostico": "string", "oportunidades": ["string"], "plano_acao": ["string"] }
-  }
-}`;
+  "resumo_executivo": "parágrafo executivo de 3-4 frases, sem bullets",
+  "prioridades": [
+    { "fonte": "slug da Fonte", "diagnostico": "2 linhas do que está travando", "acao_30_dias": "1 ação concreta", "ferramenta_tabgha": "ferramenta ou processo Tabgha OS" }
+  ],
+  "convite": "frase final convidando à sessão de aprofundamento"
+}
+Os slugs válidos são: ${FONTES.join(", ")}. Use exatamente as 3 Fontes mais fracas informadas, na ordem dada.`;
 
-    const userPrompt = `Cliente: ${cliente.nome} (${cliente.especialidade ?? "especialidade não informada"})
-Score geral: ${scoreGeral != null ? `${scoreGeral}/100` : "sem dados"}
+    const userPrompt = `Dados do diagnóstico:
+- Nome: ${cliente.nome}
+- Especialidade: ${cliente.especialidade ?? "não informada"}
+- Cidade: ${cidade}
+- Nota geral: ${scoreGeral}/100 (${classificacao(scoreGeral)})
+${linhasScore}
 
-${porFonteInput}`;
+As 3 Fontes mais fracas, em ordem: ${maisFracas
+      .map((f) => `${FONTE_LABEL[f]} (${f}, ${scorePorFonte.get(f)}/100)`)
+      .join(" · ")}`;
 
-    const raw = await callClaude(system, userPrompt, 8192);
-    let parsed: { resumo_executivo?: string; por_fonte?: Record<string, Partial<FonteRelatorio>> };
+    const raw = await callClaude(system, userPrompt);
+    let parsed: {
+      resumo_executivo?: string;
+      prioridades?: Array<Partial<FontePrioridade> & { fonte?: string }>;
+      convite?: string;
+    };
     try {
       parsed = JSON.parse(extractJson(raw));
     } catch {
@@ -223,28 +252,55 @@ ${porFonteInput}`;
       );
     }
 
-    const porFonte: Record<string, FonteRelatorio> = {};
-    for (const fonte of FONTES) {
-      const f = parsed.por_fonte?.[fonte];
-      porFonte[fonte] = {
-        diagnostico: f?.diagnostico ?? "",
-        oportunidades: Array.isArray(f?.oportunidades) ? f!.oportunidades! : [],
-        plano_acao: Array.isArray(f?.plano_acao) ? f!.plano_acao! : [],
+    // por_fonte fica com as 3 prioridades; as outras 4 usam a frase da faixa na tela.
+    const porFonte: Record<string, FontePrioridade> = {};
+    for (const p of parsed.prioridades ?? []) {
+      const slug = String(p.fonte ?? "") as Fonte;
+      if (!FONTES.includes(slug)) continue;
+      porFonte[slug] = {
+        diagnostico: String(p.diagnostico ?? "").trim(),
+        acao_30_dias: String(p.acao_30_dias ?? "").trim(),
+        ferramenta_tabgha: String(p.ferramenta_tabgha ?? "").trim(),
       };
     }
 
+    const convite = String(parsed.convite ?? "").trim();
+    const resumo = [String(parsed.resumo_executivo ?? "").trim(), convite]
+      .filter(Boolean)
+      .join("\n\n");
+
+    if (!resumo) {
+      return json(
+        { ok: false, error: "A IA não devolveu resumo utilizável.", raw: raw.slice(0, 2000) },
+        502,
+      );
+    }
+
     const { data: userData } = await supabase.auth.getUser();
+
+    // Link público: renova validade a cada geração; mantém o token se já existir
+    // (o link que o cliente já recebeu continua valendo).
+    const { data: existente } = await supabase
+      .from("diagnostico_relatorios")
+      .select("link_token")
+      .eq("cliente_id", clienteId)
+      .maybeSingle();
+
+    const expira = new Date();
+    expira.setDate(expira.getDate() + LINK_VALIDADE_DIAS);
 
     const { data: saved, error: saveErr } = await supabase
       .from("diagnostico_relatorios")
       .upsert(
         {
           cliente_id: clienteId,
-          resumo_executivo: parsed.resumo_executivo ?? "",
+          resumo_executivo: resumo,
           por_fonte: porFonte,
           score_geral: scoreGeral,
           gerado_por: userData?.user?.id ?? null,
           gerado_em: new Date().toISOString(),
+          link_token: existente?.link_token ?? crypto.randomUUID(),
+          link_expira_em: expira.toISOString(),
         },
         { onConflict: "cliente_id" },
       )

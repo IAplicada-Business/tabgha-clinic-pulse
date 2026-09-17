@@ -39,7 +39,7 @@ export const Route = createFileRoute("/_authenticated/admin/pipeline-comercial")
     canal: typeof search.canal === "string" ? search.canal : "",
     q: typeof search.q === "string" ? search.q : "",
   }),
-  head: () => ({ meta: [{ title: "Pipeline comercial B2B — Admin" }] }),
+  head: () => ({ meta: [{ title: "Pipeline comercial B2B · Tabgha OS" }] }),
 });
 
 function money(n: number | null | undefined) {

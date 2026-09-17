@@ -1,11 +1,7 @@
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import { resolveAuthAccess } from "@/lib/auth-access";
 import { isStaff, isSuperAdmin } from "@/lib/roles";
-import {
-  canAccessPath,
-  firstAllowedAdminPath,
-  firstAllowedClientePath,
-} from "@/lib/route-permissions";
+import { canAccessPath, firstAllowedAdminPath } from "@/lib/route-permissions";
 
 /**
  * Guard de rota do portal do médico.
@@ -48,13 +44,10 @@ export const Route = createFileRoute("/_authenticated/cliente")({
       return;
     }
 
+    // Rota fora da matriz do perfil → /acesso-negado (o middleware do item 8).
     const pathname = location.pathname;
     if (!canAccessPath(pathname, access.permissoes)) {
-      const fallback = firstAllowedClientePath(access.permissoes);
-      if (fallback === pathname || fallback === "/login") {
-        throw redirect({ to: "/login" });
-      }
-      throw redirect({ to: fallback as "/cliente/dashboard" });
+      throw redirect({ to: "/acesso-negado", search: { de: pathname } });
     }
   },
   component: () => <Outlet />,

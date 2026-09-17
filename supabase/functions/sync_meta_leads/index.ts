@@ -13,6 +13,7 @@ import {
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const GRAPH_VERSION = Deno.env.get("META_GRAPH_VERSION") ?? "v19.0";
+const RUN_BUDGET_MS = 45_000;
 
 const supabase = createClient(SUPABASE_URL, SERVICE_KEY);
 
@@ -25,6 +26,15 @@ type MetaConfig = {
   page_id?: string;
   page_name?: string;
   campanhas?: Array<{ id: string; nome?: string | null }> | null;
+};
+
+type GraphLead = {
+  id: string;
+  created_time?: string;
+  ad_id?: string;
+  campaign_id?: string;
+  form_id?: string;
+  field_data?: FieldData[];
 };
 
 function json(body: Record<string, unknown>, status = 200) {
@@ -93,37 +103,19 @@ async function graphGet<T>(url: string): Promise<T> {
 
 async function fetchAllPages<T extends { id?: string }>(
   firstUrl: string,
+  deadline: number,
 ): Promise<T[]> {
   const out: T[] = [];
   let url: string | null = firstUrl;
   let guard = 0;
   while (url && guard < 40) {
+    if (Date.now() > deadline) break;
     guard += 1;
     const payload = await graphGet<{ data?: T[]; paging?: { next?: string } }>(url);
     out.push(...(payload.data ?? []));
     url = payload.paging?.next ?? null;
   }
   return out;
-}
-
-function needsAttributionEnrichment(row: {
-  meta_ad_id?: string | null;
-  meta_ad_name?: string | null;
-  meta_form_id?: string | null;
-  meta_form_name?: string | null;
-  meta_campaign_id?: string | null;
-  meta_campaign_name?: string | null;
-  meta_page_id?: string | null;
-}): boolean {
-  return (
-    !row.meta_ad_name ||
-    !row.meta_form_name ||
-    !row.meta_campaign_name ||
-    !row.meta_ad_id ||
-    !row.meta_form_id ||
-    !row.meta_campaign_id ||
-    !row.meta_page_id
-  );
 }
 
 const STALE_LEAD_MS = 3 * 24 * 60 * 60 * 1000;
@@ -138,37 +130,35 @@ async function suppressColdFollowupIfStale(
 ) {
   const createdMs = createdTime ? Date.parse(createdTime) : NaN;
   if (!Number.isFinite(createdMs) || Date.now() - createdMs < STALE_LEAD_MS) return;
-  await supabase.from("nurture_jobs").insert({
+  // kind cold_followup foi migrado para seq_b; insert antigo dava 400 e atrasava o backfill.
+  const { error } = await supabase.from("nurture_jobs").insert({
     cliente_id: clienteId,
     lead_id: leadId,
-    kind: "cold_followup",
+    kind: "seq_b",
     step: 0,
     status: "done",
     next_run_at: new Date().toISOString(),
     metadata: { reason: "backfill_stale_lead_suppressed" },
   });
+  if (error) console.warn("nurture_jobs suppress skipped", error.message);
 }
 
-async function enrichLeadRow(
-  leadId: string,
-  attribution: MetaAttribution,
-  campaignIdFallback: string | null,
-) {
-  const patch: Record<string, string> = {};
-  if (attribution.meta_ad_id) patch.meta_ad_id = attribution.meta_ad_id;
-  if (attribution.meta_ad_name) patch.meta_ad_name = attribution.meta_ad_name;
-  if (attribution.meta_campaign_id) patch.meta_campaign_id = attribution.meta_campaign_id;
-  if (attribution.meta_campaign_name) {
-    patch.meta_campaign_name = attribution.meta_campaign_name;
-  }
-  if (attribution.meta_form_id) patch.meta_form_id = attribution.meta_form_id;
-  if (attribution.meta_form_name) patch.meta_form_name = attribution.meta_form_name;
-  if (attribution.meta_page_id) patch.meta_page_id = attribution.meta_page_id;
-  const campaignLabel = attribution.meta_campaign_name ?? campaignIdFallback;
-  if (campaignLabel) patch.utm_campaign = campaignLabel;
-  if (Object.keys(patch).length === 0) return;
-  const { error } = await supabase.from("leads").update(patch).eq("id", leadId);
-  if (error) throw error;
+function attributionFromPayload(
+  lead: GraphLead,
+  form: { id: string; name?: string },
+  pageId: string,
+  campanhaNomes: Map<string, string | null>,
+): MetaAttribution {
+  const campaignId = lead.campaign_id ? String(lead.campaign_id) : null;
+  return {
+    meta_ad_id: lead.ad_id ?? null,
+    meta_ad_name: null,
+    meta_campaign_id: campaignId,
+    meta_campaign_name: campaignId ? (campanhaNomes.get(campaignId) ?? null) : null,
+    meta_form_id: lead.form_id ?? form.id,
+    meta_form_name: form.name ?? null,
+    meta_page_id: pageId,
+  };
 }
 
 Deno.serve(async (req: Request) => {
@@ -184,6 +174,11 @@ Deno.serve(async (req: Request) => {
 
   const days = Math.min(Math.max(Number(body.days) || 90, 1), 365);
   const sinceMs = Date.now() - days * 24 * 60 * 60 * 1000;
+  const sinceUnix = Math.floor(sinceMs / 1000);
+  const deadline = Date.now() + RUN_BUDGET_MS;
+  const timeFilter = encodeURIComponent(
+    JSON.stringify([{ field: "time_created", operator: "GREATER_THAN", value: sinceUnix }]),
+  );
 
   let clientesQ = supabase.from("clientes").select("id, nome, dados_extras");
   if (body.cliente_id) clientesQ = clientesQ.eq("id", body.cliente_id);
@@ -192,6 +187,7 @@ Deno.serve(async (req: Request) => {
   if (clientesError) return json({ ok: false, error: clientesError.message }, 500);
 
   const resultados: Array<Record<string, unknown>> = [];
+  const formMapDefault = await loadFormMap(undefined);
 
   for (const cliente of clientes ?? []) {
     const meta = (cliente.dados_extras as { meta?: MetaConfig } | null)?.meta;
@@ -220,6 +216,10 @@ Deno.serve(async (req: Request) => {
       continue;
     }
 
+    const campanhaNomes = new Map(
+      (meta?.campanhas ?? []).map((c) => [String(c.id), c.nome ?? null] as const),
+    );
+
     try {
       let forms: Array<{
         id: string;
@@ -237,7 +237,7 @@ Deno.serve(async (req: Request) => {
             `?fields=id,name,status,leads_count` +
             `&access_token=${encodeURIComponent(candidate)}` +
             `&limit=100`;
-          forms = await fetchAllPages(formsUrl);
+          forms = await fetchAllPages(formsUrl, deadline);
           token = candidate;
           lastFormsError = null;
           break;
@@ -254,30 +254,45 @@ Deno.serve(async (req: Request) => {
       let atualizados = 0;
       let ignorados = 0;
       let erros = 0;
+      let truncated = false;
       const formErrors: string[] = [];
       const attrCache = createAttributionCache();
 
       for (const form of forms) {
+        if (Date.now() > deadline) {
+          truncated = true;
+          break;
+        }
         if (!form.id) continue;
+        const status = (form.status ?? "").toUpperCase();
+        if (status === "ARCHIVED" || status === "DELETED" || status === "DRAFT") continue;
         try {
           const leadsUrl =
             `https://graph.facebook.com/${GRAPH_VERSION}/${form.id}/leads` +
             `?fields=created_time,id,ad_id,campaign_id,field_data,form_id` +
             `&access_token=${encodeURIComponent(token)}` +
+            `&filtering=${timeFilter}` +
             `&limit=100`;
 
-          const leads = await fetchAllPages<{
-            id: string;
-            created_time?: string;
-            ad_id?: string;
-            campaign_id?: string;
-            form_id?: string;
-            field_data?: FieldData[];
-          }>(leadsUrl);
-
+          let leads: GraphLead[] = [];
+          try {
+            leads = await fetchAllPages<GraphLead>(leadsUrl, deadline);
+          } catch {
+            const fallbackUrl =
+              `https://graph.facebook.com/${GRAPH_VERSION}/${form.id}/leads` +
+              `?fields=created_time,id,ad_id,campaign_id,field_data,form_id` +
+              `&access_token=${encodeURIComponent(token)}` +
+              `&limit=100`;
+            leads = await fetchAllPages<GraphLead>(fallbackUrl, deadline);
+          }
           const formMap = await loadFormMap(form.id);
+          const aliases = Object.keys(formMap).length ? formMap : formMapDefault;
 
           for (const lead of leads) {
+            if (Date.now() > deadline) {
+              truncated = true;
+              break;
+            }
             if (!lead.id) continue;
             const created = lead.created_time ? Date.parse(lead.created_time) : Date.now();
             if (Number.isFinite(created) && created < sinceMs) {
@@ -285,19 +300,33 @@ Deno.serve(async (req: Request) => {
               continue;
             }
 
-            const attribution = await resolveMetaAttribution(
-              token,
-              GRAPH_VERSION,
-              {
-                ad_id: lead.ad_id,
-                campaign_id: lead.campaign_id,
-                form_id: lead.form_id ?? form.id,
-                form_name: form.name,
-                page_id: pageId,
-                page_name: meta?.page_name,
-              },
-              attrCache,
-            );
+            const { data: existing } = await supabase
+              .from("leads")
+              .select("id, cliente_id")
+              .eq("meta_leadgen_id", lead.id)
+              .maybeSingle();
+
+            if (existing) {
+              ignorados += 1;
+              continue;
+            }
+
+            let attribution = attributionFromPayload(lead, form, pageId, campanhaNomes);
+            if (!attribution.meta_campaign_id) {
+              attribution = await resolveMetaAttribution(
+                token,
+                GRAPH_VERSION,
+                {
+                  ad_id: lead.ad_id,
+                  campaign_id: lead.campaign_id,
+                  form_id: lead.form_id ?? form.id,
+                  form_name: form.name,
+                  page_id: pageId,
+                  page_name: meta?.page_name,
+                },
+                attrCache,
+              );
+            }
 
             const campaignId = attribution.meta_campaign_id ?? lead.campaign_id ?? null;
             if (!campanhaLiberada(campaignId, permitidas)) {
@@ -305,59 +334,11 @@ Deno.serve(async (req: Request) => {
               continue;
             }
 
-            const { data: existing } = await supabase
-              .from("leads")
-              .select(
-                "id, cliente_id, meta_ad_id, meta_ad_name, meta_form_id, meta_form_name, meta_campaign_id, meta_campaign_name, meta_page_id, meta_leadgen_id",
-              )
-              .eq("meta_leadgen_id", lead.id)
-              .maybeSingle();
-
-            if (existing) {
-              if (existing.cliente_id !== cliente.id) {
-                ignorados += 1;
-                continue;
-              }
-              if (needsAttributionEnrichment(existing)) {
-                await enrichLeadRow(existing.id, attribution, lead.campaign_id ?? null);
-                atualizados += 1;
-              } else {
-                ignorados += 1;
-              }
-              continue;
-            }
-
-            // Fallback dedupe for rows inserted before meta_leadgen_id existia
-            const { data: legacy } = await supabase
-              .from("leads")
-              .select(
-                "id, meta_ad_id, meta_ad_name, meta_form_id, meta_form_name, meta_campaign_id, meta_campaign_name, meta_page_id",
-              )
-              .eq("cliente_id", cliente.id)
-              .eq("canal", "meta")
-              .ilike("observacoes", `%leadgen ${lead.id}%`)
-              .maybeSingle();
-            if (legacy) {
-              await supabase
-                .from("leads")
-                .update({
-                  meta_leadgen_id: lead.id,
-                  ...attribution,
-                  utm_campaign:
-                    attribution.meta_campaign_name ?? lead.campaign_id ?? null,
-                  utm_source: "facebook",
-                  utm_medium: "paid",
-                })
-                .eq("id", legacy.id);
-              atualizados += 1;
-              continue;
-            }
-
             const fieldData = lead.field_data ?? [];
             const nome =
-              pickOne(fieldData, aliasesFor(formMap, "nome")) ?? "Lead Meta";
-            const telefoneRaw = pickOne(fieldData, aliasesFor(formMap, "telefone"));
-            const email = pickOne(fieldData, aliasesFor(formMap, "email"));
+              pickOne(fieldData, aliasesFor(aliases, "nome")) ?? "Lead Meta";
+            const telefoneRaw = pickOne(fieldData, aliasesFor(aliases, "telefone"));
+            const email = pickOne(fieldData, aliasesFor(aliases, "email"));
             const telefone = telefoneRaw ? normalizePhone(telefoneRaw) : null;
 
             const { data: inserted, error: insertError } = await supabase
@@ -393,22 +374,6 @@ Deno.serve(async (req: Request) => {
             }
 
             await suppressColdFollowupIfStale(inserted.id, cliente.id, lead.created_time);
-
-            await supabase.from("automation_logs").insert({
-              cliente_id: cliente.id,
-              action: "meta_lead_synced",
-              metadata: {
-                leadgen_id: lead.id,
-                form_id: form.id,
-                form_name: form.name ?? null,
-                page_id: pageId,
-                ad_id: attribution.meta_ad_id,
-                ad_name: attribution.meta_ad_name,
-                campaign_id: attribution.meta_campaign_id,
-                campaign_name: attribution.meta_campaign_name,
-                source: "sync_meta_leads",
-              },
-            });
             inseridos += 1;
           }
         } catch (formErr) {
@@ -427,6 +392,7 @@ Deno.serve(async (req: Request) => {
         atualizados,
         ignorados,
         erros,
+        truncated,
         formErrors: formErrors.slice(0, 5),
       });
     } catch (err) {

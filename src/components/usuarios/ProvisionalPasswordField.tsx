@@ -27,7 +27,7 @@ export function ProvisionalPasswordField({
   }
 
   return (
-    <div className="space-y-1.5 rounded-xl border border-sky-200 bg-sky-50/70 px-3 py-3">
+    <div className="space-y-1.5 rounded-xl border border-sky-200 bg-sky-50/70 px-3.5 py-3 shadow-[var(--shadow-xs)]">
       <Label className="text-sky-950">Senha provisória</Label>
       <div className="flex items-center gap-2">
         <p className="flex-1 font-mono text-lg font-bold tracking-wide text-sky-950">{password}</p>

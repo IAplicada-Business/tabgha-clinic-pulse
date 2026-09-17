@@ -12,7 +12,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { ArrowRight, Loader2, RefreshCw } from "lucide-react";
+import { ArrowRight, Eye, Loader2, RefreshCw, Target, Users, Wallet } from "lucide-react";
 
 import {
   AnalyticsFilters,
@@ -27,7 +27,7 @@ import {
   RankedBarChart,
   StoryBanner,
 } from "@/components/analytics/InsightPanel";
-import { SubTabs } from "@/components/analytics/SubTabs";
+import { KpiCard } from "@/components/ui/kpi-card";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
@@ -294,15 +294,24 @@ export function MetaAdsPage({
     const current = dataQuery.data?.current;
     if (!current) return [];
     return [
-      { label: "Investimento", value: formatCurrency(current.investimento) },
-      { label: "Leads (Ads)", value: String(current.leadsAds) },
+      {
+        label: "Investimento",
+        value: formatCurrency(current.investimento),
+        icon: Wallet,
+        tint: "blue" as const,
+      },
+      { label: "Leads (Ads)", value: String(current.leadsAds), icon: Users, tint: "sky" as const },
       {
         label: "CAQ",
         value: current.caq != null ? formatCurrency(current.caq) : "—",
+        icon: Target,
+        tint: "amber" as const,
       },
       {
         label: "Impressões",
         value: current.impressoes > 0 ? current.impressoes.toLocaleString("pt-BR") : "—",
+        icon: Eye,
+        tint: "violet" as const,
       },
     ];
   }, [dataQuery.data]);
@@ -345,40 +354,79 @@ export function MetaAdsPage({
   }
 
   return (
-    <div className="space-y-4">
-      {!embedded ? <h2 className="text-xl font-bold tracking-tight">Marketing pago</h2> : null}
-
-      <SubTabs
-        value={tab}
-        onChange={setTab}
-        tabs={[
-          { id: "campanhas", label: "Campanhas" },
-          { id: "anuncios", label: "Anúncios" },
-        ]}
-      />
-
-      <div className="flex flex-wrap items-center gap-2">
-        <AnalyticsFilters
-          value={filters}
-          onChange={setFilters}
-          clientes={clientesOptions}
-          showCliente={isAdmin && !fixedClienteId}
-          showCategoria={false}
-          showPlataforma={false}
-        />
-        <button
-          type="button"
-          disabled={!activeClienteId || syncMutation.isPending}
-          onClick={() => syncMutation.mutate()}
-          className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-2 text-xs font-semibold text-foreground hover:bg-secondary/60 disabled:opacity-50"
-        >
-          {syncMutation.isPending ? (
-            <Loader2 className="h-3.5 w-3.5 animate-spin" />
-          ) : (
-            <RefreshCw className="h-3.5 w-3.5" />
-          )}
-          Sincronizar Meta
-        </button>
+    <div className="space-y-5">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        {!embedded ? (
+          <div>
+            <h2 className="text-xl font-bold tracking-tight">Marketing pago</h2>
+          </div>
+        ) : (
+          <div className="segmented" role="tablist" aria-label="Nível de mídia">
+            {(
+              [
+                ["campanhas", "Campanhas"],
+                ["anuncios", "Anúncios"],
+              ] as const
+            ).map(([id, label]) => (
+              <button
+                key={id}
+                type="button"
+                role="tab"
+                aria-selected={tab === id}
+                data-active={tab === id}
+                onClick={() => setTab(id)}
+                className="segmented-item"
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        )}
+        <div className="flex flex-wrap items-center gap-2">
+          {!embedded ? (
+            <div className="segmented mr-1" role="tablist" aria-label="Nível de mídia">
+              {(
+                [
+                  ["campanhas", "Campanhas"],
+                  ["anuncios", "Anúncios"],
+                ] as const
+              ).map(([id, label]) => (
+                <button
+                  key={id}
+                  type="button"
+                  role="tab"
+                  aria-selected={tab === id}
+                  data-active={tab === id}
+                  onClick={() => setTab(id)}
+                  className="segmented-item"
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          ) : null}
+          <AnalyticsFilters
+            value={filters}
+            onChange={setFilters}
+            clientes={clientesOptions}
+            showCliente={isAdmin && !fixedClienteId}
+            showCategoria={false}
+            showPlataforma={false}
+          />
+          <button
+            type="button"
+            disabled={!activeClienteId || syncMutation.isPending}
+            onClick={() => syncMutation.mutate()}
+            className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-card px-3 py-2 text-xs font-semibold text-foreground shadow-[var(--shadow-xs)] transition-colors hover:bg-secondary/60 disabled:opacity-50"
+          >
+            {syncMutation.isPending ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <RefreshCw className="h-3.5 w-3.5" />
+            )}
+            Sincronizar Meta
+          </button>
+        </div>
       </div>
 
       {syncMutation.isError ? (
@@ -409,15 +457,14 @@ export function MetaAdsPage({
         <>
           <div className="grid gap-3 md:grid-cols-4">
             {cards.map((card, i) => (
-              <div
-                key={card.label}
-                className="animate-fade-up rounded-2xl border border-border bg-card px-5 pb-4 pt-5 shadow-[0_1px_3px_rgba(15,27,53,0.04)]"
-                style={{ animationDelay: `${i * 60}ms` }}
-              >
-                <p className="text-[10.5px] font-semibold uppercase tracking-wide text-muted-foreground">
-                  {card.label}
-                </p>
-                <p className="mt-3 text-3xl font-black tracking-tight text-sky-800">{card.value}</p>
+              <div key={card.label} className="animate-fade-up" style={{ animationDelay: `${i * 60}ms` }}>
+                <KpiCard
+                  label={card.label}
+                  value={card.value}
+                  icon={card.icon}
+                  tint={card.tint}
+                  format="raw"
+                />
               </div>
             ))}
           </div>
@@ -435,7 +482,7 @@ export function MetaAdsPage({
                   <div className="h-72">
                     <ResponsiveContainer width="100%" height="100%">
                       <LineChart data={dataQuery.data?.chart ?? []}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.06)" />
+                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(15,27,53,0.06)" />
                         <XAxis
                           dataKey="data"
                           tick={{ fontSize: 10 }}
@@ -482,7 +529,7 @@ export function MetaAdsPage({
                   <div className="h-72">
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart data={dataQuery.data?.chart ?? []}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.06)" />
+                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(15,27,53,0.06)" />
                         <XAxis
                           dataKey="data"
                           tick={{ fontSize: 10 }}

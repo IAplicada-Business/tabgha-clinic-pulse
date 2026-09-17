@@ -1,6 +1,7 @@
 // Landing page "quero saber mais" — captura pública com honeypot + rate limit.
 //
-// POST { nome, telefone, especialidade?, cidade?, website?, utm_source?, utm_medium?, utm_campaign?, utm_content?, utm_term?, email? }
+// POST { nome, email, telefone, especialidade, cidade, tamanho_operacao?, desafio?,
+//        origem?, website? (honeypot), utm_* }
 // CORS aberto. Sem service_role no cliente.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
@@ -68,6 +69,9 @@ type Payload = {
   especialidade?: string;
   cidade?: string;
   volume_estimado?: string;
+  tamanho_operacao?: string;
+  desafio?: string;
+  origem?: string;
   website?: string;
   utm_source?: string;
   utm_medium?: string;
@@ -113,7 +117,10 @@ Deno.serve(async (req) => {
   try {
     const especialidade = payload.especialidade?.trim() || null;
     const cidade = payload.cidade?.trim() || null;
-    const volume = payload.volume_estimado?.trim() || null;
+    // volume_estimado é o nome antigo do mesmo campo; o form da LP manda
+    // tamanho_operacao desde o ajuste de 03/09.
+    const tamanho = payload.tamanho_operacao?.trim() || payload.volume_estimado?.trim() || null;
+    const desafio = payload.desafio?.trim().slice(0, 300) || null;
 
     const { data: lead, error } = await supabase
       .from("leads")
@@ -123,19 +130,23 @@ Deno.serve(async (req) => {
         telefone: telefone || null,
         email,
         canal: "lp",
+        icp: payload.origem?.trim() || "LP Tabgha OS",
         utm_source: payload.utm_source ?? "direct",
         utm_medium: payload.utm_medium ?? null,
         utm_campaign: payload.utm_campaign ?? null,
         utm_content: payload.utm_content ?? null,
         utm_term: payload.utm_term ?? null,
         status: "novo",
-        observacoes: [
-          especialidade ? `especialidade: ${especialidade}` : null,
-          cidade ? `cidade: ${cidade}` : null,
-          volume ? `volume: ${volume}` : null,
-        ]
-          .filter(Boolean)
-          .join(" | ") || null,
+        // O desafio abre a nota do card — é o que o time lê primeiro.
+        observacoes:
+          [
+            desafio ? `desafio: ${desafio}` : null,
+            especialidade ? `especialidade: ${especialidade}` : null,
+            cidade ? `cidade: ${cidade}` : null,
+            tamanho ? `operação: ${tamanho}` : null,
+          ]
+            .filter(Boolean)
+            .join(" | ") || null,
       })
       .select("id")
       .single();
@@ -145,7 +156,7 @@ Deno.serve(async (req) => {
     await supabase.from("automation_logs").insert({
       cliente_id: TABGHA_CLIENTE_ID,
       action: "lp_lead_captured",
-      metadata: { lead_id: lead.id, ip, especialidade, cidade, volume },
+      metadata: { lead_id: lead.id, ip, especialidade, cidade, tamanho, desafio },
     });
 
     return json({ ok: true, lead_id: lead.id });

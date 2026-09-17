@@ -31,12 +31,12 @@ export function Panel({
   return (
     <section
       className={cn(
-        "overflow-hidden rounded-2xl border border-border shadow-[0_1px_3px_rgba(15,27,53,0.04)]",
+        "card-lift overflow-hidden rounded-2xl border border-border/70 shadow-[var(--shadow-card)]",
         tone === "soft" ? "bg-gradient-to-br from-slate-50 via-white to-sky-50/70" : "bg-card",
         className,
       )}
     >
-      <div className="flex items-start justify-between gap-3 border-b border-border/70 px-5 py-4">
+      <div className="flex items-start justify-between gap-3 border-b border-border/60 px-5 py-4">
         <div className="min-w-0">
           <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
             {title}
@@ -62,26 +62,27 @@ export function StoryBanner({
   return (
     <div
       className={cn(
-        "relative overflow-hidden rounded-2xl border px-5 py-5 sm:px-7 sm:py-6",
+        "relative overflow-hidden rounded-2xl border px-5 py-5 shadow-[var(--shadow-card)] sm:px-7 sm:py-6",
         tone === "info" &&
-          "border-sky-200/80 bg-gradient-to-br from-sky-50 via-white to-slate-50 text-sky-950",
+          "border-sky-200/70 bg-gradient-to-br from-sky-50 via-white to-blue-50/60 text-sky-950",
         tone === "good" &&
-          "border-emerald-200/80 bg-gradient-to-br from-emerald-50 via-white to-slate-50 text-emerald-950",
+          "border-emerald-200/70 bg-gradient-to-br from-emerald-50 via-white to-slate-50 text-emerald-950",
         tone === "warn" &&
-          "border-amber-200/80 bg-gradient-to-br from-amber-50 via-white to-orange-50/40 text-amber-950",
+          "border-amber-200/70 bg-gradient-to-br from-amber-50 via-white to-orange-50/50 text-amber-950",
       )}
     >
-      <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-white/40 blur-2xl" />
-      <div className="relative flex items-start gap-3">
+      <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/50 blur-3xl" />
+      <div className="pointer-events-none absolute -bottom-12 right-16 h-28 w-28 rounded-full bg-brand-blue/5 blur-2xl" />
+      <div className="relative flex items-start gap-4">
         <span
           className={cn(
-            "mt-0.5 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl",
-            tone === "info" && "bg-sky-100 text-sky-700",
-            tone === "good" && "bg-emerald-100 text-emerald-700",
-            tone === "warn" && "bg-amber-100 text-amber-800",
+            "icon-chip mt-0.5 h-11 w-11 shrink-0",
+            tone === "info" && "icon-chip-blue",
+            tone === "good" && "icon-chip-green",
+            tone === "warn" && "icon-chip-amber",
           )}
         >
-          <Sparkles className="h-4 w-4" />
+          <Sparkles className="h-5 w-5" />
         </span>
         <div className="min-w-0">
           <p className="text-[10px] font-bold uppercase tracking-[0.14em] opacity-60">
@@ -153,7 +154,7 @@ export function KpiStrip({
       {items.map((item, i) => (
         <div
           key={item.rank + item.label}
-          className="card-lift animate-fade-up flex flex-col rounded-2xl border border-border bg-card px-5 pb-4 pt-5 shadow-[0_1px_3px_rgba(15,27,53,0.04)]"
+          className="card-lift animate-fade-up flex flex-col rounded-2xl border border-border bg-card px-5 pb-4 pt-5 shadow-[var(--shadow-card)]"
           style={{ animationDelay: `${i * 50}ms` }}
         >
           <span className="mb-3 text-[9px] font-black tracking-[0.16em] text-muted-foreground/40">
@@ -256,7 +257,7 @@ export function StatusChips({
         {items.map((item) => (
           <div
             key={item.label}
-            className="rounded-xl border border-border bg-secondary/30 px-3 py-2"
+            className="rounded-xl border border-border/70 bg-secondary/30 px-3 py-2.5 transition-colors hover:bg-secondary/50"
           >
             <div className="flex items-center gap-1.5">
               <span className="h-2 w-2 rounded-full" style={{ background: item.color }} />

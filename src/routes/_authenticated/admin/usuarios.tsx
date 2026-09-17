@@ -1,7 +1,18 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { KeyRound, Pencil, UserPlus, Users, Loader2 } from "lucide-react";
+import {
+  KeyRound,
+  Pencil,
+  UserPlus,
+  Users,
+  Loader2,
+  ShieldCheck,
+  UserCog,
+  Layers,
+  UserX,
+  UserCheck,
+} from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -45,11 +56,11 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { KpiCard } from "@/components/ui/kpi-card";
 
 export const Route = createFileRoute("/_authenticated/admin/usuarios")({
   component: UsuariosPage,
-  head: () => ({ meta: [{ title: "Usuários & acessos — Tabgha Admin" }] }),
+  head: () => ({ meta: [{ title: "Usuários & acessos · Tabgha OS" }] }),
 });
 
 type TeamMember = {
@@ -60,6 +71,8 @@ type TeamMember = {
   permissoes: string[];
   cliente_id: string | null;
   cliente_nome: string | null;
+  ativo: boolean;
+  ultimo_acesso: string | null;
 };
 
 type ProfileChoice = StaffRole | "cliente";
@@ -74,7 +87,10 @@ function buildRoles(profile: ProfileChoice, alsoPortal: boolean): AppRole[] {
 /** Fetch rápido: profiles + roles + mapa de clientes em paralelo (sem join aninhado). */
 async function fetchTeam(): Promise<TeamMember[]> {
   const [profilesRes, rolesRes, clientesRes] = await Promise.all([
-    supabase.from("profiles").select("id, nome, email, permissoes, cliente_id").order("nome"),
+    supabase
+      .from("profiles")
+      .select("id, nome, email, permissoes, cliente_id, ativo, ultimo_acesso")
+      .order("nome"),
     supabase.from("user_roles").select("user_id, role"),
     supabase.from("clientes").select("id, nome"),
   ]);
@@ -95,8 +111,8 @@ async function fetchTeam(): Promise<TeamMember[]> {
     const roles = rolesByUser.get(p.id) ?? [];
     roles.sort((a, b) => {
       if (a === b) return 0;
-      if (a === "admin") return -1;
-      if (b === "admin") return 1;
+      if (a === "super_admin") return -1;
+      if (b === "super_admin") return 1;
       if (a === "cliente") return 1;
       if (b === "cliente") return -1;
       return a.localeCompare(b);
@@ -109,6 +125,8 @@ async function fetchTeam(): Promise<TeamMember[]> {
       permissoes: p.permissoes ?? [],
       cliente_id: p.cliente_id,
       cliente_nome: p.cliente_id ? (nomeByCliente.get(p.cliente_id) ?? null) : null,
+      ativo: p.ativo !== false,
+      ultimo_acesso: p.ultimo_acesso,
     };
   });
 }
@@ -118,7 +136,7 @@ const addUserSchema = z
     nome: z.string().min(2, "Nome obrigatório"),
     email: z.string().email("Email inválido"),
     profile: z.enum([
-      "admin",
+      "super_admin",
       "gestor_estrategico",
       "growth_manager",
       "social_media",
@@ -259,7 +277,7 @@ function AddUserDialog({
     >
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Adicionar membro</DialogTitle>
+          <DialogTitle>Convidar usuário</DialogTitle>
         </DialogHeader>
 
         <form
@@ -410,7 +428,7 @@ function EditAccessDialog({
   const [clienteId, setClienteId] = useState<string | null>(member.cliente_id);
   const initialStaff = primaryStaffRole(member.roles);
   const [profile, setProfile] = useState<ProfileChoice>(
-    initialStaff ?? (member.roles.includes("cliente") ? "cliente" : "admin"),
+    initialStaff ?? (member.roles.includes("cliente") ? "cliente" : "super_admin"),
   );
   const [alsoPortal, setAlsoPortal] = useState(
     Boolean(initialStaff && member.roles.includes("cliente")),
@@ -503,7 +521,7 @@ function EditAccessDialog({
         </DialogHeader>
 
         <div className="space-y-4 py-2">
-          <div className="rounded-md border border-border bg-muted/30 px-3 py-2 space-y-2">
+          <div className="rounded-xl border border-border bg-muted/30 px-3 py-2.5 space-y-2">
             <p className="text-[11px] text-muted-foreground">
               A senha não fica salva em texto — use <strong>Redefinir senha</strong> para gerar de
               novo a provisória <strong>{provisionalPassword()}</strong> e copiar.
@@ -637,6 +655,7 @@ function EditAccessDialog({
 }
 
 function UsuariosPage() {
+  const queryClient = useQueryClient();
   const [showAdd, setShowAdd] = useState(false);
   const [editing, setEditing] = useState<TeamMember | null>(null);
   const [credentials, setCredentials] = useState<AccessCredentials | null>(null);
@@ -652,43 +671,65 @@ function UsuariosPage() {
     staleTime: 15_000,
   });
 
+  const alternarAtivo = useMutation({
+    mutationFn: async ({ id, ativo }: { id: string; ativo: boolean }) => {
+      const { error } = await supabase.from("profiles").update({ ativo }).eq("id", id);
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: (_d, vars) => {
+      toast.success(vars.ativo ? "Usuário reativado." : "Usuário desativado.");
+      void queryClient.invalidateQueries({ queryKey: ["admin", "team"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   const staffMembers = team.filter((m) => isStaff(m.roles));
   const portalMembers = team.filter((m) => m.roles.includes("cliente"));
   const dual = team.filter((m) => isStaff(m.roles) && m.roles.includes("cliente"));
 
   return (
     <div className="px-6 py-6 space-y-6">
-      <div>
-        <h1 className="text-xl font-bold tracking-tight">Usuários & acessos</h1>
-        <p className="mt-0.5 text-xs text-muted-foreground max-w-xl">
-          Aqui ficam os <strong>logins</strong>. Os 8 perfis do Blueprint (Super Admin → Cliente)
-          aplicam presets de telas. Um perfil interno pode também liberar o Portal no mesmo email.
-        </p>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <span className="eyebrow-pill">Configurações</span>
+          <h1 className="mt-2 text-xl font-bold tracking-tight">Usuários & acessos</h1>
+          <p className="mt-0.5 text-xs text-muted-foreground max-w-xl">
+            Aqui ficam os <strong>logins</strong>. Os 8 perfis do Blueprint (Super Admin → Cliente)
+            aplicam presets de telas. Um perfil interno pode também liberar o Portal no mesmo email.
+            A senha provisória só aparece na criação ou ao redefinir.
+          </p>
+        </div>
+        <Button onClick={() => setShowAdd(true)}>
+          <UserPlus className="mr-2 h-4 w-4" />
+          Convidar usuário
+        </Button>
       </div>
-      <Button onClick={() => setShowAdd(true)}>
-        <UserPlus className="mr-2 h-4 w-4" />
-        Adicionar membro
-      </Button>
 
       {!isLoading && team.length > 0 && (
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           {[
-            { label: "Total de membros", value: team.length, color: "text-slate-700" },
-            { label: "Equipe interna", value: staffMembers.length, color: "text-primary" },
-            { label: "Portais", value: portalMembers.length, color: "text-sky-700" },
-            { label: "Equipe + Portal", value: dual.length, color: "text-emerald-700" },
+            { label: "Total de membros", value: team.length, icon: Users, tint: "blue" as const },
+            {
+              label: "Equipe interna",
+              value: staffMembers.length,
+              icon: ShieldCheck,
+              tint: "violet" as const,
+            },
+            { label: "Portais", value: portalMembers.length, icon: UserCog, tint: "sky" as const },
+            { label: "Equipe + Portal", value: dual.length, icon: Layers, tint: "green" as const },
           ].map((kpi, i) => (
             <div
               key={kpi.label}
-              className="rounded-2xl border border-border bg-card p-5 shadow-[0_1px_3px_rgba(15,27,53,0.04)]"
-              style={{ animationDelay: i * 75 + "ms" }}
+              className="animate-fade-up"
+              style={{ animationDelay: `${i * 75}ms` }}
             >
-              <p className="text-[10.5px] font-semibold uppercase tracking-widest text-muted-foreground">
-                {kpi.label}
-              </p>
-              <p className={`mt-1 text-3xl font-extrabold tracking-tight ${kpi.color}`}>
-                {kpi.value}
-              </p>
+              <KpiCard
+                label={kpi.label}
+                value={kpi.value}
+                icon={kpi.icon}
+                tint={kpi.tint}
+                format="raw"
+              />
             </div>
           ))}
         </div>
@@ -707,10 +748,10 @@ function UsuariosPage() {
           icon={<Users className="h-6 w-6" />}
           title="Nenhum login cadastrado"
           description="Crie o primeiro acesso com um dos 8 perfis do Blueprint."
-          action={{ label: "Adicionar membro", onClick: () => setShowAdd(true) }}
+          action={{ label: "Convidar usuário", onClick: () => setShowAdd(true) }}
         />
       ) : (
-        <div className="rounded-2xl border border-border bg-card p-5 shadow-[0_1px_3px_rgba(15,27,53,0.04)]">
+        <div className="rounded-2xl border border-border bg-card p-5 shadow-[var(--shadow-card)]">
           <div className="mb-3 flex items-center justify-between">
             <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
               Membros {isFetching ? "· atualizando…" : ""}
@@ -725,11 +766,9 @@ function UsuariosPage() {
                 <span className="w-5 shrink-0 text-[10px] font-black tabular-nums text-muted-foreground/30">
                   {String(i + 1).padStart(2, "0")}
                 </span>
-                <Avatar>
-                  <AvatarFallback className="bg-slate-100 text-xs text-slate-700">
-                    {initials(member.nome, member.email)}
-                  </AvatarFallback>
-                </Avatar>
+                <div className="icon-chip icon-chip-blue h-9 w-9 shrink-0 text-xs font-bold">
+                  {initials(member.nome, member.email)}
+                </div>
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-medium">{member.nome ?? "—"}</p>
                   <p className="truncate text-xs text-muted-foreground">{member.email}</p>
@@ -756,7 +795,21 @@ function UsuariosPage() {
                   <Badge variant="outline" className="max-w-full truncate text-[10px] font-normal">
                     {summarizePermissions(member.permissoes, member.roles)}
                   </Badge>
+                  <span className="text-[10.5px] text-muted-foreground">
+                    {member.ultimo_acesso
+                      ? `Último acesso ${new Date(member.ultimo_acesso).toLocaleDateString("pt-BR")}`
+                      : "Nunca acessou"}
+                  </span>
                 </div>
+                <span
+                  className={
+                    member.ativo
+                      ? "shrink-0 rounded-full bg-emerald-50 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-700"
+                      : "shrink-0 rounded-full bg-slate-100 px-2.5 py-0.5 text-[11px] font-semibold text-slate-600"
+                  }
+                >
+                  {member.ativo ? "Ativo" : "Inativo"}
+                </span>
                 <Button
                   type="button"
                   variant="ghost"
@@ -766,6 +819,22 @@ function UsuariosPage() {
                   aria-label={`Editar ${member.email ?? ""}`}
                 >
                   <Pencil className="h-4 w-4" />
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="shrink-0"
+                  disabled={alternarAtivo.isPending}
+                  onClick={() => alternarAtivo.mutate({ id: member.id, ativo: !member.ativo })}
+                  aria-label={`${member.ativo ? "Desativar" : "Reativar"} ${member.email ?? ""}`}
+                  title={member.ativo ? "Desativar (bloqueia o login)" : "Reativar"}
+                >
+                  {member.ativo ? (
+                    <UserX className="h-4 w-4 text-rose-600" />
+                  ) : (
+                    <UserCheck className="h-4 w-4 text-emerald-600" />
+                  )}
                 </Button>
               </div>
             ))}

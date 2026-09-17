@@ -1,7 +1,7 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowDown, ArrowRight, ArrowUp, Loader2, TrendingUp } from "lucide-react";
+import { ArrowRight, Loader2, Receipt, Target, TrendingUp, Users, Wallet } from "lucide-react";
 import {
   Bar,
   BarChart,
@@ -31,9 +31,9 @@ import {
 } from "@/components/analytics/InsightPanel";
 import { EmptyState } from "@/components/EmptyState";
 import { MetaAdsPage } from "@/components/meta/MetaAdsPage";
+import { KpiCard } from "@/components/ui/kpi-card";
 import { useClientesOptions } from "@/hooks/useClientesOptions";
 import {
-  buildCampaignInsights,
   buildFunnelInsights,
   buildHeadline,
   buildRankingInsights,
@@ -43,16 +43,17 @@ import {
   insightFromGap,
 } from "@/lib/analytics-insights";
 import { calcCaq } from "@/lib/analytics-range";
-import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 
-const ROI_TABS = ["operacao", "clientes", "campanhas", "marketing"] as const;
+const ROI_TABS = ["operacao", "clientes", "marketing"] as const;
 
 type TabId = (typeof ROI_TABS)[number];
 
 function resolveRoiTab(raw: unknown): TabId {
   // Legado: oportunidades foi unificado em clientes.
   if (raw === "oportunidades") return "clientes";
+  // Legado: campanhas foi unificado em Marketing pago (mesma tabela metricas_ads).
+  if (raw === "campanhas") return "marketing";
   return ROI_TABS.includes(raw as TabId) ? (raw as TabId) : "operacao";
 }
 
@@ -61,7 +62,7 @@ export const Route = createFileRoute("/_authenticated/admin/roi")({
     tab: resolveRoiTab(search.tab),
   }),
   component: RoiAdminPage,
-  head: () => ({ meta: [{ title: "ROI da operação — Tabgha Admin" }] }),
+  head: () => ({ meta: [{ title: "Resultados & ROI · Tabgha OS" }] }),
 });
 
 type Metrica = {
@@ -100,64 +101,11 @@ function fmt(v: number) {
   return `R$ ${v.toLocaleString("pt-BR", { minimumFractionDigits: 0 })}`;
 }
 
-function KpiCard({
-  rank,
-  label,
-  value,
-  sub,
-  up,
-  delay,
-}: {
-  rank: string;
-  label: string;
-  value: string;
-  sub?: string;
-  up?: boolean;
-  delay: number;
-}) {
-  return (
-    <div
-      className="card-lift animate-fade-up flex flex-col rounded-2xl border border-border bg-card px-5 pb-4 pt-5 shadow-[0_1px_3px_rgba(15,27,53,0.04)]"
-      style={{ animationDelay: `${delay}ms` }}
-    >
-      <span className="mb-4 text-[9px] font-black tracking-[0.16em] text-muted-foreground/40">
-        {rank}
-      </span>
-      <p className="mb-1 text-[10.5px] font-semibold uppercase tracking-wide text-muted-foreground">
-        {label}
-      </p>
-      <p className="mt-auto text-[2.2rem] font-black leading-none tracking-tight">{value}</p>
-      {sub ? (
-        <p
-          className={cn(
-            "mt-2 flex items-center gap-1 text-[11px] font-medium",
-            up === true
-              ? "text-emerald-700"
-              : up === false
-                ? "text-red-600"
-                : "text-muted-foreground",
-          )}
-        >
-          {up === true && <ArrowUp className="h-3 w-3" />}
-          {up === false && <ArrowDown className="h-3 w-3" />}
-          {sub}
-        </p>
-      ) : null}
-      <div className="mt-3 h-0.5 w-full rounded-full bg-sky-500/80" />
-    </div>
-  );
-}
-
 function RoiAdminPage() {
   const { tab } = Route.useSearch();
-  const navigate = useNavigate({ from: Route.fullPath });
   const [filters, setFilters] = useState<AnalyticsFiltersValue>(defaultAnalyticsFilters("30d"));
   const [showAllRows, setShowAllRows] = useState(false);
   const { data: clientesOptions = [] } = useClientesOptions();
-
-  function setTab(next: TabId) {
-    void navigate({ search: (prev) => ({ ...prev, tab: next }) });
-  }
 
   const { data: clientesFull = [] } = useQuery({
     queryKey: ["admin", "roi", "clientes-cat"],
@@ -236,10 +184,11 @@ function RoiAdminPage() {
     const totalInvest = metricasFiltradas.reduce((s, m) => s + Number(m.investimento), 0);
     const totalLeadsAds = metricasFiltradas.reduce((s, m) => s + m.leads, 0);
     const leadsCrm = leadsFiltrados.length;
-    const leadsBase = leadsCrm > 0 ? leadsCrm : totalLeadsAds;
+    const leadsBase = leadsCrm;
     const qualificados = leadsFiltrados.filter((l) => l.status !== "novo").length;
     const convertidos = leadsFiltrados.filter((l) => l.status === "convertido").length;
-    const caq = calcCaq(totalInvest, leadsBase);
+    const caq = calcCaq(totalInvest, totalLeadsAds);
+    const caqFunil = calcCaq(totalInvest, leadsCrm);
     const cplArr = metricasFiltradas.filter((m) => m.cpl != null).map((m) => Number(m.cpl));
     const cplMed = cplArr.length ? cplArr.reduce((a, b) => a + b, 0) / cplArr.length : null;
     return {
@@ -250,6 +199,7 @@ function RoiAdminPage() {
       qualificados,
       convertidos,
       caq,
+      caqFunil,
       cplMed,
     };
   }, [metricasFiltradas, leadsFiltrados]);
@@ -257,7 +207,14 @@ function RoiAdminPage() {
   const byCliente = useMemo(() => {
     const map = new Map<
       string,
-      { id: string; nome: string; investimento: number; leads: number; conversoes: number }
+      {
+        id: string;
+        nome: string;
+        investimento: number;
+        leads: number;
+        leadsCrm: number;
+        conversoes: number;
+      }
     >();
     for (const m of metricasFiltradas) {
       const nome = m.clientes?.nome ?? m.cliente_id.slice(0, 8);
@@ -266,6 +223,7 @@ function RoiAdminPage() {
         nome,
         investimento: 0,
         leads: 0,
+        leadsCrm: 0,
         conversoes: 0,
       };
       map.set(m.cliente_id, {
@@ -275,26 +233,23 @@ function RoiAdminPage() {
         conversoes: prev.conversoes + m.conversoes,
       });
     }
-    return Array.from(map.values())
-      .map((row) => ({ ...row, caq: calcCaq(row.investimento, row.leads) }))
-      .sort((a, b) => b.investimento - a.investimento);
-  }, [metricasFiltradas]);
-
-  const byCampanha = useMemo(() => {
-    const map = new Map<string, { campanha: string; investimento: number; leads: number }>();
-    for (const m of metricasFiltradas) {
-      const key = m.campanha ?? "Sem campanha";
-      const prev = map.get(key) ?? { campanha: key, investimento: 0, leads: 0 };
-      map.set(key, {
-        campanha: key,
-        investimento: prev.investimento + Number(m.investimento),
-        leads: prev.leads + m.leads,
-      });
+    for (const l of leadsFiltrados) {
+      const nome = l.clientes?.nome ?? "Cliente";
+      const prev = map.get(l.cliente_id) ?? {
+        id: l.cliente_id,
+        nome,
+        investimento: 0,
+        leads: 0,
+        leadsCrm: 0,
+        conversoes: 0,
+      };
+      prev.leadsCrm += 1;
+      map.set(l.cliente_id, prev);
     }
     return Array.from(map.values())
       .map((row) => ({ ...row, caq: calcCaq(row.investimento, row.leads) }))
       .sort((a, b) => b.investimento - a.investimento);
-  }, [metricasFiltradas]);
+  }, [metricasFiltradas, leadsFiltrados]);
 
   const oportunidades = useMemo(() => {
     const map = new Map<
@@ -327,7 +282,7 @@ function RoiAdminPage() {
     invest: kpis.totalInvest,
     leadsCrm: kpis.leadsCrm,
     leadsAds: kpis.totalLeadsAds,
-    caq: kpis.caq,
+    caq: kpis.caqFunil ?? kpis.caq,
     convertidos: kpis.convertidos,
     perdidos: leadsFiltrados.filter((l) => l.status === "perdido").length,
   });
@@ -342,27 +297,37 @@ function RoiAdminPage() {
       caq: r.caq,
     })),
   );
-  const campaignInsights = buildCampaignInsights(byCampanha);
   const adsCrmGap = insightFromGap(kpis.totalLeadsAds, kpis.leadsCrm);
 
   const pageTitle: Record<TabId, string> = {
     operacao: "Operação",
     clientes: "Clientes",
-    campanhas: "Campanhas",
     marketing: "Marketing pago",
   };
   const pageDescription: Record<TabId, string> = {
     operacao: "Investimento, leads e CAQ consolidados de toda a operação.",
     clientes: "ROI por clínica: investimento, leads e conversão comparados.",
-    campanhas: "Ranking de campanhas por investimento, leads e custo por lead.",
     marketing: "Métricas detalhadas de anúncios (Meta Ads) por cliente.",
   };
 
   return (
     <div className="space-y-5 px-6 py-6">
-      <div>
-        <h1 className="text-xl font-bold tracking-tight">{pageTitle[tab]}</h1>
-        <p className="mt-0.5 text-xs text-muted-foreground">{pageDescription[tab]}</p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <span className="eyebrow-pill">ROI da operação</span>
+          <h1 className="mt-2 text-2xl font-extrabold tracking-tight">{pageTitle[tab]}</h1>
+        </div>
+        {tab !== "marketing" ? (
+          <AnalyticsFilters
+            value={filters}
+            onChange={(next) => {
+              setShowAllRows(false);
+              setFilters(next);
+            }}
+            clientes={clientesOptions}
+            categorias={categorias}
+          />
+        ) : null}
       </div>
       {tab !== "marketing" ? (
         <AnalyticsFilters
@@ -394,38 +359,74 @@ function RoiAdminPage() {
             <>
               <StoryBanner {...headline} />
               {adsCrmGap ? (
-                <InsightStack items={[{ title: "Ads × funil", body: adsCrmGap, tone: "info" }]} />
+                <InsightStack
+                  items={[
+                    {
+                      title: "Ads × funil — não é o mesmo número",
+                      body: adsCrmGap,
+                      tone: kpis.totalLeadsAds > kpis.leadsCrm * 1.25 ? "warn" : "info",
+                    },
+                  ]}
+                />
+              ) : null}
+              {kpis.totalLeadsAds > kpis.leadsCrm ? (
+                <p className="text-sm">
+                  <Link
+                    to="/admin/config-meta"
+                    className="font-semibold text-sky-700 hover:underline"
+                  >
+                    Importar formulários da Meta →
+                  </Link>
+                  <span className="text-muted-foreground">
+                    {" "}
+                    para as fichas aparecerem no funil.
+                  </span>
+                </p>
               ) : null}
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                <KpiCard
-                  rank="01"
-                  label="CAQ"
-                  value={kpis.caq != null ? fmt(kpis.caq) : "—"}
-                  sub="quanto custa cada lead"
-                  delay={0}
-                />
-                <KpiCard rank="02" label="Investido" value={fmt(kpis.totalInvest)} delay={60} />
-                <KpiCard
-                  rank="03"
-                  label="Leads"
-                  value={String(kpis.leadsBase)}
-                  sub={
-                    kpis.leadsCrm > 0
-                      ? `${kpis.leadsCrm} no CRM · ${kpis.totalLeadsAds} Ads`
-                      : `${kpis.totalLeadsAds} via Ads`
-                  }
-                  delay={120}
-                />
-                <KpiCard
-                  rank="04"
-                  label="CPL médio"
-                  value={kpis.cplMed != null ? fmt(kpis.cplMed) : "—"}
-                  delay={180}
-                />
+                <div className="animate-fade-up">
+                  <KpiCard
+                    label="Investido"
+                    value={fmt(kpis.totalInvest)}
+                    icon={Wallet}
+                    tint="sky"
+                    format="raw"
+                  />
+                </div>
+                <div className="animate-fade-up" style={{ animationDelay: "60ms" }}>
+                  <KpiCard
+                    label="Eventos Ads"
+                    value={String(kpis.totalLeadsAds)}
+                    icon={Receipt}
+                    tint="blue"
+                    format="raw"
+                    delta={{ value: "o que a Meta reportou no anúncio", direction: "neutral" }}
+                  />
+                </div>
+                <div className="animate-fade-up" style={{ animationDelay: "120ms" }}>
+                  <KpiCard
+                    label="No funil"
+                    value={String(kpis.leadsCrm)}
+                    icon={Users}
+                    tint="violet"
+                    format="raw"
+                    delta={{ value: "fichas com nome e telefone", direction: "neutral" }}
+                  />
+                </div>
+                <div className="animate-fade-up" style={{ animationDelay: "180ms" }}>
+                  <KpiCard
+                    label="CAQ Ads"
+                    value={kpis.caq != null ? fmt(kpis.caq) : "—"}
+                    icon={Target}
+                    tint="amber"
+                    format="raw"
+                    delta={{ value: "investimento ÷ eventos Meta", direction: "neutral" }}
+                  />
+                </div>
               </div>
 
               <div className="grid gap-4 lg:grid-cols-2">
-                <Panel title="Funil da operação" subtitle="Onde as oportunidades param" tone="soft">
+                <Panel title="Funil da operação" subtitle="Só quem já tem ficha no CRM" tone="soft">
                   <FunnelBars stages={funnel} />
                 </Panel>
                 <Panel title="Status dos leads" subtitle="Distribuição atual">
@@ -434,9 +435,13 @@ function RoiAdminPage() {
               </div>
 
               {byCliente.length > 0 ? (
-                <div className="animate-fade-up rounded-2xl border border-border bg-gradient-to-br from-slate-50 to-sky-50/60 p-5 shadow-[0_1px_3px_rgba(15,27,53,0.04)]">
-                  <p className="mt-1 text-base font-bold text-foreground">
-                    Investimento × Leads por cliente
+                <div className="animate-fade-up rounded-2xl border border-border bg-gradient-to-br from-slate-50 to-sky-50/60 p-5 shadow-[var(--shadow-card)]">
+                  <p className="text-base font-bold text-foreground">
+                    Mídia vs funil por cliente
+                  </p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Eventos Ads = o que a Meta contou no anúncio. Funil = fichas com nome e
+                    telefone. Não são a mesma coisa.
                   </p>
                   <div className="mt-4 h-64">
                     <ResponsiveContainer width="100%" height="100%">
@@ -482,8 +487,15 @@ function RoiAdminPage() {
                         <Bar
                           yAxisId="right"
                           dataKey="leads"
-                          name="Leads"
+                          name="Eventos Ads"
                           fill="#0369a1"
+                          radius={[4, 4, 0, 0]}
+                        />
+                        <Bar
+                          yAxisId="right"
+                          dataKey="leadsCrm"
+                          name="No funil"
+                          fill="#7dd3fc"
                           radius={[4, 4, 0, 0]}
                         />
                       </BarChart>
@@ -492,7 +504,7 @@ function RoiAdminPage() {
                 </div>
               ) : null}
 
-              <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-[0_1px_3px_rgba(15,27,53,0.04)]">
+              <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-[var(--shadow-card)]">
                 <div className="flex items-center justify-between border-b border-border px-5 py-4">
                   <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
                     Registros do período
@@ -504,21 +516,21 @@ function RoiAdminPage() {
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
-                      <tr className="bg-secondary/60 text-[10.5px] uppercase tracking-wide text-muted-foreground">
-                        <th className="px-4 py-2.5 text-left font-semibold">#</th>
-                        <th className="px-4 py-2.5 text-left font-semibold">Cliente</th>
-                        <th className="px-4 py-2.5 text-left font-semibold">Data</th>
-                        <th className="px-4 py-2.5 text-left font-semibold">Plataforma</th>
-                        <th className="px-4 py-2.5 text-right font-semibold">Investimento</th>
-                        <th className="px-4 py-2.5 text-right font-semibold">Leads</th>
-                        <th className="px-4 py-2.5 text-right font-semibold">CAQ</th>
+                      <tr className="border-b border-border bg-secondary/40 text-[10px] font-bold uppercase tracking-[0.08em] text-muted-foreground/70">
+                        <th className="px-4 py-2.5 text-left">#</th>
+                        <th className="px-4 py-2.5 text-left">Cliente</th>
+                        <th className="px-4 py-2.5 text-left">Data</th>
+                        <th className="px-4 py-2.5 text-left">Plataforma</th>
+                        <th className="px-4 py-2.5 text-right">Investimento</th>
+                        <th className="px-4 py-2.5 text-right">Eventos Ads</th>
+                        <th className="px-4 py-2.5 text-right">CAQ</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-border">
+                    <tbody className="divide-y divide-border/60">
                       {rowsVisible.map((m, idx) => {
                         const caq = calcCaq(Number(m.investimento), m.leads);
                         return (
-                          <tr key={m.id} className="transition-colors hover:bg-secondary/30">
+                          <tr key={m.id} className="transition-colors hover:bg-secondary/40">
                             <td className="px-4 py-2.5 text-[10px] font-black tabular-nums text-muted-foreground/30">
                               {String(idx + 1).padStart(2, "0")}
                             </td>
@@ -579,7 +591,7 @@ function RoiAdminPage() {
                     formatValue={(v) => fmtMoneyCompact(v)}
                   />
                 </Panel>
-                <Panel title="Leads gerados por clínica" tone="soft">
+                <Panel title="Eventos Ads por clínica" tone="soft">
                   <RankedBarChart
                     data={[...byCliente]
                       .sort((a, b) => b.leads - a.leads)
@@ -602,21 +614,23 @@ function RoiAdminPage() {
                 </Panel>
               </div>
 
-              <div className="overflow-hidden rounded-2xl border border-border bg-card">
+              <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-[var(--shadow-card)]">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="bg-secondary/50 text-[10px] uppercase tracking-wide text-muted-foreground">
+                    <tr className="border-b border-border bg-secondary/40 text-[10px] font-bold uppercase tracking-[0.08em] text-muted-foreground/70">
                       <th className="px-4 py-2.5 text-left">Cliente</th>
                       <th className="px-3 py-2.5 text-right">Invest.</th>
-                      <th className="px-3 py-2.5 text-right">Leads Ads</th>
+                      <th className="px-3 py-2.5 text-right">Eventos Ads</th>
+                      <th className="px-3 py-2.5 text-right">No funil</th>
+                      <th className="px-3 py-2.5 text-right">A importar</th>
                       <th className="px-3 py-2.5 text-right">Novos</th>
                       <th className="px-3 py-2.5 text-right">Qualif.</th>
                       <th className="px-3 py-2.5 text-right">Conv.</th>
-                      <th className="px-3 py-2.5 text-right">CAQ</th>
+                      <th className="px-3 py-2.5 text-right">CAQ Ads</th>
                       <th className="px-3 py-2.5 text-right" />
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-border">
+                  <tbody className="divide-y divide-border/60">
                     {(() => {
                       const oppById = new Map(oportunidades.map((o) => [o.id, o]));
                       const ids = new Set([
@@ -626,11 +640,15 @@ function RoiAdminPage() {
                       const rows = [...ids].map((id) => {
                         const media = byCliente.find((r) => r.id === id);
                         const opp = oppById.get(id);
+                        const funil = (opp?.novos ?? 0) + (opp?.qualificacao ?? 0) + (opp?.convertidos ?? 0);
+                        const leadsAds = media?.leads ?? 0;
                         return {
                           id,
                           nome: media?.nome ?? opp?.nome ?? "Cliente",
                           investimento: media?.investimento ?? 0,
-                          leadsAds: media?.leads ?? 0,
+                          leadsAds,
+                          funil,
+                          gap: Math.max(0, leadsAds - funil),
                           novos: opp?.novos ?? 0,
                           qualificacao: opp?.qualificacao ?? 0,
                           convertidos: opp?.convertidos ?? 0,
@@ -649,7 +667,7 @@ function RoiAdminPage() {
                         return (
                           <tr>
                             <td
-                              colSpan={8}
+                              colSpan={10}
                               className="px-4 py-10 text-center text-sm text-muted-foreground"
                             >
                               Sem clínicas nem leads neste filtro.
@@ -658,12 +676,16 @@ function RoiAdminPage() {
                         );
                       }
                       return rows.map((row) => (
-                        <tr key={row.id} className="hover:bg-secondary/30">
+                        <tr key={row.id} className="transition-colors hover:bg-secondary/40">
                           <td className="px-4 py-3 font-medium">{row.nome}</td>
                           <td className="px-3 py-3 text-right tabular-nums">
                             {row.investimento > 0 ? fmt(row.investimento) : "—"}
                           </td>
                           <td className="px-3 py-3 text-right tabular-nums">{row.leadsAds}</td>
+                          <td className="px-3 py-3 text-right tabular-nums">{row.funil}</td>
+                          <td className="px-3 py-3 text-right tabular-nums text-amber-800">
+                            {row.gap > 0 ? row.gap : "—"}
+                          </td>
                           <td className="px-3 py-3 text-right tabular-nums">{row.novos}</td>
                           <td className="px-3 py-3 text-right tabular-nums">{row.qualificacao}</td>
                           <td className="px-3 py-3 text-right tabular-nums">{row.convertidos}</td>
@@ -697,71 +719,6 @@ function RoiAdminPage() {
               >
                 Abrir funil completo <ArrowRight className="h-3.5 w-3.5" />
               </Link>
-            </div>
-          ) : null}
-
-          {tab === "campanhas" ? (
-            <div className="space-y-4">
-              <InsightStack items={campaignInsights} />
-              <div className="grid gap-4 lg:grid-cols-2">
-                <Panel title="Budget por campanha" tone="soft">
-                  <RankedBarChart
-                    data={byCampanha.slice(0, 8).map((r) => ({
-                      name: r.campanha.length > 22 ? `${r.campanha.slice(0, 20)}…` : r.campanha,
-                      value: Math.round(r.investimento),
-                    }))}
-                    formatValue={(v) => fmtMoneyCompact(v)}
-                  />
-                </Panel>
-                <Panel title="Leads por campanha" tone="soft">
-                  <RankedBarChart
-                    data={[...byCampanha]
-                      .sort((a, b) => b.leads - a.leads)
-                      .slice(0, 8)
-                      .map((r) => ({
-                        name: r.campanha.length > 22 ? `${r.campanha.slice(0, 20)}…` : r.campanha,
-                        value: r.leads,
-                      }))}
-                    color="#0284c7"
-                  />
-                </Panel>
-              </div>
-              <div className="flex items-center justify-between">
-                <p className="text-sm font-semibold">Detalhe das campanhas</p>
-                <button
-                  type="button"
-                  onClick={() => setTab("marketing")}
-                  className="inline-flex items-center gap-1 text-xs font-semibold text-sky-700 hover:underline"
-                >
-                  Ver anúncios <ArrowRight className="h-3.5 w-3.5" />
-                </button>
-              </div>
-              <div className="overflow-hidden rounded-2xl border border-border bg-card">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="bg-secondary/50 text-[10px] uppercase tracking-wide text-muted-foreground">
-                      <th className="px-4 py-2.5 text-left">Campanha</th>
-                      <th className="px-4 py-2.5 text-right">Investimento</th>
-                      <th className="px-4 py-2.5 text-right">Leads</th>
-                      <th className="px-4 py-2.5 text-right">CAQ</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-border">
-                    {byCampanha.slice(0, showAllRows ? undefined : 8).map((row) => (
-                      <tr key={row.campanha} className="hover:bg-secondary/30">
-                        <td className="px-4 py-3 font-medium">{row.campanha}</td>
-                        <td className="px-4 py-3 text-right tabular-nums">
-                          {fmt(row.investimento)}
-                        </td>
-                        <td className="px-4 py-3 text-right tabular-nums">{row.leads}</td>
-                        <td className="px-4 py-3 text-right tabular-nums">
-                          {row.caq != null ? fmt(row.caq) : "—"}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
             </div>
           ) : null}
         </>

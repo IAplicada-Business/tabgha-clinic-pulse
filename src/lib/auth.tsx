@@ -66,6 +66,17 @@ function storeActiveRole(area: ViewArea | null) {
   }
 }
 
+/**
+ * Encerra a sessão. Fora do AuthProvider (ex.: /acesso-negado) esta é a única
+ * porta de saída — o `signOut` do contexto delega aqui para não existirem dois
+ * caminhos de logout.
+ */
+export async function signOutTabgha() {
+  storeActiveRole(null);
+  clearAuthAccessCache();
+  await supabase.auth.signOut();
+}
+
 async function loadProfileAndRoles(
   userId: string,
 ): Promise<{ profile: Profile | null; roles: AppRole[] }> {
@@ -83,8 +94,8 @@ async function loadProfileAndRoles(
   // Ordem estável: Super Admin primeiro, demais staff, cliente por último
   roles.sort((a, b) => {
     if (a === b) return 0;
-    if (a === "admin") return -1;
-    if (b === "admin") return 1;
+    if (a === "super_admin") return -1;
+    if (b === "super_admin") return 1;
     if (a === "cliente") return 1;
     if (b === "cliente") return -1;
     return a.localeCompare(b);
@@ -201,11 +212,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setSimulatedClientId(null);
       setSimulatedClientNome(null);
     },
-    signOut: async () => {
-      storeActiveRole(null);
-      clearAuthAccessCache();
-      await supabase.auth.signOut();
-    },
+    signOut: signOutTabgha,
     refresh: async () => {
       clearAuthAccessCache();
       const { data } = await supabase.auth.getSession();

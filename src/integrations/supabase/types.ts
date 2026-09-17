@@ -22,6 +22,7 @@ export type Database = {
           fim: string | null
           id: string
           inicio: string | null
+          is_demo: boolean
           tipo: string | null
           titulo: string | null
           visivel_cliente: boolean
@@ -33,6 +34,7 @@ export type Database = {
           fim?: string | null
           id?: string
           inicio?: string | null
+          is_demo?: boolean
           tipo?: string | null
           titulo?: string | null
           visivel_cliente?: boolean
@@ -44,6 +46,7 @@ export type Database = {
           fim?: string | null
           id?: string
           inicio?: string | null
+          is_demo?: boolean
           tipo?: string | null
           titulo?: string | null
           visivel_cliente?: boolean
@@ -159,53 +162,138 @@ export type Database = {
         }
         Relationships: []
       }
+      conteudo_comentarios: {
+        Row: {
+          autor_id: string | null
+          autor_lado: string
+          autor_nome: string | null
+          conteudo_id: string
+          criado_em: string
+          id: string
+          texto: string
+        }
+        Insert: {
+          autor_id?: string | null
+          autor_lado?: string
+          autor_nome?: string | null
+          conteudo_id: string
+          criado_em?: string
+          id?: string
+          texto: string
+        }
+        Update: {
+          autor_id?: string | null
+          autor_lado?: string
+          autor_nome?: string | null
+          conteudo_id?: string
+          criado_em?: string
+          id?: string
+          texto?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conteudo_comentarios_autor_id_fkey"
+            columns: ["autor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conteudo_comentarios_conteudo_id_fkey"
+            columns: ["conteudo_id"]
+            isOneToOne: false
+            referencedRelation: "conteudos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       conteudos: {
         Row: {
+          arquivos: Json
           atualizado_em: string
+          autor_id: string | null
           cliente_id: string
           criado_em: string
           data_postagem: string | null
+          data_sugerida: string | null
           feedback_cliente: string | null
+          formato: string
+          historico: Json
           id: string
+          is_demo: boolean
+          legenda: string | null
+          pilar: string
           rede: string | null
           roteiro: string | null
           status: string
+          tags: string[]
           tipo: string | null
           titulo: string | null
           url_arquivo: string | null
           url_briefing: string | null
+          versao: number
+          versao_de: string | null
         }
         Insert: {
+          arquivos?: Json
           atualizado_em?: string
+          autor_id?: string | null
           cliente_id: string
           criado_em?: string
           data_postagem?: string | null
+          data_sugerida?: string | null
           feedback_cliente?: string | null
+          formato?: string
+          historico?: Json
           id?: string
+          is_demo?: boolean
+          legenda?: string | null
+          pilar?: string
           rede?: string | null
           roteiro?: string | null
           status?: string
+          tags?: string[]
           tipo?: string | null
           titulo?: string | null
           url_arquivo?: string | null
           url_briefing?: string | null
+          versao?: number
+          versao_de?: string | null
         }
         Update: {
+          arquivos?: Json
           atualizado_em?: string
+          autor_id?: string | null
           cliente_id?: string
           criado_em?: string
           data_postagem?: string | null
+          data_sugerida?: string | null
           feedback_cliente?: string | null
+          formato?: string
+          historico?: Json
           id?: string
+          is_demo?: boolean
+          legenda?: string | null
+          pilar?: string
           rede?: string | null
           roteiro?: string | null
           status?: string
+          tags?: string[]
           tipo?: string | null
           titulo?: string | null
           url_arquivo?: string | null
           url_briefing?: string | null
+          versao?: number
+          versao_de?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "conteudos_autor_id_fkey"
+            columns: ["autor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "conteudos_cliente_id_fkey"
             columns: ["cliente_id"]
@@ -213,7 +301,109 @@ export type Database = {
             referencedRelation: "clientes"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "conteudos_versao_de_fkey"
+            columns: ["versao_de"]
+            isOneToOne: false
+            referencedRelation: "conteudos"
+            referencedColumns: ["id"]
+          },
         ]
+      }
+      contratos: {
+        Row: {
+          atualizado_em: string
+          cliente_id: string
+          criado_em: string
+          data_assinatura: string
+          dia_vencimento: number
+          id: string
+          is_demo: boolean
+          metadados: Json
+          observacoes: string | null
+          plano: string
+          status: string
+          valor_mensal: number
+          vigencia_fim: string | null
+          vigencia_inicio: string
+        }
+        Insert: {
+          atualizado_em?: string
+          cliente_id: string
+          criado_em?: string
+          data_assinatura?: string
+          dia_vencimento?: number
+          id?: string
+          is_demo?: boolean
+          metadados?: Json
+          observacoes?: string | null
+          plano?: string
+          status?: string
+          valor_mensal?: number
+          vigencia_fim?: string | null
+          vigencia_inicio?: string
+        }
+        Update: {
+          atualizado_em?: string
+          cliente_id?: string
+          criado_em?: string
+          data_assinatura?: string
+          dia_vencimento?: number
+          id?: string
+          is_demo?: boolean
+          metadados?: Json
+          observacoes?: string | null
+          plano?: string
+          status?: string
+          valor_mensal?: number
+          vigencia_fim?: string | null
+          vigencia_inicio?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contratos_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      diagnostico_frases_por_faixa: {
+        Row: {
+          atualizado_em: string
+          autor: string | null
+          criado_em: string
+          faixa_max: number
+          faixa_min: number
+          fonte: Database["public"]["Enums"]["fonte_diagnostico"]
+          frase: string
+          id: string
+          placeholder: boolean
+        }
+        Insert: {
+          atualizado_em?: string
+          autor?: string | null
+          criado_em?: string
+          faixa_max: number
+          faixa_min: number
+          fonte: Database["public"]["Enums"]["fonte_diagnostico"]
+          frase: string
+          id?: string
+          placeholder?: boolean
+        }
+        Update: {
+          atualizado_em?: string
+          autor?: string | null
+          criado_em?: string
+          faixa_max?: number
+          faixa_min?: number
+          fonte?: Database["public"]["Enums"]["fonte_diagnostico"]
+          frase?: string
+          id?: string
+          placeholder?: boolean
+        }
+        Relationships: []
       }
       diagnostico_questoes: {
         Row: {
@@ -263,6 +453,8 @@ export type Database = {
           gerado_em: string
           gerado_por: string | null
           id: string
+          link_expira_em: string | null
+          link_token: string | null
           por_fonte: Json
           resumo_executivo: string | null
           score_geral: number | null
@@ -272,6 +464,8 @@ export type Database = {
           gerado_em?: string
           gerado_por?: string | null
           id?: string
+          link_expira_em?: string | null
+          link_token?: string | null
           por_fonte?: Json
           resumo_executivo?: string | null
           score_geral?: number | null
@@ -281,6 +475,8 @@ export type Database = {
           gerado_em?: string
           gerado_por?: string | null
           id?: string
+          link_expira_em?: string | null
+          link_token?: string | null
           por_fonte?: Json
           resumo_executivo?: string | null
           score_geral?: number | null
@@ -293,6 +489,13 @@ export type Database = {
             referencedRelation: "clientes"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "diagnostico_relatorios_gerado_por_fkey"
+            columns: ["gerado_por"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
         ]
       }
       diagnostico_respostas: {
@@ -301,6 +504,7 @@ export type Database = {
           cliente_id: string
           criado_em: string
           id: string
+          is_demo: boolean
           questao_id: string
           respondido_por: string | null
           valor_num: number | null
@@ -311,6 +515,7 @@ export type Database = {
           cliente_id: string
           criado_em?: string
           id?: string
+          is_demo?: boolean
           questao_id: string
           respondido_por?: string | null
           valor_num?: number | null
@@ -321,6 +526,7 @@ export type Database = {
           cliente_id?: string
           criado_em?: string
           id?: string
+          is_demo?: boolean
           questao_id?: string
           respondido_por?: string | null
           valor_num?: number | null
@@ -339,6 +545,13 @@ export type Database = {
             columns: ["questao_id"]
             isOneToOne: false
             referencedRelation: "diagnostico_questoes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "diagnostico_respostas_respondido_por_fkey"
+            columns: ["respondido_por"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -434,6 +647,78 @@ export type Database = {
           },
         ]
       }
+      faturas: {
+        Row: {
+          atualizado_em: string
+          cliente_id: string
+          contrato_id: string | null
+          criado_em: string
+          data_pagamento: string | null
+          descricao: string
+          id: string
+          is_demo: boolean
+          link_pagamento: string | null
+          metodo: string
+          notificada_em: string | null
+          recorrencia: string
+          status: string
+          valor: number
+          valor_pago: number | null
+          vencimento: string
+        }
+        Insert: {
+          atualizado_em?: string
+          cliente_id: string
+          contrato_id?: string | null
+          criado_em?: string
+          data_pagamento?: string | null
+          descricao?: string
+          id?: string
+          is_demo?: boolean
+          link_pagamento?: string | null
+          metodo?: string
+          notificada_em?: string | null
+          recorrencia?: string
+          status?: string
+          valor: number
+          valor_pago?: number | null
+          vencimento: string
+        }
+        Update: {
+          atualizado_em?: string
+          cliente_id?: string
+          contrato_id?: string | null
+          criado_em?: string
+          data_pagamento?: string | null
+          descricao?: string
+          id?: string
+          is_demo?: boolean
+          link_pagamento?: string | null
+          metodo?: string
+          notificada_em?: string | null
+          recorrencia?: string
+          status?: string
+          valor?: number
+          valor_pago?: number | null
+          vencimento?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "faturas_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "faturas_contrato_id_fkey"
+            columns: ["contrato_id"]
+            isOneToOne: false
+            referencedRelation: "contratos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       leads: {
         Row: {
           atualizado_em: string
@@ -443,6 +728,7 @@ export type Database = {
           email: string | null
           icp: string | null
           id: string
+          is_demo: boolean
           meta_ad_id: string | null
           meta_ad_name: string | null
           meta_campaign_id: string | null
@@ -457,8 +743,10 @@ export type Database = {
           status: string
           telefone: string | null
           utm_campaign: string | null
+          utm_content: string | null
           utm_medium: string | null
           utm_source: string | null
+          utm_term: string | null
         }
         Insert: {
           atualizado_em?: string
@@ -468,6 +756,7 @@ export type Database = {
           email?: string | null
           icp?: string | null
           id?: string
+          is_demo?: boolean
           meta_ad_id?: string | null
           meta_ad_name?: string | null
           meta_campaign_id?: string | null
@@ -482,8 +771,10 @@ export type Database = {
           status?: string
           telefone?: string | null
           utm_campaign?: string | null
+          utm_content?: string | null
           utm_medium?: string | null
           utm_source?: string | null
+          utm_term?: string | null
         }
         Update: {
           atualizado_em?: string
@@ -493,6 +784,7 @@ export type Database = {
           email?: string | null
           icp?: string | null
           id?: string
+          is_demo?: boolean
           meta_ad_id?: string | null
           meta_ad_name?: string | null
           meta_campaign_id?: string | null
@@ -507,8 +799,10 @@ export type Database = {
           status?: string
           telefone?: string | null
           utm_campaign?: string | null
+          utm_content?: string | null
           utm_medium?: string | null
           utm_source?: string | null
+          utm_term?: string | null
         }
         Relationships: [
           {
@@ -535,6 +829,7 @@ export type Database = {
           id: string
           impressoes: number
           investimento: number
+          is_demo: boolean
           leads: number
           nivel: string
           plataforma: string
@@ -554,6 +849,7 @@ export type Database = {
           id?: string
           impressoes?: number
           investimento?: number
+          is_demo?: boolean
           leads?: number
           nivel?: string
           plataforma: string
@@ -573,6 +869,7 @@ export type Database = {
           id?: string
           impressoes?: number
           investimento?: number
+          is_demo?: boolean
           leads?: number
           nivel?: string
           plataforma?: string
@@ -593,6 +890,7 @@ export type Database = {
           atualizado_em: string
           cliente_id: string
           criado_em: string
+          enviadas: Json
           id: string
           kind: string
           last_error: string | null
@@ -607,6 +905,7 @@ export type Database = {
           atualizado_em?: string
           cliente_id: string
           criado_em?: string
+          enviadas?: Json
           id?: string
           kind: string
           last_error?: string | null
@@ -621,6 +920,7 @@ export type Database = {
           atualizado_em?: string
           cliente_id?: string
           criado_em?: string
+          enviadas?: Json
           id?: string
           kind?: string
           last_error?: string | null
@@ -648,6 +948,71 @@ export type Database = {
           },
         ]
       }
+      oportunidades_b2b: {
+        Row: {
+          atualizado_em: string
+          cac: number | null
+          canal: string | null
+          cidade: string | null
+          criado_em: string
+          email: string | null
+          especialidade: string | null
+          id: string
+          nome: string
+          observacoes: string | null
+          origem: string | null
+          responsavel_id: string | null
+          roi: number | null
+          status: string
+          telefone: string | null
+          ticket: number | null
+        }
+        Insert: {
+          atualizado_em?: string
+          cac?: number | null
+          canal?: string | null
+          cidade?: string | null
+          criado_em?: string
+          email?: string | null
+          especialidade?: string | null
+          id?: string
+          nome: string
+          observacoes?: string | null
+          origem?: string | null
+          responsavel_id?: string | null
+          roi?: number | null
+          status?: string
+          telefone?: string | null
+          ticket?: number | null
+        }
+        Update: {
+          atualizado_em?: string
+          cac?: number | null
+          canal?: string | null
+          cidade?: string | null
+          criado_em?: string
+          email?: string | null
+          especialidade?: string | null
+          id?: string
+          nome?: string
+          observacoes?: string | null
+          origem?: string | null
+          responsavel_id?: string | null
+          roi?: number | null
+          status?: string
+          telefone?: string | null
+          ticket?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "oportunidades_b2b_responsavel_id_fkey"
+            columns: ["responsavel_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       phone_cache: {
         Row: {
           checked_at: string
@@ -668,6 +1033,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          ativo: boolean
           atualizado_em: string
           cliente_id: string | null
           criado_em: string
@@ -675,8 +1041,10 @@ export type Database = {
           id: string
           nome: string | null
           permissoes: string[] | null
+          ultimo_acesso: string | null
         }
         Insert: {
+          ativo?: boolean
           atualizado_em?: string
           cliente_id?: string | null
           criado_em?: string
@@ -684,8 +1052,10 @@ export type Database = {
           id: string
           nome?: string | null
           permissoes?: string[] | null
+          ultimo_acesso?: string | null
         }
         Update: {
+          ativo?: boolean
           atualizado_em?: string
           cliente_id?: string | null
           criado_em?: string
@@ -693,6 +1063,7 @@ export type Database = {
           id?: string
           nome?: string | null
           permissoes?: string[] | null
+          ultimo_acesso?: string | null
         }
         Relationships: [
           {
@@ -703,6 +1074,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      roles_permissoes: {
+        Row: {
+          atualizado_em: string
+          permissao: string
+          permitido: boolean
+          role: Database["public"]["Enums"]["app_role"]
+          rota: string
+        }
+        Insert: {
+          atualizado_em?: string
+          permissao: string
+          permitido?: boolean
+          role: Database["public"]["Enums"]["app_role"]
+          rota: string
+        }
+        Update: {
+          atualizado_em?: string
+          permissao?: string
+          permitido?: boolean
+          role?: Database["public"]["Enums"]["app_role"]
+          rota?: string
+        }
+        Relationships: []
       }
       user_roles: {
         Row: {
@@ -766,6 +1161,7 @@ export type Database = {
           contact_phone: string
           criado_em: string
           id: string
+          is_demo: boolean
           last_inbound_at: string | null
           last_outbound_at: string | null
           lead_id: string | null
@@ -785,6 +1181,7 @@ export type Database = {
           contact_phone: string
           criado_em?: string
           id?: string
+          is_demo?: boolean
           last_inbound_at?: string | null
           last_outbound_at?: string | null
           lead_id?: string | null
@@ -804,6 +1201,7 @@ export type Database = {
           contact_phone?: string
           criado_em?: string
           id?: string
+          is_demo?: boolean
           last_inbound_at?: string | null
           last_outbound_at?: string | null
           lead_id?: string | null
@@ -887,6 +1285,7 @@ export type Database = {
           delivery_status: string | null
           direction: string
           id: string
+          is_demo: boolean
           metadata: Json | null
           sender_type: string
           sender_user_id: string | null
@@ -900,6 +1299,7 @@ export type Database = {
           delivery_status?: string | null
           direction: string
           id?: string
+          is_demo?: boolean
           metadata?: Json | null
           sender_type: string
           sender_user_id?: string | null
@@ -913,6 +1313,7 @@ export type Database = {
           delivery_status?: string | null
           direction?: string
           id?: string
+          is_demo?: boolean
           metadata?: Json | null
           sender_type?: string
           sender_user_id?: string | null
@@ -936,71 +1337,6 @@ export type Database = {
           },
         ]
       }
-      oportunidades_b2b: {
-        Row: {
-          atualizado_em: string
-          cac: number | null
-          canal: string | null
-          cidade: string | null
-          criado_em: string
-          email: string | null
-          especialidade: string | null
-          id: string
-          nome: string
-          observacoes: string | null
-          origem: string | null
-          responsavel_id: string | null
-          roi: number | null
-          status: string
-          telefone: string | null
-          ticket: number | null
-        }
-        Insert: {
-          atualizado_em?: string
-          cac?: number | null
-          canal?: string | null
-          cidade?: string | null
-          criado_em?: string
-          email?: string | null
-          especialidade?: string | null
-          id?: string
-          nome: string
-          observacoes?: string | null
-          origem?: string | null
-          responsavel_id?: string | null
-          roi?: number | null
-          status?: string
-          telefone?: string | null
-          ticket?: number | null
-        }
-        Update: {
-          atualizado_em?: string
-          cac?: number | null
-          canal?: string | null
-          cidade?: string | null
-          criado_em?: string
-          email?: string | null
-          especialidade?: string | null
-          id?: string
-          nome?: string
-          observacoes?: string | null
-          origem?: string | null
-          responsavel_id?: string | null
-          roi?: number | null
-          status?: string
-          telefone?: string | null
-          ticket?: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "oportunidades_b2b_responsavel_id_fkey"
-            columns: ["responsavel_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
     }
     Views: {
       vw_diagnostico_score_geral: {
@@ -1020,6 +1356,19 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      vw_financeiro_resumo: {
+        Row: {
+          cobrancas_abertas: number | null
+          cobrancas_abertas_qtd: number | null
+          inadimplencia: number | null
+          inadimplentes_qtd: number | null
+          mrr_ativo: number | null
+          mrr_mes_anterior: number | null
+          previsto_mes: number | null
+          recebido_mes: number | null
+        }
+        Relationships: []
       }
       vw_funil_lead_cliente: {
         Row: {
@@ -1076,6 +1425,15 @@ export type Database = {
           taxa_fechamento_pct: number | null
           ticket_medio_b2b: number | null
           total_oportunidades: number | null
+        }
+        Relationships: []
+      }
+      vw_mrr_mensal: {
+        Row: {
+          churn: number | null
+          mes: string | null
+          mrr: number | null
+          novo: number | null
         }
         Relationships: []
       }
@@ -1146,9 +1504,16 @@ export type Database = {
         }
         Returns: boolean
       }
-      is_staff: { Args: { _user_id: string }; Returns: boolean }
+      is_staff:
+        | { Args: never; Returns: boolean }
+        | { Args: { _user_id: string }; Returns: boolean }
+      limpar_dados_demo: { Args: never; Returns: Json }
       log_ticket_converted: {
         Args: { _lead_id: string; _ticket: number }
+        Returns: undefined
+      }
+      marcar_fatura_paga: {
+        Args: { _id: string; _valor?: number }
         Returns: undefined
       }
       mover_lead_status: {
@@ -1159,6 +1524,12 @@ export type Database = {
         Args: { _id: string; _novo: string }
         Returns: undefined
       }
+      permissoes_do_perfil: {
+        Args: { _role: Database["public"]["Enums"]["app_role"] }
+        Returns: string[]
+      }
+      pode_ver_financeiro: { Args: { _user_id: string }; Returns: boolean }
+      reativar_contrato: { Args: { _contrato_id: string }; Returns: undefined }
       recalcular_diagnostico_score: {
         Args: {
           _cliente_id: string
@@ -1166,25 +1537,41 @@ export type Database = {
         }
         Returns: undefined
       }
-      responder_conteudo: {
-        Args: { _aprovada: boolean; _feedback?: string; _id: string }
-        Returns: undefined
-      }
+      registrar_acesso: { Args: never; Returns: undefined }
+      responder_conteudo:
+        | {
+            Args: { _aprovada: boolean; _feedback?: string; _id: string }
+            Returns: undefined
+          }
+        | {
+            Args: {
+              _acao?: string
+              _aprovada: boolean
+              _feedback?: string
+              _id: string
+            }
+            Returns: undefined
+          }
       responder_entrega: {
         Args: { _aprovada: boolean; _id: string; _resposta: string }
+        Returns: undefined
+      }
+      seed_demo_tabgha: { Args: { _cliente_id: string }; Returns: Json }
+      suspender_contrato: {
+        Args: { _contrato_id: string; _motivo?: string }
         Returns: undefined
       }
     }
     Enums: {
       app_role:
-        | "admin"
+        | "super_admin"
+        | "cliente"
         | "gestor_estrategico"
         | "growth_manager"
         | "social_media"
         | "performance"
         | "atendimento_cs"
         | "financeiro"
-        | "cliente"
       fonte_diagnostico:
         | "posicionamento"
         | "presenca_digital"
@@ -1208,12 +1595,12 @@ export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
         DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -1237,11 +1624,11 @@ export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -1262,11 +1649,11 @@ export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -1287,11 +1674,11 @@ export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema["Enums"]
     | { schema: keyof DatabaseWithoutInternals },
-  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+  EnumName extends (DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -1304,11 +1691,11 @@ export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
     | { schema: keyof DatabaseWithoutInternals },
-  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+  CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-    : never = never,
+    : never) = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -1321,14 +1708,14 @@ export const Constants = {
   public: {
     Enums: {
       app_role: [
-        "admin",
+        "super_admin",
+        "cliente",
         "gestor_estrategico",
         "growth_manager",
         "social_media",
         "performance",
         "atendimento_cs",
         "financeiro",
-        "cliente",
       ],
       fonte_diagnostico: [
         "posicionamento",

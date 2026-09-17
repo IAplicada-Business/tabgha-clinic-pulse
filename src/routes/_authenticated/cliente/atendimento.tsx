@@ -3,7 +3,7 @@ import { AtendimentoPage } from "@/components/atendimento/AtendimentoPage";
 
 export const Route = createFileRoute("/_authenticated/cliente/atendimento")({
   component: ClienteAtendimento,
-  head: () => ({ meta: [{ title: "Atendimento — Tabgha" }] }),
+  head: () => ({ meta: [{ title: "Atendimento · Tabgha OS" }] }),
 });
 
 function ClienteAtendimento() {

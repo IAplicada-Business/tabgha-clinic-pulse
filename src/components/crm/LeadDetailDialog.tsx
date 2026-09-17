@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Loader2, MessageSquare, Sparkles, Trash2 } from "lucide-react";
+import { Loader2, MessageSquare, Sparkles, Sprout, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -25,8 +25,10 @@ import {
   type PipelineStatus,
 } from "@/lib/pipeline";
 import { cn } from "@/lib/utils";
+import { BOT_NOTE_FIELDS, formatBotNote, isHiddenBotNote } from "@/lib/pietro";
+import { SEQUENCIA_LETRA, type SequenciaKey } from "@/lib/nutricao";
 
-type Tab = "dados" | "insights" | "conversas";
+type Tab = "dados" | "insights" | "conversas" | "automacoes";
 
 type ConversationInsight = {
   id: string;
@@ -37,14 +39,29 @@ type ConversationInsight = {
   atualizado_em: string;
 };
 
-const INSIGHT_KEYS = [
-  "resumo",
-  "intencao",
-  "urgencia",
-  "fit",
-  "capacidade",
-  "last_handoff_reason",
-] as const;
+const INSIGHT_KEYS = BOT_NOTE_FIELDS.map((f) => f.key);
+
+type AutomacaoLog = {
+  id: string;
+  action: string;
+  metadata: Record<string, unknown> | null;
+  criado_em: string;
+};
+
+/** "Automação · Sequência B · mensagem 2 · enviada em 12/03/2026 10:00". */
+function rotuloAutomacao(log: AutomacaoLog): string {
+  const meta = (log.metadata ?? {}) as Record<string, unknown>;
+  const quando = new Date(log.criado_em).toLocaleString("pt-BR");
+  const seq = meta.sequencia as SequenciaKey | undefined;
+  const letra =
+    (meta.sequencia_letra as string | undefined) ??
+    (seq && SEQUENCIA_LETRA[seq] ? SEQUENCIA_LETRA[seq] : null);
+  if (log.action === "nutricao_enviada" && letra) {
+    return `Automação · Sequência ${letra} · mensagem ${meta.mensagem ?? "?"} · enviada em ${quando}`;
+  }
+  if (log.action === "nutricao_teste") return `Automação · envio de teste · ${quando}`;
+  return `Automação · ${log.action} · ${quando}`;
+}
 
 function asNotes(raw: unknown): Record<string, unknown> | null {
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
@@ -54,15 +71,15 @@ function asNotes(raw: unknown): Record<string, unknown> | null {
 function hasMetaAttribution(lead: Lead) {
   return Boolean(
     lead.meta_ad_id ||
-      lead.meta_ad_name ||
-      lead.meta_campaign_id ||
-      lead.meta_campaign_name ||
-      lead.meta_form_id ||
-      lead.meta_form_name ||
-      lead.meta_page_id ||
-      lead.meta_leadgen_id ||
-      lead.canal === "meta" ||
-      lead.canal === "facebook",
+    lead.meta_ad_name ||
+    lead.meta_campaign_id ||
+    lead.meta_campaign_name ||
+    lead.meta_form_id ||
+    lead.meta_form_name ||
+    lead.meta_page_id ||
+    lead.meta_leadgen_id ||
+    lead.canal === "meta" ||
+    lead.canal === "facebook",
   );
 }
 
@@ -119,6 +136,24 @@ export function LeadDetailDialog({ lead, onClose }: Props) {
         ...row,
         bot_notes: asNotes(row.bot_notes),
       })) as ConversationInsight[];
+    },
+  });
+
+  // Histórico das automações de nutrição — automation_logs guarda o lead_id no
+  // metadata, então não existe tabela paralela de eventos do lead.
+  const { data: automacoes = [], isLoading: loadingAutomacoes } = useQuery({
+    queryKey: ["lead-automacoes", lead.id],
+    enabled: tab === "automacoes",
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("automation_logs")
+        .select("id, action, metadata, criado_em")
+        .eq("cliente_id", lead.cliente_id)
+        .filter("metadata->>lead_id", "eq", lead.id)
+        .order("criado_em", { ascending: false })
+        .limit(50);
+      if (error) throw error;
+      return (data ?? []) as AutomacaoLog[];
     },
   });
 
@@ -214,24 +249,21 @@ export function LeadDetailDialog({ lead, onClose }: Props) {
           </DialogTitle>
         </DialogHeader>
 
-        <div className="flex flex-wrap gap-2 border-b border-border pb-2">
+        <div className="segmented w-full sm:w-fit">
           {(
             [
               ["dados", "Dados"],
               ["insights", "Insights IA"],
               ["conversas", "Conversas"],
+              ["automacoes", "Automações"],
             ] as const
           ).map(([id, label]) => (
             <button
               key={id}
               type="button"
+              data-active={tab === id}
               onClick={() => setTab(id)}
-              className={cn(
-                "rounded-lg px-3 py-1.5 text-xs font-semibold",
-                tab === id
-                  ? "bg-sky-100 text-sky-800"
-                  : "text-muted-foreground hover:bg-secondary",
-              )}
+              className="segmented-item"
             >
               {label}
             </button>
@@ -250,7 +282,7 @@ export function LeadDetailDialog({ lead, onClose }: Props) {
                   placeholder="Nome do lead"
                 />
               </div>
-              <div className="space-y-1">
+              <div className="space-y-1.5">
                 <Label htmlFor="lead-telefone">Telefone</Label>
                 <Input
                   id="lead-telefone"
@@ -259,7 +291,7 @@ export function LeadDetailDialog({ lead, onClose }: Props) {
                   placeholder="5511999999999"
                 />
               </div>
-              <div className="space-y-1">
+              <div className="space-y-1.5">
                 <Label htmlFor="lead-email">Email</Label>
                 <Input
                   id="lead-email"
@@ -271,7 +303,7 @@ export function LeadDetailDialog({ lead, onClose }: Props) {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-2 rounded-lg bg-secondary/40 px-3 py-2.5 text-sm">
+            <div className="grid grid-cols-2 gap-3 rounded-xl bg-secondary/40 px-3 py-2.5 text-sm">
               <div>
                 <span className="text-xs text-muted-foreground">Canal</span>
                 <p className="mt-0.5 font-medium">{lead.canal ?? "—"}</p>
@@ -295,7 +327,7 @@ export function LeadDetailDialog({ lead, onClose }: Props) {
             </div>
 
             {hasMetaAttribution(lead) ? (
-              <div className="space-y-2 rounded-lg border border-sky-200/70 bg-sky-50/50 px-3 py-2.5">
+              <div className="space-y-2 rounded-xl border border-sky-200/70 bg-sky-50/50 px-3 py-2.5">
                 <p className="text-[11px] font-semibold uppercase tracking-wide text-sky-800">
                   Origem Meta (formulário / anúncio)
                 </p>
@@ -303,8 +335,7 @@ export function LeadDetailDialog({ lead, onClose }: Props) {
                   <MetaAttrRow
                     label="Anúncio"
                     value={
-                      lead.meta_ad_name ||
-                      (lead.meta_ad_id ? `Anúncio ${lead.meta_ad_id}` : null)
+                      lead.meta_ad_name || (lead.meta_ad_id ? `Anúncio ${lead.meta_ad_id}` : null)
                     }
                   />
                   <MetaAttrRow
@@ -340,8 +371,8 @@ export function LeadDetailDialog({ lead, onClose }: Props) {
                   </p>
                 ) : null}
               </div>
-            ) : (lead.utm_source || lead.utm_medium || lead.utm_campaign) ? (
-              <div className="rounded-lg bg-secondary/40 px-3 py-2.5 text-sm">
+            ) : lead.utm_source || lead.utm_medium || lead.utm_campaign ? (
+              <div className="rounded-xl bg-secondary/40 px-3 py-2.5 text-sm">
                 <span className="text-xs text-muted-foreground">UTM</span>
                 <p className="mt-0.5 break-all font-medium">
                   {[lead.utm_source, lead.utm_medium, lead.utm_campaign]
@@ -351,7 +382,7 @@ export function LeadDetailDialog({ lead, onClose }: Props) {
               </div>
             ) : null}
 
-            <div className="space-y-1">
+            <div className="space-y-1.5">
               <Label htmlFor="lead-status">Estágio no funil</Label>
               <select
                 id="lead-status"
@@ -361,7 +392,7 @@ export function LeadDetailDialog({ lead, onClose }: Props) {
                   setStatus(next);
                   if (next !== "perdido") setMotivo("");
                 }}
-                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm"
               >
                 {PIPELINE.map((s) => (
                   <option key={s} value={s}>
@@ -372,13 +403,13 @@ export function LeadDetailDialog({ lead, onClose }: Props) {
             </div>
 
             {status === "perdido" ? (
-              <div className="space-y-1">
+              <div className="space-y-1.5">
                 <Label htmlFor="lead-motivo">Motivo da perda</Label>
                 <select
                   id="lead-motivo"
                   value={motivo}
                   onChange={(e) => setMotivo(e.target.value)}
-                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                  className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm"
                 >
                   <option value="">Selecione…</option>
                   {Object.entries(MOTIVO_LABELS).map(([v, l]) => (
@@ -391,7 +422,7 @@ export function LeadDetailDialog({ lead, onClose }: Props) {
             ) : null}
 
             {status === "convertido" ? (
-              <div className="space-y-1">
+              <div className="space-y-1.5">
                 <Label htmlFor="lead-ticket">Ticket (R$)</Label>
                 <Input
                   id="lead-ticket"
@@ -404,7 +435,7 @@ export function LeadDetailDialog({ lead, onClose }: Props) {
               </div>
             ) : null}
 
-            <div className="space-y-1">
+            <div className="space-y-1.5">
               <Label htmlFor="lead-obs">Observações</Label>
               <Textarea
                 id="lead-obs"
@@ -459,22 +490,21 @@ export function LeadDetailDialog({ lead, onClose }: Props) {
                       Notas da evolução
                     </p>
                     <div className="space-y-2">
-                      {INSIGHT_KEYS.map((key) => {
-                        const value = notes[key];
-                        if (value == null || value === "") return null;
+                      {BOT_NOTE_FIELDS.map(({ key, label }) => {
+                        const value = formatBotNote(key, notes[key]);
+                        if (value == null) return null;
                         return (
                           <div key={key}>
-                            <p className="text-[11px] font-semibold capitalize text-foreground">
-                              {key.replaceAll("_", " ")}
-                            </p>
-                            <p className="text-sm text-muted-foreground">{String(value)}</p>
+                            <p className="text-[11px] font-semibold text-foreground">{label}</p>
+                            <p className="text-sm text-muted-foreground">{value}</p>
                           </div>
                         );
                       })}
                       {Object.entries(notes)
                         .filter(
                           ([key, value]) =>
-                            !(INSIGHT_KEYS as readonly string[]).includes(key) &&
+                            !INSIGHT_KEYS.includes(key) &&
+                            !isHiddenBotNote(key) &&
                             value != null &&
                             value !== "",
                         )
@@ -512,10 +542,10 @@ export function LeadDetailDialog({ lead, onClose }: Props) {
                 <div
                   key={msg.id}
                   className={cn(
-                    "rounded-xl px-3 py-2 text-sm",
+                    "px-3.5 py-2.5 text-sm shadow-[var(--shadow-xs)]",
                     msg.direction === "outbound"
-                      ? "ml-8 bg-emerald-50 text-emerald-900"
-                      : "mr-8 border border-border bg-card",
+                      ? "ml-8 rounded-2xl rounded-br-md bg-emerald-50 text-emerald-900"
+                      : "mr-8 rounded-2xl rounded-bl-md border border-border bg-card",
                   )}
                 >
                   <p className="whitespace-pre-wrap">{msg.body}</p>
@@ -524,6 +554,42 @@ export function LeadDetailDialog({ lead, onClose }: Props) {
                   </p>
                 </div>
               ))
+            )}
+          </div>
+        ) : null}
+
+        {tab === "automacoes" ? (
+          <div className="max-h-80 space-y-2 overflow-y-auto">
+            {loadingAutomacoes ? (
+              <div className="flex justify-center py-10">
+                <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+              </div>
+            ) : automacoes.length === 0 ? (
+              <div className="flex flex-col items-center gap-2 py-10 text-muted-foreground">
+                <Sprout className="h-5 w-5" />
+                <p className="text-sm">Nenhuma mensagem automática enviada para este lead.</p>
+                <p className="max-w-xs text-center text-xs">
+                  As sequências de nutrição entram sozinhas quando o card cai no status disparador
+                  configurado em Automações → Nutrição de leads.
+                </p>
+              </div>
+            ) : (
+              automacoes.map((log) => {
+                const texto = (log.metadata as Record<string, unknown> | null)?.texto;
+                return (
+                  <div
+                    key={log.id}
+                    className="rounded-xl border border-border bg-card px-3.5 py-2.5"
+                  >
+                    <p className="text-xs font-semibold">{rotuloAutomacao(log)}</p>
+                    {typeof texto === "string" && texto ? (
+                      <p className="mt-1.5 whitespace-pre-wrap text-[12px] leading-relaxed text-muted-foreground">
+                        {texto}
+                      </p>
+                    ) : null}
+                  </div>
+                );
+              })
             )}
           </div>
         ) : null}

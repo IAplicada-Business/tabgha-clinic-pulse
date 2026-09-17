@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { supabase } from "@/integrations/supabase/client";
+import { TabghaLogo } from "@/components/TabghaLogo";
 import {
   LayoutDashboard,
   Calendar,
@@ -30,8 +31,12 @@ import {
   X,
   ShieldCheck,
   Package,
+  Brain,
   Briefcase,
   Megaphone,
+  DollarSign,
+  Images,
+  Settings,
 } from "lucide-react";
 
 type NavChild = {
@@ -68,6 +73,11 @@ function navChildActive(
   );
 }
 
+/** Marca do item ativo na sidebar: barra de 3px em accent-orange (#F39C12). */
+const BARRA_ATIVA =
+  "relative before:absolute before:-left-2 before:top-1/2 before:h-[18px] before:w-[3px] " +
+  "before:-translate-y-1/2 before:rounded-r-full before:bg-[var(--accent-orange)] before:content-['']";
+
 type NavGroup = {
   group: string;
   items: NavItem[];
@@ -81,7 +91,7 @@ const ADMIN_ITEMS = {
     perm: "admin.dashboard",
     children: [
       { to: "/admin/dashboard", label: "Tabgha", perm: "admin.dashboard" },
-      { to: "/admin/dashboard-clientes", label: "Clientes", perm: "admin.dashboard" },
+      { to: "/admin/dashboard-clientes", label: "Clientes", perm: "admin.dashboard_executivo" },
     ],
   },
   roi: {
@@ -92,7 +102,6 @@ const ADMIN_ITEMS = {
     children: [
       { to: "/admin/roi", label: "Operação", perm: "admin.roi", search: { tab: "operacao" } },
       { to: "/admin/roi", label: "Clientes", perm: "admin.roi", search: { tab: "clientes" } },
-      { to: "/admin/roi", label: "Campanhas", perm: "admin.roi", search: { tab: "campanhas" } },
       {
         to: "/admin/roi",
         label: "Marketing pago",
@@ -119,6 +128,12 @@ const ADMIN_ITEMS = {
     icon: MessageSquare,
     perm: "admin.atendimento",
   },
+  cerebroPietro: {
+    to: "/admin/cerebro-pietro",
+    label: "Cérebro Pietro",
+    icon: Brain,
+    perm: "admin.cerebro",
+  },
   estrategia: {
     to: "/admin/estrategia",
     label: "Estratégia editorial",
@@ -129,19 +144,29 @@ const ADMIN_ITEMS = {
     to: "/admin/calendario",
     label: "Calendário editorial",
     icon: Calendar,
-    perm: "admin.operacao",
+    perm: "admin.calendario",
+  },
+  biblioteca: {
+    to: "/admin/biblioteca-criativa",
+    label: "Biblioteca Criativa",
+    icon: Images,
+    perm: "admin.biblioteca",
   },
   automacoes: {
     to: "/admin/automacoes-leads",
     label: "Automações de pacientes",
     icon: Zap,
-    perm: "admin.operacao",
+    perm: "admin.nutricao",
+    children: [
+      { to: "/admin/automacoes-leads", label: "Desempenho", perm: "admin.nutricao" },
+      { to: "/admin/nutricao", label: "Nutrição de leads", perm: "admin.nutricao" },
+    ],
   },
   funilPacientes: {
     to: "/admin/leads",
     label: "Funil de pacientes",
     icon: UserCheck,
-    perm: "admin.operacao",
+    perm: "admin.crm",
   },
   metaAds: {
     to: "/admin/meta-ads",
@@ -155,10 +180,43 @@ const ADMIN_ITEMS = {
     icon: Briefcase,
     perm: "admin.pipeline",
   },
+  financeiro: {
+    to: "/admin/financeiro",
+    label: "Financeiro",
+    icon: DollarSign,
+    perm: "admin.financeiro",
+    children: [
+      {
+        to: "/admin/financeiro",
+        label: "Contratos",
+        perm: "admin.financeiro",
+        search: { tab: "contratos" },
+      },
+      {
+        to: "/admin/financeiro",
+        label: "Cobranças",
+        perm: "admin.financeiro",
+        search: { tab: "cobrancas" },
+      },
+      { to: "/admin/financeiro", label: "MRR", perm: "admin.financeiro", search: { tab: "mrr" } },
+      {
+        to: "/admin/financeiro",
+        label: "Inadimplência",
+        perm: "admin.financeiro",
+        search: { tab: "inadimplencia" },
+      },
+    ],
+  },
   usuarios: {
     to: "/admin/usuarios",
     label: "Usuários & acessos",
     icon: UserCog,
+    perm: "admin.usuarios",
+  },
+  configuracoes: {
+    to: "/admin/configuracoes",
+    label: "Configurações",
+    icon: Settings,
     perm: "admin.usuarios",
   },
   conexoesMeta: {
@@ -169,51 +227,63 @@ const ADMIN_ITEMS = {
   },
 } satisfies Record<string, NavItem>;
 
+/**
+ * Sidebar por perfil — espelha a matriz public.roles_permissoes.
+ * O filtro de permissão ainda roda por cima (canSeeNavPermission), então um
+ * item listado aqui e sem permissão simplesmente não aparece.
+ */
 const ADMIN_NAV_BY_ROLE: Record<StaffRole, NavGroup[]> = {
-  admin: [
+  super_admin: [
     { group: "Visão geral", items: [ADMIN_ITEMS.dashboard, ADMIN_ITEMS.roi] },
     { group: "Clientes", items: [ADMIN_ITEMS.clientes, ADMIN_ITEMS.diagnosticos] },
     {
       group: "Aquisição de pacientes",
       items: [
         ADMIN_ITEMS.atendimento,
+        ADMIN_ITEMS.cerebroPietro,
         ADMIN_ITEMS.funilPacientes,
         ADMIN_ITEMS.automacoes,
         ADMIN_ITEMS.metaAds,
       ],
     },
-    { group: "Conteúdo", items: [ADMIN_ITEMS.estrategia, ADMIN_ITEMS.calendario] },
-    { group: "Comercial Tabgha", items: [ADMIN_ITEMS.pipelineB2b] },
-    { group: "Administração", items: [ADMIN_ITEMS.usuarios, ADMIN_ITEMS.conexoesMeta] },
+    {
+      group: "Conteúdo",
+      items: [ADMIN_ITEMS.estrategia, ADMIN_ITEMS.biblioteca, ADMIN_ITEMS.calendario],
+    },
+    { group: "Comercial Tabgha", items: [ADMIN_ITEMS.pipelineB2b, ADMIN_ITEMS.financeiro] },
+    {
+      group: "Administração",
+      items: [ADMIN_ITEMS.usuarios, ADMIN_ITEMS.conexoesMeta, ADMIN_ITEMS.configuracoes],
+    },
   ],
   gestor_estrategico: [
     { group: "Visão estratégica", items: [ADMIN_ITEMS.dashboard, ADMIN_ITEMS.roi] },
     { group: "Clientes", items: [ADMIN_ITEMS.clientes, ADMIN_ITEMS.diagnosticos] },
-    {
-      group: "Aquisição de pacientes",
-      items: [ADMIN_ITEMS.funilPacientes, ADMIN_ITEMS.automacoes, ADMIN_ITEMS.metaAds],
-    },
-    { group: "Conteúdo", items: [ADMIN_ITEMS.estrategia, ADMIN_ITEMS.calendario] },
-    { group: "Configurações", items: [ADMIN_ITEMS.conexoesMeta] },
+    { group: "Aquisição de pacientes", items: [ADMIN_ITEMS.funilPacientes] },
+    { group: "Comercial Tabgha", items: [ADMIN_ITEMS.pipelineB2b, ADMIN_ITEMS.financeiro] },
   ],
   growth_manager: [
     { group: "Visão", items: [ADMIN_ITEMS.dashboard, ADMIN_ITEMS.roi] },
     {
       group: "Aquisição de pacientes",
-      items: [ADMIN_ITEMS.funilPacientes, ADMIN_ITEMS.automacoes, ADMIN_ITEMS.metaAds],
+      items: [
+        ADMIN_ITEMS.funilPacientes,
+        ADMIN_ITEMS.atendimento,
+        ADMIN_ITEMS.cerebroPietro,
+        ADMIN_ITEMS.automacoes,
+      ],
     },
     { group: "Comercial Tabgha", items: [ADMIN_ITEMS.pipelineB2b] },
     { group: "Carteira", items: [ADMIN_ITEMS.clientes] },
-    { group: "Planejamento", items: [ADMIN_ITEMS.calendario] },
-    { group: "Configurações", items: [ADMIN_ITEMS.conexoesMeta] },
+    { group: "Conteúdo", items: [ADMIN_ITEMS.biblioteca, ADMIN_ITEMS.calendario] },
   ],
   social_media: [
-    { group: "Conteúdo", items: [ADMIN_ITEMS.estrategia, ADMIN_ITEMS.calendario] },
-    { group: "Carteira", items: [ADMIN_ITEMS.clientes] },
     {
-      group: "Distribuição & jornada",
-      items: [ADMIN_ITEMS.funilPacientes, ADMIN_ITEMS.automacoes],
+      group: "Conteúdo",
+      items: [ADMIN_ITEMS.estrategia, ADMIN_ITEMS.biblioteca, ADMIN_ITEMS.calendario],
     },
+    { group: "Carteira", items: [ADMIN_ITEMS.clientes] },
+    { group: "Resultados", items: [ADMIN_ITEMS.roi] },
   ],
   performance: [
     { group: "Tráfego", items: [ADMIN_ITEMS.metaAds, ADMIN_ITEMS.roi] },
@@ -227,13 +297,11 @@ const ADMIN_NAV_BY_ROLE: Record<StaffRole, NavGroup[]> = {
       items: [ADMIN_ITEMS.atendimento, ADMIN_ITEMS.funilPacientes],
     },
     { group: "Clientes", items: [ADMIN_ITEMS.clientes, ADMIN_ITEMS.diagnosticos] },
-    {
-      group: "Ferramentas",
-      items: [ADMIN_ITEMS.automacoes, ADMIN_ITEMS.calendario],
-    },
+    { group: "Visão", items: [ADMIN_ITEMS.dashboard] },
   ],
   financeiro: [
-    { group: "Financeiro", items: [ADMIN_ITEMS.roi, ADMIN_ITEMS.dashboard] },
+    { group: "Financeiro", items: [ADMIN_ITEMS.financeiro] },
+    { group: "Visão", items: [ADMIN_ITEMS.dashboard] },
     { group: "Carteira", items: [ADMIN_ITEMS.clientes] },
   ],
 };
@@ -265,12 +333,6 @@ const CLIENTE_NAV: NavGroup[] = [
             label: "Oportunidades",
             perm: "cliente.roi",
             search: { tab: "oportunidades" },
-          },
-          {
-            to: "/cliente/roi",
-            label: "Campanhas",
-            perm: "cliente.roi",
-            search: { tab: "campanhas" },
           },
           {
             to: "/cliente/roi",
@@ -493,19 +555,41 @@ function SidebarNav({
   activeArea: "admin" | "cliente" | null;
   onSwitchArea: (area: "admin" | "cliente") => void;
 }) {
-  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
+  function findActiveGroup(list: NavGroup[]) {
+    return list.find((g) =>
+      g.items.some(
+        (i) =>
+          pathname === i.to ||
+          pathname.startsWith(i.to + "/") ||
+          (i.children?.some((c) => navChildActive(c, pathname, searchParams)) ?? false),
+      ),
+    )?.group;
+  }
+
+  // Grupos ficam recolhidos por padrão — só o grupo da rota atual abre sozinho.
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(() => {
+    const active = findActiveGroup(groups);
+    return active ? { [active]: true } : {};
+  });
   const [openSubmenus, setOpenSubmenus] = useState<Record<string, boolean>>({
     "/admin/dashboard": true,
     "/admin/roi": true,
     "/cliente/roi": true,
   });
 
+  useEffect(() => {
+    const active = findActiveGroup(groups);
+    if (!active) return;
+    setOpenGroups((prev) => (prev[active] ? prev : { ...prev, [active]: true }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pathname]);
+
   function toggleGroup(group: string) {
     setOpenGroups((prev) => ({ ...prev, [group]: !prev[group] }));
   }
 
   function isGroupOpen(key: string): boolean {
-    return openGroups[key] !== false;
+    return openGroups[key] === true;
   }
 
   function isSubmenuOpen(key: string, forceOpen?: boolean): boolean {
@@ -522,17 +606,10 @@ function SidebarNav({
           collapsed ? "justify-center px-0" : "px-3.5",
         )}
       >
-        {!collapsed && (
-          <img
-            src="https://tabghamkt.com.br/wp-content/uploads/2025/05/logo_tabgha_health_mkt_caixa_alta-04-scaled-e1747895382243.png"
-            alt="Tabgha Health Marketing"
-            className="h-6 w-auto brightness-0 invert"
-          />
-        )}
-        {collapsed && (
-          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-sidebar-primary/20">
-            <span className="text-[11px] font-bold text-sidebar-primary">T</span>
-          </div>
+        {!collapsed ? (
+          <TabghaLogo tone="claro" altura={26} />
+        ) : (
+          <TabghaLogo variante="mark" tone="claro" altura={28} />
         )}
       </div>
 
@@ -553,7 +630,7 @@ function SidebarNav({
 
       {/* ── Nav groups ── */}
       <nav className="min-h-0 flex-1 overflow-y-auto overscroll-contain py-2">
-        {groups.map((g) => {
+        {groups.map((g, groupIndex) => {
           const key = g.group;
           const isOpen = isGroupOpen(key);
           const hasActive = g.items.some(
@@ -565,25 +642,36 @@ function SidebarNav({
           const isAdminGroup = key === "Administração";
 
           return (
-            <div key={key} className={cn("mb-1", collapsed ? "px-1.5" : "")}>
+            <div
+              key={key}
+              className={cn(
+                "mb-1",
+                collapsed ? "px-1.5" : "",
+                groupIndex > 0 && !collapsed && "mt-2 border-t border-sidebar-border/50 pt-2",
+              )}
+            >
               {/* Group header */}
               {!collapsed && (
                 <button
                   onClick={() => toggleGroup(key)}
                   className={cn(
-                    "flex w-[calc(100%-16px)] items-center justify-between mx-2 px-2.5 py-1.5 rounded-md border-0 bg-transparent cursor-pointer transition-colors",
-                    "text-[9.5px] font-semibold tracking-[0.14em] uppercase",
+                    "flex w-[calc(100%-16px)] items-center justify-between mx-2 rounded-md border-0 bg-transparent px-2.5 py-1.5 cursor-pointer transition-colors",
+                    "text-[10px] font-semibold tracking-[0.14em] uppercase",
                     hasActive
-                      ? "text-sidebar-primary"
-                      : isAdminGroup
-                        ? "text-sidebar-foreground/50 hover:text-sidebar-foreground/70"
-                        : "text-sidebar-foreground/35 hover:text-sidebar-foreground/60",
+                      ? "text-sidebar-foreground/75"
+                      : "text-sidebar-foreground/40 hover:text-sidebar-foreground/70",
                   )}
                 >
-                  <span>{key}</span>
+                  <span className="flex items-center gap-1.5">
+                    {hasActive && (
+                      <span className="h-1 w-1 shrink-0 rounded-full bg-sidebar-primary" />
+                    )}
+                    {isAdminGroup && <ShieldCheck className="h-3 w-3 opacity-70" />}
+                    {key}
+                  </span>
                   <ChevronRight
                     className={cn(
-                      "h-3 w-3 opacity-55 transition-transform duration-200",
+                      "h-3 w-3 opacity-50 transition-transform duration-200",
                       isOpen && "rotate-90",
                     )}
                   />
@@ -610,9 +698,9 @@ function SidebarNav({
                               to={it.to as any}
                               onClick={onNavigate}
                               className={cn(
-                                "flex h-8 w-8 items-center justify-center rounded-md transition-all duration-150 mx-auto",
+                                "flex h-9 w-9 items-center justify-center rounded-xl transition-all duration-200 mx-auto",
                                 active
-                                  ? "bg-sidebar-accent text-sidebar-primary shadow-[inset_2px_0_0_0_var(--color-sidebar-primary)]"
+                                  ? "bg-sidebar-primary text-white shadow-[0_4px_12px_-2px_oklch(0.524_0.126_252_/_55%)]"
                                   : "text-sidebar-foreground/50 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground",
                               )}
                             >
@@ -641,28 +729,28 @@ function SidebarNav({
                               }))
                             }
                             className={cn(
-                              "mx-2 mb-px flex w-[calc(100%-16px)] items-center gap-2.5 rounded-[7px] border-0 bg-transparent px-2.5 py-1.5 text-left text-[12.5px] transition-all duration-150",
+                              "mx-2 mb-px flex w-[calc(100%-16px)] items-center gap-2.5 rounded-lg border-0 bg-transparent px-2.5 py-1.5 text-left text-[12.5px] transition-colors duration-200",
                               active
-                                ? "bg-sidebar-accent/70 font-semibold text-sidebar-accent-foreground"
-                                : "text-sidebar-foreground/55 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground",
+                                ? `font-semibold text-sidebar-foreground ${BARRA_ATIVA}`
+                                : "font-medium text-sidebar-foreground/60 hover:bg-white/[0.05] hover:text-sidebar-foreground",
                             )}
                           >
                             <Icon
                               className={cn(
                                 "h-3.5 w-3.5 shrink-0",
-                                active ? "text-sidebar-primary opacity-100" : "opacity-50",
+                                active ? "text-sidebar-primary opacity-100" : "opacity-45",
                               )}
                             />
                             <span className="flex-1">{it.label}</span>
                             <ChevronRight
                               className={cn(
-                                "h-3 w-3 opacity-55 transition-transform duration-200",
+                                "h-3 w-3 opacity-40 transition-transform duration-200",
                                 submenuOpen && "rotate-90",
                               )}
                             />
                           </button>
                           {submenuOpen ? (
-                            <div className="mb-1 ml-4 border-l border-sidebar-border/50 pl-2">
+                            <div className="mb-1 ml-[18px] mt-0.5 space-y-px border-l border-sidebar-border/40 pl-2">
                               {it.children!.map((child) => {
                                 const exactActive = navChildActive(child, pathname, searchParams);
                                 const childKey = child.search
@@ -675,12 +763,18 @@ function SidebarNav({
                                     search={(child.search ?? {}) as any}
                                     onClick={onNavigate}
                                     className={cn(
-                                      "mx-2 mb-px flex items-center rounded-[7px] px-2.5 py-1.5 text-[12px] transition-all duration-150",
+                                      "flex items-center rounded-lg px-2.5 py-1.5 text-[11.5px] transition-all duration-200",
                                       exactActive
-                                        ? "bg-sidebar-accent font-semibold text-sidebar-accent-foreground shadow-[inset_3px_0_0_0_var(--color-sidebar-primary)]"
-                                        : "text-sidebar-foreground/50 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground",
+                                        ? "bg-sidebar-primary font-semibold text-white shadow-[0_4px_12px_-2px_oklch(0.524_0.126_252_/_45%)]"
+                                        : "font-medium text-sidebar-foreground/55 hover:bg-white/[0.05] hover:text-sidebar-foreground",
                                     )}
                                   >
+                                    <span
+                                      className={cn(
+                                        "mr-2 h-1 w-1 shrink-0 rounded-full transition-colors",
+                                        exactActive ? "bg-white/70" : "bg-sidebar-foreground/20",
+                                      )}
+                                    />
                                     {child.label}
                                   </Link>
                                 );
@@ -697,16 +791,17 @@ function SidebarNav({
                         to={it.to as any}
                         onClick={onNavigate}
                         className={cn(
-                          "mx-2 mb-px flex items-center gap-2.5 rounded-[7px] px-2.5 py-1.5 text-[12.5px] transition-all duration-150",
+                          "mx-2 mb-px flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-[12.5px] font-medium transition-all duration-200",
                           active
-                            ? "bg-sidebar-accent text-sidebar-accent-foreground font-semibold shadow-[inset_3px_0_0_0_var(--color-sidebar-primary)]"
-                            : "text-sidebar-foreground/55 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground",
+                            ? `bg-sidebar-primary text-white font-semibold ${BARRA_ATIVA} ` +
+                                "shadow-[0_4px_12px_-2px_oklch(0.524_0.126_252_/_45%)]"
+                            : "bg-transparent text-sidebar-foreground/60 hover:bg-white/[0.05] hover:text-sidebar-foreground",
                         )}
                       >
                         <Icon
                           className={cn(
                             "h-3.5 w-3.5 shrink-0",
-                            active ? "text-sidebar-primary opacity-100" : "opacity-50",
+                            active ? "text-white opacity-100" : "opacity-45",
                           )}
                         />
                         {it.label}
@@ -911,7 +1006,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
     isStaff(roles) && roles.includes("cliente") && Boolean(profile?.cliente_id);
   const staffRole = primaryStaffRole(roles);
 
-  const roleGroups = role === "admin" ? ADMIN_NAV_BY_ROLE[staffRole ?? "admin"] : CLIENTE_NAV;
+  const roleGroups = role === "admin" ? ADMIN_NAV_BY_ROLE[staffRole ?? "super_admin"] : CLIENTE_NAV;
   const configuredAdminPaths = new Set(
     roleGroups.flatMap((group) => group.items.map((item) => item.to)),
   );
@@ -983,12 +1078,19 @@ export function AppLayout({ children }: { children: ReactNode }) {
     <div className="flex min-h-dvh w-full bg-background text-foreground md:h-dvh md:overflow-hidden">
       {/* ── Desktop sidebar ── */}
       <aside
-        className="relative hidden h-dvh min-h-0 shrink-0 flex-col overflow-hidden border-r border-sidebar-border bg-sidebar md:flex"
+        className="relative hidden h-dvh min-h-0 shrink-0 flex-col overflow-hidden bg-sidebar shadow-[4px_0_24px_-8px_rgba(0,0,0,0.25)] md:flex"
         style={{
           width: sidebarCollapsed ? "3.5rem" : "14rem",
           transition: "width 280ms cubic-bezier(0.4, 0, 0.2, 1)",
         }}
       >
+        <div
+          className="pointer-events-none absolute inset-0 -z-10 opacity-60"
+          style={{
+            background:
+              "radial-gradient(500px 260px at 0% 0%, oklch(0.524 0.126 252 / 22%), transparent 60%), radial-gradient(420px 240px at 100% 100%, oklch(0.763 0.163 69 / 8%), transparent 55%)",
+          }}
+        />
         <SidebarNav
           {...navProps}
           collapsed={sidebarCollapsed}
@@ -1007,15 +1109,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
           >
             <Menu className="h-5 w-5" />
           </button>
-          <img
-            src="https://tabghamkt.com.br/wp-content/uploads/2025/05/logo_tabgha_health_mkt_caixa_alta-04-scaled-e1747895382243.png"
-            alt="Tabgha Health Marketing"
-            className="h-6 w-auto"
-            style={{
-              filter:
-                "brightness(0) saturate(100%) invert(18%) sepia(56%) saturate(1200%) hue-rotate(204deg) brightness(82%) contrast(97%)",
-            }}
-          />
+          <TabghaLogo altura={24} />
           {isSimulating && (
             <div className="ml-auto flex items-center gap-1.5 rounded-full border border-amber-400/30 bg-amber-400/10 px-3 py-1">
               <Eye className="h-3 w-3 text-amber-400" />

@@ -1,55 +1,61 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, Loader2, Search } from "lucide-react";
+import { Plus, Loader2, Search, CheckCircle2, Clock, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useClientesOptions } from "@/hooks/useClientesOptions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { KpiCard } from "@/components/ui/kpi-card";
 import type { Tables } from "@/integrations/supabase/types";
+import { STATUS_CLASS, STATUS_LABEL, type CriativoStatus } from "@/lib/biblioteca";
 
 export const Route = createFileRoute("/_authenticated/admin/estrategia")({
   component: EstrategiaPage,
-  head: () => ({ meta: [{ title: "Estratégia Editorial — Tabgha Admin" }] }),
+  head: () => ({ meta: [{ title: "Estratégia editorial · Tabgha OS" }] }),
 });
 
 type Conteudo = Tables<"conteudos"> & { clientes?: { nome: string } | null };
 
-const COLUMNS: { key: string; label: string; color: string; accent: string }[] = [
+/**
+ * As colunas são os 5 status de public.conteudos — os mesmos da Biblioteca
+ * Criativa e do portal do médico. O vocabulário antigo (briefing / roteiro /
+ * producao / aprovacao / agendado / postado) saiu na migration
+ * 20260903200000_biblioteca_criativa e o CHECK do banco rejeita esses valores.
+ */
+const COLUMNS: { key: CriativoStatus; label: string; color: string; accent: string }[] = [
   {
-    key: "briefing",
-    label: "Briefing",
-    color: "bg-slate-100 text-slate-600",
+    key: "rascunho",
+    label: STATUS_LABEL.rascunho,
+    color: STATUS_CLASS.rascunho,
     accent: "bg-slate-400",
   },
-  { key: "roteiro", label: "Roteiro", color: "bg-blue-100 text-blue-700", accent: "bg-blue-500" },
   {
-    key: "producao",
-    label: "Produção",
-    color: "bg-amber-100 text-amber-700",
+    key: "pendente_aprovacao",
+    label: STATUS_LABEL.pendente_aprovacao,
+    color: STATUS_CLASS.pendente_aprovacao,
     accent: "bg-amber-500",
   },
-  { key: "aprovacao", label: "Aprovação", color: "bg-red-100 text-red-700", accent: "bg-red-500" },
   {
-    key: "agendado",
-    label: "Agendado",
-    color: "bg-violet-100 text-violet-700",
-    accent: "bg-violet-500",
+    key: "pedir_ajuste",
+    label: STATUS_LABEL.pedir_ajuste,
+    color: STATUS_CLASS.pedir_ajuste,
+    accent: "bg-orange-500",
   },
   {
-    key: "postado",
-    label: "Postado",
-    color: "bg-green-100 text-green-700",
+    key: "aprovado",
+    label: STATUS_LABEL.aprovado,
+    color: STATUS_CLASS.aprovado,
     accent: "bg-emerald-500",
+  },
+  {
+    key: "arquivado",
+    label: STATUS_LABEL.arquivado,
+    color: STATUS_CLASS.arquivado,
+    accent: "bg-slate-300",
   },
 ];
 
@@ -81,7 +87,7 @@ function NovoConteudoDialog({ open, onClose }: { open: boolean; onClose: () => v
         tipo: form.tipo || null,
         data_postagem: form.data_postagem || null,
         roteiro: form.roteiro || null,
-        status: "briefing",
+        status: "rascunho",
       });
       if (error) throw error;
     },
@@ -204,7 +210,7 @@ function ConteudoCard({
     : null;
 
   return (
-    <div className="card-lift animate-fade-up rounded-xl border border-border bg-card p-3.5 space-y-2.5 shadow-[0_1px_3px_rgba(15,27,53,0.04)]">
+    <div className="card-lift animate-fade-up rounded-xl border border-border bg-card p-3.5 space-y-2.5 shadow-[var(--shadow-card)]">
       <p className="text-[12.5px] font-semibold leading-snug">{item.titulo ?? "(sem título)"}</p>
       <p className="text-[11px] text-muted-foreground">{item.clientes?.nome ?? "—"}</p>
       <div className="flex flex-wrap gap-1">
@@ -290,16 +296,17 @@ function EstrategiaPage() {
   const byStatus = (status: string) => filtered.filter((c) => c.status === status);
 
   // KPI counts for summary bar
-  const totalPostado = conteudos.filter((c) => c.status === "postado").length;
-  const totalAprovacao = conteudos.filter((c) => c.status === "aprovacao").length;
-  const totalProducao = conteudos.filter((c) => c.status === "producao").length;
+  const totalAprovado = conteudos.filter((c) => c.status === "aprovado").length;
+  const totalAprovacao = conteudos.filter((c) => c.status === "pendente_aprovacao").length;
+  const totalAjuste = conteudos.filter((c) => c.status === "pedir_ajuste").length;
 
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
       <div className="space-y-3 border-b border-border px-6 py-4">
         <div>
-          <h1 className="text-xl font-bold tracking-tight">Estratégia editorial</h1>
+          <span className="eyebrow-pill">Estratégia</span>
+          <h1 className="mt-2 text-2xl font-extrabold tracking-tight">Pipeline Editorial</h1>
           <p className="text-xs text-muted-foreground mt-0.5">Acompanhe cada conteúdo por etapa</p>
         </div>
         <Button size="sm" onClick={() => setNovoOpen(true)}>
@@ -308,50 +315,14 @@ function EstrategiaPage() {
       </div>
 
       {/* KPI Summary Cards */}
-      <div className="grid grid-cols-3 gap-3 px-6 pt-4 pb-2">
+      <div className="grid grid-cols-2 gap-3 px-6 pt-4 pb-2 sm:grid-cols-3">
         {[
-          {
-            rank: "01",
-            label: "Postados",
-            value: totalPostado,
-            color: "text-emerald-600",
-            bar: "bg-emerald-500",
-            delay: 0,
-          },
-          {
-            rank: "02",
-            label: "Em aprovação",
-            value: totalAprovacao,
-            color: "text-red-600",
-            bar: "bg-red-500",
-            delay: 75,
-          },
-          {
-            rank: "03",
-            label: "Em produção",
-            value: totalProducao,
-            color: "text-amber-600",
-            bar: "bg-amber-500",
-            delay: 150,
-          },
+          { label: "Aprovados", value: totalAprovado, icon: CheckCircle2, tint: "green" as const, delay: 0 },
+          { label: "Em aprovação", value: totalAprovacao, icon: Clock, tint: "rose" as const, delay: 75 },
+          { label: "Pedidos de ajuste", value: totalAjuste, icon: Pencil, tint: "amber" as const, delay: 150 },
         ].map((kpi) => (
-          <div
-            key={kpi.rank}
-            className="card-lift animate-fade-up rounded-2xl border border-border bg-card px-5 pt-5 pb-4 shadow-[0_1px_3px_rgba(15,27,53,0.04)] flex flex-col"
-            style={{ animationDelay: kpi.delay + "ms" }}
-          >
-            <span className="text-[9px] font-black tracking-[0.16em] text-muted-foreground/40 mb-4">
-              {kpi.rank}
-            </span>
-            <p className="text-[10.5px] font-semibold uppercase tracking-wide text-muted-foreground mb-1">
-              {kpi.label}
-            </p>
-            <p
-              className={`text-[2.4rem] font-black tracking-tight leading-none animate-numeric-pop mt-auto ${kpi.color}`}
-            >
-              {kpi.value}
-            </p>
-            <div className={`mt-3 h-0.5 w-full rounded-full ${kpi.bar}`} />
+          <div key={kpi.label} className="animate-fade-up" style={{ animationDelay: kpi.delay + "ms" }}>
+            <KpiCard label={kpi.label} value={kpi.value} icon={kpi.icon} tint={kpi.tint} format="raw" />
           </div>
         ))}
       </div>
@@ -408,7 +379,7 @@ function EstrategiaPage() {
               return (
                 <div
                   key={col.key}
-                  className="animate-fade-up flex-1 min-w-[160px] flex flex-col rounded-2xl border border-border bg-card shadow-[0_1px_3px_rgba(15,27,53,0.04)] overflow-hidden"
+                  className="animate-fade-up flex-1 min-w-[160px] flex flex-col rounded-2xl border border-border bg-card shadow-[var(--shadow-card)] overflow-hidden"
                   style={{ animationDelay: colIdx * 50 + "ms" }}
                 >
                   {/* Column header */}

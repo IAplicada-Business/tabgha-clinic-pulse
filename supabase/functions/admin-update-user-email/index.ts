@@ -39,9 +39,9 @@ Deno.serve(async (req) => {
 
     const { data: isAdmin, error: roleErr } = await admin.rpc("has_role", {
       _user_id: userData.user.id,
-      _role: "admin",
+      _role: "super_admin",
     });
-    if (roleErr || !isAdmin) return json({ ok: false, error: "apenas admin" }, 403);
+    if (roleErr || !isAdmin) return json({ ok: false, error: "apenas super admin" }, 403);
 
     const body = (await req.json()) as {
       user_id?: string;

@@ -17,7 +17,7 @@ export const Route = createFileRoute("/_authenticated/cliente/leads")({
     canal: typeof search.canal === "string" ? search.canal : "",
     q: typeof search.q === "string" ? search.q : "",
   }),
-  head: () => ({ meta: [{ title: "Leads — Portal" }] }),
+  head: () => ({ meta: [{ title: "Meus pacientes · Tabgha OS" }] }),
 });
 
 function LeadsPage() {

@@ -1,5 +1,6 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Loader2, UserPlus, Users } from "lucide-react";
 
 import { EmptyState } from "@/components/EmptyState";
@@ -9,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useClientesOptions } from "@/hooks/useClientesOptions";
 import { useLeads, type Lead } from "@/hooks/useLeads";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_authenticated/admin/leads")({
   component: AdminLeadsPage,
@@ -18,7 +20,7 @@ export const Route = createFileRoute("/_authenticated/admin/leads")({
     cliente: typeof search.cliente === "string" ? search.cliente : "",
     q: typeof search.q === "string" ? search.q : "",
   }),
-  head: () => ({ meta: [{ title: "Funil de leads — Admin" }] }),
+  head: () => ({ meta: [{ title: "Funil de pacientes · Tabgha OS" }] }),
 });
 
 function AdminLeadsPage() {
@@ -55,6 +57,32 @@ function AdminLeadsPage() {
   );
 
   const { data: leads = [], isLoading } = useLeads(filters);
+
+  const { data: adsLeads = 0 } = useQuery({
+    queryKey: ["funil-ads-gap", search.cliente, search.periodo],
+    enabled: Boolean(search.cliente),
+    staleTime: 60_000,
+    queryFn: async () => {
+      const days = search.periodo || 30;
+      const until = new Date();
+      const since = new Date();
+      since.setDate(until.getDate() - (days - 1));
+      const sinceIso = since.toISOString().slice(0, 10);
+      const untilIso = until.toISOString().slice(0, 10);
+      const { data, error } = await supabase
+        .from("metricas_ads")
+        .select("leads, ad_id")
+        .eq("cliente_id", search.cliente)
+        .gte("data", sinceIso)
+        .lte("data", untilIso);
+      if (error) throw error;
+      return (data ?? [])
+        .filter((row) => !(row.ad_id ?? "").trim())
+        .reduce((sum, row) => sum + Number(row.leads ?? 0), 0);
+    },
+  });
+
+  const adsGap = Math.max(0, adsLeads - leads.length);
 
   function updateSearch(patch: Partial<typeof search>) {
     void navigate({
@@ -131,6 +159,16 @@ function AdminLeadsPage() {
           </Button>
         </div>
       </div>
+
+      {adsGap > 0 ? (
+        <div className="shrink-0 border-b border-amber-200 bg-amber-50 px-6 py-3 text-sm text-amber-950">
+          A Meta registrou <strong>{adsLeads} eventos de lead</strong> neste período. Neste funil há{" "}
+          <strong>{leads.length} ficha(s)</strong> — o restante ainda não foi importado.
+          <Link to="/admin/config-meta" className="ml-2 font-semibold text-sky-800 underline">
+            Importar formulários
+          </Link>
+        </div>
+      ) : null}
 
       {isLoading ? (
         <div className="flex flex-1 items-center justify-center py-16">

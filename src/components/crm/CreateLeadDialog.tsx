@@ -95,7 +95,7 @@ export function CreateLeadDialog({
         </DialogHeader>
 
         <form
-          className="space-y-3 py-1"
+          className="space-y-4 py-1"
           onSubmit={(e) => {
             e.preventDefault();
             if (!nome.trim() || !telefone.trim()) {
@@ -105,7 +105,7 @@ export function CreateLeadDialog({
             mutation.mutate();
           }}
         >
-          <div className="space-y-1">
+          <div className="space-y-1.5">
             <Label>Nome</Label>
             <Input
               value={nome}
@@ -114,7 +114,7 @@ export function CreateLeadDialog({
               autoFocus
             />
           </div>
-          <div className="space-y-1">
+          <div className="space-y-1.5">
             <Label>Telefone</Label>
             <Input
               value={telefone}
@@ -122,7 +122,7 @@ export function CreateLeadDialog({
               placeholder="11999999999"
             />
           </div>
-          <div className="space-y-1">
+          <div className="space-y-1.5">
             <Label>Email (opcional)</Label>
             <Input
               type="email"
@@ -132,12 +132,12 @@ export function CreateLeadDialog({
             />
           </div>
           {showCanalSelect ? (
-            <div className="space-y-1">
+            <div className="space-y-1.5">
               <Label>Canal</Label>
               <select
                 value={canal}
                 onChange={(e) => setCanal(e.target.value)}
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                className="flex h-10 w-full rounded-xl border border-input bg-background px-3 py-2 text-sm"
               >
                 {CANAIS.map((c) => (
                   <option key={c.value} value={c.value}>
@@ -147,7 +147,7 @@ export function CreateLeadDialog({
               </select>
             </div>
           ) : null}
-          <div className="space-y-1">
+          <div className="space-y-1.5">
             <Label>Observações (opcional)</Label>
             <Textarea
               value={observacoes}
