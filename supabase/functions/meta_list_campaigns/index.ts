@@ -10,7 +10,9 @@ const GRAPH_VERSION = Deno.env.get("META_GRAPH_VERSION") ?? "v21.0";
 
 const admin = createClient(SUPABASE_URL, SERVICE_KEY);
 
+// Espelha src/lib/roles.ts: o enum real é super_admin (não "admin").
 const STAFF_ROLES = new Set([
+  "super_admin",
   "admin",
   "gestor_estrategico",
   "growth_manager",
