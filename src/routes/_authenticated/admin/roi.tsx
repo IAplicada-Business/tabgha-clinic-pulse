@@ -184,10 +184,11 @@ function RoiAdminPage() {
     const totalInvest = metricasFiltradas.reduce((s, m) => s + Number(m.investimento), 0);
     const totalLeadsAds = metricasFiltradas.reduce((s, m) => s + m.leads, 0);
     const leadsCrm = leadsFiltrados.length;
-    const leadsBase = leadsCrm > 0 ? leadsCrm : totalLeadsAds;
+    const leadsBase = leadsCrm;
     const qualificados = leadsFiltrados.filter((l) => l.status !== "novo").length;
     const convertidos = leadsFiltrados.filter((l) => l.status === "convertido").length;
-    const caq = calcCaq(totalInvest, leadsBase);
+    const caq = calcCaq(totalInvest, totalLeadsAds);
+    const caqFunil = calcCaq(totalInvest, leadsCrm);
     const cplArr = metricasFiltradas.filter((m) => m.cpl != null).map((m) => Number(m.cpl));
     const cplMed = cplArr.length ? cplArr.reduce((a, b) => a + b, 0) / cplArr.length : null;
     return {
@@ -198,6 +199,7 @@ function RoiAdminPage() {
       qualificados,
       convertidos,
       caq,
+      caqFunil,
       cplMed,
     };
   }, [metricasFiltradas, leadsFiltrados]);
@@ -205,7 +207,14 @@ function RoiAdminPage() {
   const byCliente = useMemo(() => {
     const map = new Map<
       string,
-      { id: string; nome: string; investimento: number; leads: number; conversoes: number }
+      {
+        id: string;
+        nome: string;
+        investimento: number;
+        leads: number;
+        leadsCrm: number;
+        conversoes: number;
+      }
     >();
     for (const m of metricasFiltradas) {
       const nome = m.clientes?.nome ?? m.cliente_id.slice(0, 8);
@@ -214,6 +223,7 @@ function RoiAdminPage() {
         nome,
         investimento: 0,
         leads: 0,
+        leadsCrm: 0,
         conversoes: 0,
       };
       map.set(m.cliente_id, {
@@ -223,10 +233,23 @@ function RoiAdminPage() {
         conversoes: prev.conversoes + m.conversoes,
       });
     }
+    for (const l of leadsFiltrados) {
+      const nome = l.clientes?.nome ?? "Cliente";
+      const prev = map.get(l.cliente_id) ?? {
+        id: l.cliente_id,
+        nome,
+        investimento: 0,
+        leads: 0,
+        leadsCrm: 0,
+        conversoes: 0,
+      };
+      prev.leadsCrm += 1;
+      map.set(l.cliente_id, prev);
+    }
     return Array.from(map.values())
       .map((row) => ({ ...row, caq: calcCaq(row.investimento, row.leads) }))
       .sort((a, b) => b.investimento - a.investimento);
-  }, [metricasFiltradas]);
+  }, [metricasFiltradas, leadsFiltrados]);
 
   const oportunidades = useMemo(() => {
     const map = new Map<
@@ -259,7 +282,7 @@ function RoiAdminPage() {
     invest: kpis.totalInvest,
     leadsCrm: kpis.leadsCrm,
     leadsAds: kpis.totalLeadsAds,
-    caq: kpis.caq,
+    caq: kpis.caqFunil ?? kpis.caq,
     convertidos: kpis.convertidos,
     perdidos: leadsFiltrados.filter((l) => l.status === "perdido").length,
   });
@@ -336,20 +359,32 @@ function RoiAdminPage() {
             <>
               <StoryBanner {...headline} />
               {adsCrmGap ? (
-                <InsightStack items={[{ title: "Ads × funil", body: adsCrmGap, tone: "info" }]} />
+                <InsightStack
+                  items={[
+                    {
+                      title: "Ads × funil — não é o mesmo número",
+                      body: adsCrmGap,
+                      tone: kpis.totalLeadsAds > kpis.leadsCrm * 1.25 ? "warn" : "info",
+                    },
+                  ]}
+                />
+              ) : null}
+              {kpis.totalLeadsAds > kpis.leadsCrm ? (
+                <p className="text-sm">
+                  <Link
+                    to="/admin/config-meta"
+                    className="font-semibold text-sky-700 hover:underline"
+                  >
+                    Importar formulários da Meta →
+                  </Link>
+                  <span className="text-muted-foreground">
+                    {" "}
+                    para as fichas aparecerem no funil.
+                  </span>
+                </p>
               ) : null}
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                 <div className="animate-fade-up">
-                  <KpiCard
-                    label="CAQ"
-                    value={kpis.caq != null ? fmt(kpis.caq) : "—"}
-                    icon={Target}
-                    tint="blue"
-                    format="raw"
-                    delta={{ value: "quanto custa cada lead", direction: "neutral" }}
-                  />
-                </div>
-                <div className="animate-fade-up" style={{ animationDelay: "60ms" }}>
                   <KpiCard
                     label="Investido"
                     value={fmt(kpis.totalInvest)}
@@ -358,35 +393,40 @@ function RoiAdminPage() {
                     format="raw"
                   />
                 </div>
+                <div className="animate-fade-up" style={{ animationDelay: "60ms" }}>
+                  <KpiCard
+                    label="Eventos Ads"
+                    value={String(kpis.totalLeadsAds)}
+                    icon={Receipt}
+                    tint="blue"
+                    format="raw"
+                    delta={{ value: "o que a Meta reportou no anúncio", direction: "neutral" }}
+                  />
+                </div>
                 <div className="animate-fade-up" style={{ animationDelay: "120ms" }}>
                   <KpiCard
-                    label="Leads"
-                    value={String(kpis.leadsBase)}
+                    label="No funil"
+                    value={String(kpis.leadsCrm)}
                     icon={Users}
                     tint="violet"
                     format="raw"
-                    delta={{
-                      value:
-                        kpis.leadsCrm > 0
-                          ? `${kpis.leadsCrm} no CRM · ${kpis.totalLeadsAds} Ads`
-                          : `${kpis.totalLeadsAds} via Ads`,
-                      direction: "neutral",
-                    }}
+                    delta={{ value: "fichas com nome e telefone", direction: "neutral" }}
                   />
                 </div>
                 <div className="animate-fade-up" style={{ animationDelay: "180ms" }}>
                   <KpiCard
-                    label="CPL médio"
-                    value={kpis.cplMed != null ? fmt(kpis.cplMed) : "—"}
-                    icon={Receipt}
+                    label="CAQ Ads"
+                    value={kpis.caq != null ? fmt(kpis.caq) : "—"}
+                    icon={Target}
                     tint="amber"
                     format="raw"
+                    delta={{ value: "investimento ÷ eventos Meta", direction: "neutral" }}
                   />
                 </div>
               </div>
 
               <div className="grid gap-4 lg:grid-cols-2">
-                <Panel title="Funil da operação" subtitle="Onde as oportunidades param" tone="soft">
+                <Panel title="Funil da operação" subtitle="Só quem já tem ficha no CRM" tone="soft">
                   <FunnelBars stages={funnel} />
                 </Panel>
                 <Panel title="Status dos leads" subtitle="Distribuição atual">
@@ -396,8 +436,12 @@ function RoiAdminPage() {
 
               {byCliente.length > 0 ? (
                 <div className="animate-fade-up rounded-2xl border border-border bg-gradient-to-br from-slate-50 to-sky-50/60 p-5 shadow-[var(--shadow-card)]">
-                  <p className="mt-1 text-base font-bold text-foreground">
-                    Investimento × Leads por cliente
+                  <p className="text-base font-bold text-foreground">
+                    Mídia vs funil por cliente
+                  </p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Eventos Ads = o que a Meta contou no anúncio. Funil = fichas com nome e
+                    telefone. Não são a mesma coisa.
                   </p>
                   <div className="mt-4 h-64">
                     <ResponsiveContainer width="100%" height="100%">
@@ -443,8 +487,15 @@ function RoiAdminPage() {
                         <Bar
                           yAxisId="right"
                           dataKey="leads"
-                          name="Leads"
+                          name="Eventos Ads"
                           fill="#0369a1"
+                          radius={[4, 4, 0, 0]}
+                        />
+                        <Bar
+                          yAxisId="right"
+                          dataKey="leadsCrm"
+                          name="No funil"
+                          fill="#7dd3fc"
                           radius={[4, 4, 0, 0]}
                         />
                       </BarChart>
@@ -471,7 +522,7 @@ function RoiAdminPage() {
                         <th className="px-4 py-2.5 text-left">Data</th>
                         <th className="px-4 py-2.5 text-left">Plataforma</th>
                         <th className="px-4 py-2.5 text-right">Investimento</th>
-                        <th className="px-4 py-2.5 text-right">Leads</th>
+                        <th className="px-4 py-2.5 text-right">Eventos Ads</th>
                         <th className="px-4 py-2.5 text-right">CAQ</th>
                       </tr>
                     </thead>
@@ -540,7 +591,7 @@ function RoiAdminPage() {
                     formatValue={(v) => fmtMoneyCompact(v)}
                   />
                 </Panel>
-                <Panel title="Leads gerados por clínica" tone="soft">
+                <Panel title="Eventos Ads por clínica" tone="soft">
                   <RankedBarChart
                     data={[...byCliente]
                       .sort((a, b) => b.leads - a.leads)
@@ -569,11 +620,13 @@ function RoiAdminPage() {
                     <tr className="border-b border-border bg-secondary/40 text-[10px] font-bold uppercase tracking-[0.08em] text-muted-foreground/70">
                       <th className="px-4 py-2.5 text-left">Cliente</th>
                       <th className="px-3 py-2.5 text-right">Invest.</th>
-                      <th className="px-3 py-2.5 text-right">Leads Ads</th>
+                      <th className="px-3 py-2.5 text-right">Eventos Ads</th>
+                      <th className="px-3 py-2.5 text-right">No funil</th>
+                      <th className="px-3 py-2.5 text-right">A importar</th>
                       <th className="px-3 py-2.5 text-right">Novos</th>
                       <th className="px-3 py-2.5 text-right">Qualif.</th>
                       <th className="px-3 py-2.5 text-right">Conv.</th>
-                      <th className="px-3 py-2.5 text-right">CAQ</th>
+                      <th className="px-3 py-2.5 text-right">CAQ Ads</th>
                       <th className="px-3 py-2.5 text-right" />
                     </tr>
                   </thead>
@@ -587,11 +640,15 @@ function RoiAdminPage() {
                       const rows = [...ids].map((id) => {
                         const media = byCliente.find((r) => r.id === id);
                         const opp = oppById.get(id);
+                        const funil = (opp?.novos ?? 0) + (opp?.qualificacao ?? 0) + (opp?.convertidos ?? 0);
+                        const leadsAds = media?.leads ?? 0;
                         return {
                           id,
                           nome: media?.nome ?? opp?.nome ?? "Cliente",
                           investimento: media?.investimento ?? 0,
-                          leadsAds: media?.leads ?? 0,
+                          leadsAds,
+                          funil,
+                          gap: Math.max(0, leadsAds - funil),
                           novos: opp?.novos ?? 0,
                           qualificacao: opp?.qualificacao ?? 0,
                           convertidos: opp?.convertidos ?? 0,
@@ -610,7 +667,7 @@ function RoiAdminPage() {
                         return (
                           <tr>
                             <td
-                              colSpan={8}
+                              colSpan={10}
                               className="px-4 py-10 text-center text-sm text-muted-foreground"
                             >
                               Sem clínicas nem leads neste filtro.
@@ -625,6 +682,10 @@ function RoiAdminPage() {
                             {row.investimento > 0 ? fmt(row.investimento) : "—"}
                           </td>
                           <td className="px-3 py-3 text-right tabular-nums">{row.leadsAds}</td>
+                          <td className="px-3 py-3 text-right tabular-nums">{row.funil}</td>
+                          <td className="px-3 py-3 text-right tabular-nums text-amber-800">
+                            {row.gap > 0 ? row.gap : "—"}
+                          </td>
                           <td className="px-3 py-3 text-right tabular-nums">{row.novos}</td>
                           <td className="px-3 py-3 text-right tabular-nums">{row.qualificacao}</td>
                           <td className="px-3 py-3 text-right tabular-nums">{row.convertidos}</td>
