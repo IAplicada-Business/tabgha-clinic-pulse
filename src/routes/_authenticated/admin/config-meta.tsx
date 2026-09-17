@@ -508,8 +508,8 @@ function ConfigMetaPage() {
 
   async function saveTokenConnection() {
     const token = tokenInput.trim();
-    const pageId = pickedPageId.trim() || manualPageId.trim();
-    const accountId = pickedAccountId.trim() || adAccountId.trim();
+    const pageId = pickedPageId.trim() || manualPageId.trim() || meta?.page_id || "";
+    const accountId = pickedAccountId.trim() || adAccountId.trim() || meta?.ad_account_id || "";
     if (!clienteId) return;
     if (!token && !hasToken) {
       toast.error("Cole o token da Meta.");
@@ -774,6 +774,30 @@ function ConfigMetaPage() {
                       Ad Account dele — nunca a da IAplicada/Tabgha se aparecer na lista.
                     </p>
                   ) : null}
+                </div>
+
+                <div className="space-y-2 rounded-xl border border-sky-200/80 bg-white/80 p-4">
+                  <p className="text-sm font-medium text-slate-900">Atualizar token</p>
+                  <p className="text-xs text-muted-foreground">
+                    Cole um token novo se faltar permissão de formulário (leads_retrieval). Página,
+                    conta e campanhas já salvas permanecem.
+                  </p>
+                  <Textarea
+                    value={tokenInput}
+                    onChange={(e) => setTokenInput(e.target.value)}
+                    placeholder="EAAxxxxxxx…"
+                    className="min-h-[72px] font-mono text-xs"
+                    autoComplete="off"
+                  />
+                  <Button
+                    type="button"
+                    className="rounded-xl bg-sky-600 hover:bg-sky-700"
+                    disabled={savingToken || !tokenInput.trim()}
+                    onClick={() => void saveTokenConnection()}
+                  >
+                    {savingToken ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+                    Salvar token
+                  </Button>
                 </div>
 
                 <div className="space-y-3 rounded-xl border border-emerald-200/80 bg-white/70 p-4">

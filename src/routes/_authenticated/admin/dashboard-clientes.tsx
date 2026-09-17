@@ -233,7 +233,7 @@ function DashboardClientesPage() {
           id,
           ...row,
           gap: Math.max(0, row.leadsAds - row.leadsMeta),
-          caq: calcCaq(row.investimento, row.leadsCrm > 0 ? row.leadsCrm : row.leadsAds),
+          caq: calcCaq(row.investimento, row.leadsAds),
         }))
         .sort((a, b) => b.investimento - a.investimento || b.leadsCrm - a.leadsCrm);
 
@@ -245,7 +245,7 @@ function DashboardClientesPage() {
         leadsMeta,
         invest,
         leadsAds,
-        caq: calcCaq(invest, leads.length > 0 ? leads.length : leadsAds),
+        caq: calcCaq(invest, leadsAds),
         leadsTimeline,
         investTimeline,
         performance,
@@ -315,12 +315,19 @@ function DashboardClientesPage() {
             <InsightStack
               items={[
                 {
-                  title: "Ads × funil Meta",
-                  body: `${adsCrmGap} Use “Importar leads dos formulários” em Conectar Meta BM se o gap persistir.`,
-                  tone: "info",
+                  title: "Ads × funil — não é o mesmo número",
+                  body: adsCrmGap,
+                  tone: (data?.leadsAds ?? 0) > (data?.leadsMeta ?? 0) * 1.25 ? "warn" : "info",
                 },
               ]}
             />
+          ) : null}
+          {(data?.leadsAds ?? 0) > (data?.leadsPeriodo ?? 0) ? (
+            <p className="text-sm">
+              <Link to="/admin/config-meta" className="font-semibold text-sky-700 hover:underline">
+                Importar formulários da Meta →
+              </Link>
+            </p>
           ) : null}
 
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -332,7 +339,7 @@ function DashboardClientesPage() {
                 tint: "blue" as const,
               },
               {
-                label: "Leads no período",
+                label: "No funil",
                 value: data?.leadsPeriodo ?? 0,
                 icon: Users,
                 tint: "violet" as const,
@@ -344,7 +351,7 @@ function DashboardClientesPage() {
                 tint: "sky" as const,
               },
               {
-                label: "CAQ",
+                label: "CAQ Ads",
                 value: data?.caq != null ? fmtMoney(data.caq) : "—",
                 icon: Target,
                 tint: "amber" as const,
