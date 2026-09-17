@@ -3,6 +3,7 @@
 // Usa page_id + access_token em dados_extras.meta.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { campanhaLiberada, campanhasPermitidas } from "../_shared/meta_campanhas.ts";
 import {
   createAttributionCache,
   resolveMetaAttribution,
@@ -23,6 +24,7 @@ type MetaConfig = {
   user_access_token?: string;
   page_id?: string;
   page_name?: string;
+  campanhas?: Array<{ id: string; nome?: string | null }> | null;
 };
 
 function json(body: Record<string, unknown>, status = 200) {
@@ -124,6 +126,29 @@ function needsAttributionEnrichment(row: {
   );
 }
 
+const STALE_LEAD_MS = 3 * 24 * 60 * 60 * 1000;
+
+// Leads sincronizados que já nasceram "velhos" (backfill) não devem entrar no
+// cold_followup do nurture-tick — senão o CRM manda WhatsApp de "lead frio"
+// para alguém que preencheu o formulário há semanas/meses.
+async function suppressColdFollowupIfStale(
+  leadId: string,
+  clienteId: string,
+  createdTime?: string,
+) {
+  const createdMs = createdTime ? Date.parse(createdTime) : NaN;
+  if (!Number.isFinite(createdMs) || Date.now() - createdMs < STALE_LEAD_MS) return;
+  await supabase.from("nurture_jobs").insert({
+    cliente_id: clienteId,
+    lead_id: leadId,
+    kind: "cold_followup",
+    step: 0,
+    status: "done",
+    next_run_at: new Date().toISOString(),
+    metadata: { reason: "backfill_stale_lead_suppressed" },
+  });
+}
+
 async function enrichLeadRow(
   leadId: string,
   attribution: MetaAttribution,
@@ -180,6 +205,17 @@ Deno.serve(async (req: Request) => {
         nome: cliente.nome,
         skipped: true,
         motivo: "meta_page_or_token_missing",
+      });
+      continue;
+    }
+
+    const permitidas = campanhasPermitidas(meta);
+    if (permitidas.size === 0) {
+      resultados.push({
+        cliente_id: cliente.id,
+        nome: cliente.nome,
+        skipped: true,
+        motivo: "campanhas_nao_selecionadas",
       });
       continue;
     }
@@ -263,15 +299,25 @@ Deno.serve(async (req: Request) => {
               attrCache,
             );
 
+            const campaignId = attribution.meta_campaign_id ?? lead.campaign_id ?? null;
+            if (!campanhaLiberada(campaignId, permitidas)) {
+              ignorados += 1;
+              continue;
+            }
+
             const { data: existing } = await supabase
               .from("leads")
               .select(
-                "id, meta_ad_id, meta_ad_name, meta_form_id, meta_form_name, meta_campaign_id, meta_campaign_name, meta_page_id, meta_leadgen_id",
+                "id, cliente_id, meta_ad_id, meta_ad_name, meta_form_id, meta_form_name, meta_campaign_id, meta_campaign_name, meta_page_id, meta_leadgen_id",
               )
               .eq("meta_leadgen_id", lead.id)
               .maybeSingle();
 
             if (existing) {
+              if (existing.cliente_id !== cliente.id) {
+                ignorados += 1;
+                continue;
+              }
               if (needsAttributionEnrichment(existing)) {
                 await enrichLeadRow(existing.id, attribution, lead.campaign_id ?? null);
                 atualizados += 1;
@@ -314,33 +360,39 @@ Deno.serve(async (req: Request) => {
             const email = pickOne(fieldData, aliasesFor(formMap, "email"));
             const telefone = telefoneRaw ? normalizePhone(telefoneRaw) : null;
 
-            const { error: insertError } = await supabase.from("leads").insert({
-              cliente_id: cliente.id,
-              nome,
-              telefone,
-              email,
-              canal: "meta",
-              utm_source: "facebook",
-              utm_medium: "paid",
-              utm_campaign: attribution.meta_campaign_name ?? lead.campaign_id ?? null,
-              status: "novo",
-              meta_leadgen_id: lead.id,
-              meta_ad_id: attribution.meta_ad_id,
-              meta_ad_name: attribution.meta_ad_name,
-              meta_campaign_id: attribution.meta_campaign_id,
-              meta_campaign_name: attribution.meta_campaign_name,
-              meta_form_id: attribution.meta_form_id,
-              meta_form_name: attribution.meta_form_name,
-              meta_page_id: attribution.meta_page_id,
-              criado_em: lead.created_time ?? new Date().toISOString(),
-              observacoes: null,
-            });
+            const { data: inserted, error: insertError } = await supabase
+              .from("leads")
+              .insert({
+                cliente_id: cliente.id,
+                nome,
+                telefone,
+                email,
+                canal: "meta",
+                utm_source: "facebook",
+                utm_medium: "paid",
+                utm_campaign: attribution.meta_campaign_name ?? lead.campaign_id ?? null,
+                status: "novo",
+                meta_leadgen_id: lead.id,
+                meta_ad_id: attribution.meta_ad_id,
+                meta_ad_name: attribution.meta_ad_name,
+                meta_campaign_id: attribution.meta_campaign_id,
+                meta_campaign_name: attribution.meta_campaign_name,
+                meta_form_id: attribution.meta_form_id,
+                meta_form_name: attribution.meta_form_name,
+                meta_page_id: attribution.meta_page_id,
+                criado_em: lead.created_time ?? new Date().toISOString(),
+                observacoes: null,
+              })
+              .select("id")
+              .single();
 
             if (insertError) {
               erros += 1;
               formErrors.push(`${form.id}: ${insertError.message}`);
               continue;
             }
+
+            await suppressColdFollowupIfStale(inserted.id, cliente.id, lead.created_time);
 
             await supabase.from("automation_logs").insert({
               cliente_id: cliente.id,

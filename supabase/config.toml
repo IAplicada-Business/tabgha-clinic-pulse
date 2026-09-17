@@ -54,3 +54,9 @@ verify_jwt = false
 # ── Exige JWT na borda (repassa o token pro client Supabase, RLS decide) ────
 [functions.gerar-diagnostico-7f]
 verify_jwt = true
+
+[functions.meta-connect-token]
+verify_jwt = true
+
+[functions.meta_list_campaigns]
+verify_jwt = true

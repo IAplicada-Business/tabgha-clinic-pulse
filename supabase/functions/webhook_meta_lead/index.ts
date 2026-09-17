@@ -8,6 +8,7 @@
 // Mapa de campos: app_config.meta_form_map[form_id] ou _default
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { campanhaLiberada, campanhasPermitidas } from "../_shared/meta_campanhas.ts";
 import {
   createAttributionCache,
   resolveMetaAttribution,
@@ -46,24 +47,37 @@ function pickField(fieldData: FieldData[], aliases: string[]): string | null {
   return null;
 }
 
-async function resolveCliente(pageId: string) {
+type ClienteMeta = {
+  id: string;
+  dados_extras: { meta?: { access_token?: string; user_access_token?: string; page_name?: string; campanhas?: Array<{ id: string }> } } | null;
+};
+
+async function clientesByPage(pageId: string): Promise<ClienteMeta[]> {
   const { data: byNested } = await supabase
     .from("clientes")
     .select("id, dados_extras")
-    .filter("dados_extras->meta->>page_id", "eq", pageId)
-    .limit(1)
-    .maybeSingle();
+    .filter("dados_extras->meta->>page_id", "eq", pageId);
 
-  if (byNested) return byNested;
+  if (byNested && byNested.length > 0) return byNested as ClienteMeta[];
 
   const { data: byLegacy } = await supabase
     .from("clientes")
     .select("id, dados_extras")
-    .filter("dados_extras->>meta_page_id", "eq", pageId)
-    .limit(1)
-    .maybeSingle();
+    .filter("dados_extras->>meta_page_id", "eq", pageId);
 
-  return byLegacy ?? null;
+  return (byLegacy ?? []) as ClienteMeta[];
+}
+
+function tokenOf(cliente: ClienteMeta) {
+  const meta = cliente.dados_extras?.meta;
+  return meta?.user_access_token || meta?.access_token || null;
+}
+
+function escolherCliente(candidatos: ClienteMeta[], campaignId: string | null) {
+  const comCampanha = candidatos.filter((c) =>
+    campanhaLiberada(campaignId, campanhasPermitidas(c.dados_extras?.meta)),
+  );
+  return comCampanha[0] ?? null;
 }
 
 async function loadFormMap(formId: string | undefined): Promise<FormMap> {
@@ -134,8 +148,8 @@ Deno.serve(async (req: Request) => {
         const leadgenId = value.leadgen_id;
         if (!pageId || !leadgenId) continue;
 
-        const cliente = await resolveCliente(String(pageId));
-        if (!cliente) {
+        const candidatos = await clientesByPage(String(pageId));
+        if (candidatos.length === 0) {
           await supabase.from("webhook_errors").insert({
             source: "meta_lead",
             payload: { pageId, leadgenId, change },
@@ -144,14 +158,12 @@ Deno.serve(async (req: Request) => {
           continue;
         }
 
-        const meta = (cliente.dados_extras as {
-          meta?: { access_token?: string; page_name?: string };
-        } | null)?.meta;
-        const accessToken = meta?.access_token;
+        const tokenHost = candidatos.find((c) => tokenOf(c));
+        const accessToken = tokenHost ? tokenOf(tokenHost) : null;
         if (!accessToken) {
           await supabase.from("webhook_errors").insert({
             source: "meta_lead",
-            cliente_id: cliente.id,
+            cliente_id: tokenHost?.id,
             payload: { pageId, leadgenId },
             error: "access_token Meta ausente em dados_extras.meta",
           });
@@ -168,7 +180,7 @@ Deno.serve(async (req: Request) => {
           const text = await graphRes.text();
           await supabase.from("webhook_errors").insert({
             source: "meta_lead",
-            cliente_id: cliente.id,
+            cliente_id: tokenHost?.id,
             payload: { pageId, leadgenId, status: graphRes.status, text },
             error: `Graph API error ${graphRes.status}`,
           });
@@ -194,7 +206,19 @@ Deno.serve(async (req: Request) => {
 
         const adId = leadPayload.ad_id ?? value.ad_id ?? null;
         const campaignId = leadPayload.campaign_id ?? value.campaign_id ?? null;
+        const cliente = escolherCliente(candidatos, campaignId);
+        if (!cliente) {
+          await supabase.from("webhook_errors").insert({
+            source: "meta_lead",
+            payload: { pageId, leadgenId, campaignId },
+            error: campaignId
+              ? "campanha não liberada para nenhum cliente desta página"
+              : "lead sem campaign_id — ignorado até haver allowlist",
+          });
+          continue;
+        }
 
+        const meta = cliente.dados_extras?.meta;
         const attribution = await resolveMetaAttribution(
           accessToken,
           GRAPH_VERSION,
