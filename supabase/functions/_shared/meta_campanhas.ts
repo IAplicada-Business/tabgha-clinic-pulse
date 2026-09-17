@@ -19,6 +19,14 @@ export function campanhasPermitidas(config: MetaCampanhaConfig | undefined | nul
   return new Set(ids);
 }
 
+export function campanhaLiberada(
+  campaignId: string | null | undefined,
+  permitidas: Set<string>,
+): boolean {
+  const id = String(campaignId ?? "").trim();
+  return id.length > 0 && permitidas.has(id);
+}
+
 /**
  * Mantém só as linhas de insights cujas campanhas estão liberadas.
  *

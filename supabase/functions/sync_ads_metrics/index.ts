@@ -110,11 +110,6 @@ async function fetchMetaInsights(
   return payload.data ?? [];
 }
 
-/**
- * Só o nível "campaign" é usado: o fallback agregado por conta não carrega
- * campaign_id e, numa conta compartilhada, misturaria o gasto de outros
- * clientes na linha de um só.
- */
 async function fetchCampaignInsights(
   accessToken: string,
   adAccountId: string,
@@ -251,9 +246,6 @@ async function syncMetaForClient(cliente: ClienteRow, since: string, until: stri
     return { inseridos: 0, skipped: true, motivo: "meta_not_configured" };
   }
 
-  // Falha fechado: sem campanhas escolhidas para este cliente não se importa
-  // nada. Uma conta de anúncio compartilhada entre clientes só pode ser
-  // repartida por uma lista explícita.
   const permitidas = campanhasPermitidas(config);
   if (permitidas.size === 0) {
     return {
@@ -264,11 +256,14 @@ async function syncMetaForClient(cliente: ClienteRow, since: string, until: stri
   }
 
   try {
-    const accounts = await listAdAccounts(accessToken);
+    let accounts: AdAccount[] = [];
+    try {
+      accounts = await listAdAccounts(accessToken);
+    } catch (listError) {
+      console.warn("meta_adaccounts_list_failed", listError);
+    }
     const ranked = rankAdAccounts(accounts, config?.page_name);
 
-    // Escolher a conta sozinho (antes: a de maior gasto da BM) é como a conta
-    // da agência acabou vinculada a um cliente. A conta tem de ser explícita.
     if (!adAccountId) {
       return {
         inseridos: 0,
@@ -280,8 +275,6 @@ async function syncMetaForClient(cliente: ClienteRow, since: string, until: stri
 
     const usedAccount = adAccountId;
 
-    // Nunca trocar de conta sozinho: vincular outra conta da BM ao cliente é
-    // como o investimento de um acabou no portal de outro.
     if (accounts.length > 0 && !config?.ad_account_name) {
       const linked = ranked.find((a) => a.account_id === usedAccount);
       await persistLinkedAdAccount(cliente, usedAccount, linked?.name);
@@ -295,7 +288,6 @@ async function syncMetaForClient(cliente: ClienteRow, since: string, until: stri
     try {
       rawAdRows = await fetchMetaInsights(accessToken, usedAccount, since, until, "ad");
     } catch (adError) {
-      // Conta sem permissão de breakdown por ad — campanhas ainda valem.
       console.warn("meta_ad_insights_failed", adError);
     }
     const adFiltro = filtrarPorCampanha(rawAdRows, permitidas);
@@ -317,6 +309,25 @@ async function syncMetaForClient(cliente: ClienteRow, since: string, until: stri
     const linkedName =
       ranked.find((a) => a.account_id === usedAccount)?.name ?? config?.ad_account_name ?? null;
 
+    const nomes = new Set(
+      (config?.campanhas ?? []).map((c) => String(c?.nome ?? "").trim()).filter(Boolean),
+    );
+    let linhasRemovidas = 0;
+    if (nomes.size > 0 && nomes.size === permitidas.size) {
+      const { data: existentes } = await supabase
+        .from("metricas_ads")
+        .select("id, campanha")
+        .eq("cliente_id", cliente.id)
+        .eq("plataforma", "meta");
+      const ids = (existentes ?? [])
+        .filter((row) => !nomes.has(String(row.campanha ?? "").trim()))
+        .map((row) => row.id);
+      if (ids.length > 0) {
+        const { error: delError } = await supabase.from("metricas_ads").delete().in("id", ids);
+        if (!delError) linhasRemovidas = ids.length;
+      }
+    }
+
     await supabase.from("automation_logs").insert({
       cliente_id: cliente.id,
       action: "meta_ads_synced",
@@ -330,6 +341,7 @@ async function syncMetaForClient(cliente: ClienteRow, since: string, until: stri
         ad_account_name: linkedName,
         campanhas_permitidas: permitidas.size,
         linhas_descartadas: campanhaFiltro.descartadas + adFiltro.descartadas,
+        linhas_removidas: linhasRemovidas,
         ad_accounts_count: ranked.length,
       },
     });
@@ -344,6 +356,7 @@ async function syncMetaForClient(cliente: ClienteRow, since: string, until: stri
       ad_account_name: linkedName,
       campanhas_permitidas: permitidas.size,
       linhas_descartadas: campanhaFiltro.descartadas + adFiltro.descartadas,
+      linhas_removidas: linhasRemovidas,
       motivo:
         campaignRows.length === 0 && adRows.length === 0 ? "no_insights_in_range" : undefined,
       ad_accounts_count: ranked.length,
