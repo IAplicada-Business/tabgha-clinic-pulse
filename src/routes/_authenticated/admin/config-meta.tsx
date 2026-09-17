@@ -325,9 +325,22 @@ function ConfigMetaPage() {
     }
     setSyncingLeads(true);
     try {
-      const { data, error } = await supabase.functions.invoke("sync_meta_leads", {
-        body: { cliente_id: clienteId, days: 90 },
-      });
+      const { data, error } = await Promise.race([
+        supabase.functions.invoke("sync_meta_leads", {
+          body: { cliente_id: clienteId, days: 90 },
+        }),
+        new Promise<never>((_, reject) =>
+          setTimeout(
+            () =>
+              reject(
+                new Error(
+                  "A importação passou de 1 minuto. Atualize a lista de leads — o que já chegou está no CRM — e clique de novo se ainda faltar.",
+                ),
+              ),
+            60_000,
+          ),
+        ),
+      ]);
       if (error) throw error;
       const payload = data as {
         ok?: boolean;
@@ -341,6 +354,7 @@ function ConfigMetaPage() {
           forms?: number;
           formErrors?: string[];
           motivo?: string;
+          truncated?: boolean;
         }>;
       };
       if (!payload?.ok) throw new Error(payload?.error || "Importação falhou.");
@@ -357,6 +371,10 @@ function ConfigMetaPage() {
           description:
             "Marque só as campanhas dele antes de importar leads. Sem isso o CRM mistura formulários da mesma página.",
         });
+      } else if (first?.truncated) {
+        toast.success(
+          `${first.inseridos ?? 0} lead(s) importado(s) nesta rodada. Clique de novo para continuar o restante.`,
+        );
       } else if ((first?.inseridos ?? 0) === 0 && (first?.atualizados ?? 0) === 0) {
         toast.message("Nenhum lead novo importado", {
           description:
