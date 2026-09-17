@@ -1,0 +1,1803 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Tabgha OS — Design System v3 (navegável · pós direcionamento 24/07)</title>
+<style>
+/* ============================================================
+   TOKENS — espelham src/styles.css
+   ============================================================ */
+:root {
+  --radius: 0.625rem;
+  --bg: oklch(0.999 0.003 85);
+  --fg: oklch(0.152 0.068 265);
+  --card: oklch(1 0 0);
+  --card-fg: oklch(0.152 0.068 265);
+  --primary: oklch(0.42 0.13 248);
+  --primary-fg: oklch(1 0 0);
+  --secondary: oklch(0.963 0.006 80);
+  --muted: oklch(0.963 0.006 80);
+  --muted-fg: oklch(0.515 0.022 255);
+  --accent: oklch(0.952 0.022 248);
+  --accent-fg: oklch(0.28 0.09 248);
+  --destructive: oklch(0.577 0.245 27.325);
+  --destructive-fg: oklch(1 0 0);
+  --border: oklch(0.910 0.008 82);
+  --input: oklch(0.910 0.008 82);
+  --ring: oklch(0.52 0.10 248);
+  --sidebar: oklch(0.978 0.005 82);
+  --sidebar-fg: oklch(0.152 0.068 265);
+  --sidebar-primary: oklch(0.42 0.13 248);
+  --sidebar-accent: oklch(0.942 0.025 248);
+  --sidebar-accent-fg: oklch(0.30 0.10 248);
+  --sidebar-border: oklch(0.910 0.008 82);
+  --brand-navy: oklch(0.152 0.068 265);
+  --brand-blue: oklch(0.42 0.13 248);
+  --brand-sky: oklch(0.765 0.090 220);
+  --green-100: oklch(0.94 0.06 145); --green-700: oklch(0.45 0.13 145);
+  --yellow-100: oklch(0.96 0.08 90); --yellow-700: oklch(0.50 0.13 80);
+  --blue-100: oklch(0.94 0.04 240); --blue-700: oklch(0.42 0.13 248);
+  --slate-100: oklch(0.95 0.005 250); --slate-600: oklch(0.50 0.02 255);
+  --red-100: oklch(0.93 0.05 25); --red-700: oklch(0.50 0.20 27);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  background: var(--bg); color: var(--fg);
+  font-family: -apple-system, BlinkMacSystemFont, "Inter", "SF Pro Display", system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased; font-feature-settings: "kern" 1, "liga" 1;
+  font-size: 13px;
+}
+h1, h2, h3 { letter-spacing: -0.02em; line-height: 1.2; }
+h2 { letter-spacing: -0.015em; line-height: 1.3; }
+h3 { letter-spacing: -0.01em; }
+a { color: inherit; text-decoration: none; }
+
+/* ============================================================
+   TOP CHROME — modo Admin × Cliente
+   ============================================================ */
+.chrome {
+  position: sticky; top: 0; z-index: 10;
+  background: var(--brand-navy); color: white;
+  padding: 8px 16px;
+  display: flex; align-items: center; justify-content: space-between;
+  border-bottom: 1px solid oklch(1 0 0 / 0.08);
+  font-size: 12px;
+}
+.chrome .left { display: flex; align-items: center; gap: 12px; }
+.chrome .brand { font-weight: 700; letter-spacing: -0.01em; font-size: 13px; }
+.chrome .brand small { opacity: 0.6; font-weight: 500; margin-left: 6px; }
+.chrome .modes { display: inline-flex; background: oklch(1 0 0 / 0.08); border-radius: 999px; padding: 2px; }
+.chrome .modes button {
+  border: 0; background: transparent; color: white;
+  padding: 4px 12px; border-radius: 999px; font-size: 11px; cursor: pointer;
+  font-weight: 500;
+}
+.chrome .modes button.active { background: var(--brand-blue); }
+.chrome .hint { opacity: 0.55; font-size: 11px; }
+
+/* ============================================================
+   APP SHELL — sidebar 224px (mais compacta) + main
+   ============================================================ */
+.app { display: grid; grid-template-columns: 224px 1fr; min-height: calc(100vh - 36px); }
+
+aside.sidebar {
+  background: var(--sidebar); color: var(--sidebar-fg);
+  border-right: 1px solid var(--sidebar-border);
+  display: flex; flex-direction: column;
+}
+.sidebar .logo {
+  height: 48px; padding: 0 14px;
+  display: flex; align-items: center;
+  border-bottom: 1px solid var(--sidebar-border);
+  font-weight: 700; letter-spacing: -0.01em; font-size: 13px;
+}
+.sidebar nav { flex: 1; overflow-y: auto; padding: 6px 0 10px; }
+
+/* GROUP — header clicável (expansível) */
+.sidebar .group-header {
+  display: flex; align-items: center; justify-content: space-between;
+  width: calc(100% - 16px);
+  margin: 6px 8px 0;
+  padding: 6px 8px 6px 10px;
+  border: 0; background: transparent;
+  font-family: inherit; cursor: pointer;
+  font-size: 9.5px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase;
+  color: oklch(0.515 0.022 255 / 0.55);
+  border-radius: 6px;
+  transition: background 120ms, color 120ms;
+}
+.sidebar .group-header:hover {
+  background: oklch(0.910 0.008 82 / 0.5);
+  color: oklch(0.152 0.068 265 / 0.8);
+}
+.sidebar .group-header .ct {
+  display: inline-block; margin-left: 4px;
+  background: oklch(0.910 0.008 82); color: oklch(0.515 0.022 255);
+  font-size: 9px; font-weight: 700; padding: 1px 5px; border-radius: 999px;
+  letter-spacing: 0;
+}
+.sidebar .group-header.has-active {
+  color: var(--sidebar-accent-fg);
+}
+.sidebar .group-header .chev {
+  width: 12px; height: 12px; opacity: 0.55;
+  transition: transform 200ms ease;
+}
+.sidebar .group-header.expanded .chev { transform: rotate(90deg); }
+.sidebar .group-items {
+  overflow: hidden;
+  transition: max-height 220ms ease, opacity 180ms ease;
+  max-height: 500px;
+  opacity: 1;
+}
+.sidebar .group-items.collapsed {
+  max-height: 0; opacity: 0;
+  pointer-events: none;
+}
+
+/* ITEMS */
+.sidebar nav a {
+  display: flex; align-items: center; gap: 9px;
+  margin: 1px 8px; padding: 6px 10px;
+  border-radius: 7px; font-size: 12.5px; color: oklch(0.152 0.068 265 / 0.72);
+  transition: background 120ms, color 120ms;
+  cursor: pointer; user-select: none;
+}
+.sidebar nav a:hover { background: var(--accent); color: var(--accent-fg); }
+.sidebar nav a.active {
+  background: var(--sidebar-accent); color: var(--sidebar-accent-fg); font-weight: 600;
+}
+.sidebar nav a svg { width: 14px; height: 14px; opacity: 0.7; flex-shrink: 0; }
+.sidebar nav a.active svg { opacity: 1; }
+.sidebar nav a .badge-mini {
+  margin-left: auto; background: var(--primary); color: white;
+  font-size: 10px; padding: 1px 6px; border-radius: 999px; font-weight: 600;
+}
+.sidebar .foot {
+  border-top: 1px solid var(--sidebar-border);
+  padding: 10px 14px;
+}
+.sidebar .foot .user {
+  font-size: 11px; font-weight: 500;
+  overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
+}
+.sidebar .foot .logout {
+  margin-top: 4px; font-size: 10.5px; color: var(--muted-fg);
+  display: inline-flex; align-items: center; gap: 4px; cursor: pointer;
+}
+.sidebar .foot .logout:hover { color: var(--fg); }
+.sidebar .foot .logout svg { width: 12px; height: 12px; }
+
+main {
+  background: var(--bg);
+  padding: 18px 22px 28px;
+  overflow: auto;
+}
+
+/* ============================================================
+   PAGE PATTERNS — densidade aumentada
+   ============================================================ */
+.page-head { margin-bottom: 14px; display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.page-head h1 { font-size: 20px; font-weight: 700; }
+.page-head .sub { color: var(--muted-fg); margin-top: 3px; font-size: 12.5px; }
+.crumb { font-size: 11px; color: var(--muted-fg); margin-bottom: 4px; display: flex; align-items: center; gap: 6px; }
+.crumb svg { width: 11px; height: 11px; opacity: 0.6; }
+
+.section { margin-top: 18px; }
+.section .sec-title { font-size: 11px; font-weight: 600; margin-bottom: 8px; color: var(--muted-fg); text-transform: uppercase; letter-spacing: 0.05em; }
+
+/* PRIMITIVES */
+.btn {
+  display: inline-flex; align-items: center; gap: 5px;
+  height: 30px; padding: 0 12px;
+  border-radius: 6px; border: 1px solid var(--border);
+  background: var(--card); color: var(--fg);
+  font-size: 12px; font-weight: 500; cursor: pointer;
+  transition: background 120ms;
+}
+.btn:hover { background: var(--secondary); }
+.btn.primary { background: var(--primary); color: var(--primary-fg); border-color: var(--primary); }
+.btn.primary:hover { background: oklch(0.36 0.13 248); }
+.btn.ghost { border-color: transparent; background: transparent; }
+.btn.sm { height: 26px; font-size: 11.5px; padding: 0 10px; }
+.btn svg { width: 13px; height: 13px; }
+
+.input {
+  height: 30px; border: 1px solid var(--input); border-radius: 6px;
+  padding: 0 10px 0 30px; background: var(--card); font-size: 12px; color: var(--fg);
+  width: 100%; outline: none;
+}
+.input.plain { padding-left: 10px; }
+.input:focus { border-color: var(--ring); box-shadow: 0 0 0 3px oklch(0.52 0.10 248 / 0.15); }
+.search-wrap { position: relative; }
+.search-wrap svg { position: absolute; left: 9px; top: 50%; transform: translateY(-50%); width: 14px; height: 14px; color: var(--muted-fg); pointer-events: none; }
+
+select.input { padding-right: 26px; appearance: none; background-image: linear-gradient(45deg, transparent 50%, var(--muted-fg) 50%), linear-gradient(135deg, var(--muted-fg) 50%, transparent 50%); background-position: calc(100% - 14px) 50%, calc(100% - 9px) 50%; background-size: 5px 5px; background-repeat: no-repeat; }
+
+.badge {
+  display: inline-flex; align-items: center; height: 18px; padding: 0 7px;
+  border-radius: 999px; font-size: 10.5px; font-weight: 500;
+}
+.badge.ativo { background: var(--green-100); color: var(--green-700); }
+.badge.onboarding { background: var(--blue-100); color: var(--blue-700); }
+.badge.pausa { background: var(--yellow-100); color: var(--yellow-700); }
+.badge.inativo { background: var(--slate-100); color: var(--slate-600); }
+.badge.alert { background: var(--red-100); color: var(--red-700); }
+
+/* KPI Card — mais compacto */
+.kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.kpi {
+  border: 1px solid var(--border); border-radius: 10px;
+  background: var(--card); padding: 12px 14px;
+  position: relative;
+}
+.kpi .label { font-size: 10.5px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted-fg); }
+.kpi .value { font-size: 22px; font-weight: 700; margin-top: 6px; letter-spacing: -0.02em; line-height: 1.1; }
+.kpi .delta { font-size: 11px; margin-top: 3px; color: var(--muted-fg); display: flex; align-items: center; gap: 3px; }
+.kpi .delta.up { color: var(--green-700); }
+.kpi .delta.down { color: var(--red-700); }
+.kpi .delta svg { width: 11px; height: 11px; }
+.kpi .icon { position: absolute; top: 12px; right: 12px; color: var(--muted-fg); }
+.kpi .icon svg { width: 14px; height: 14px; }
+
+.card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; }
+.card .hd { padding: 10px 14px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; min-height: 38px; }
+.card .hd h3 { font-size: 13px; font-weight: 600; }
+.card .body { padding: 12px 14px; }
+.card .body.flush { padding: 0; }
+
+table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+table th, table td { padding: 8px 12px; text-align: left; }
+table th { font-weight: 600; font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted-fg); border-bottom: 1px solid var(--border); background: var(--secondary); }
+table td { border-bottom: 1px solid var(--border); }
+table tr:hover td { background: var(--secondary); }
+table tr:last-child td { border-bottom: 0; }
+table td .row-actions { display: flex; gap: 4px; justify-content: flex-end; }
+
+/* TABS */
+.tabs { display: flex; gap: 2px; border-bottom: 1px solid var(--border); margin-bottom: 14px; }
+.tabs button { background: transparent; border: 0; padding: 8px 12px; font-size: 12.5px; color: var(--muted-fg); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; font-family: inherit; }
+.tabs button:hover { color: var(--fg); }
+.tabs button.active { color: var(--fg); border-bottom-color: var(--primary); font-weight: 600; }
+.tabs.compact button { padding: 6px 10px; font-size: 12px; }
+
+/* SUB-TABS dentro de uma tab principal */
+.subtabs { display: inline-flex; background: var(--secondary); border-radius: 7px; padding: 2px; gap: 1px; margin-bottom: 12px; }
+.subtabs button { background: transparent; border: 0; padding: 4px 10px; font-size: 11.5px; border-radius: 5px; cursor: pointer; color: var(--muted-fg); font-family: inherit; font-weight: 500; }
+.subtabs button:hover { color: var(--fg); }
+.subtabs button.active { background: var(--card); color: var(--fg); box-shadow: 0 1px 2px rgba(0,0,0,0.06); }
+
+/* KANBAN — colunas mais densas */
+.kanban { display: grid; gap: 8px; align-items: start; }
+.kanban.c4 { grid-template-columns: repeat(4, 1fr); }
+.kanban.c6 { grid-template-columns: repeat(6, 1fr); }
+.kanban .col { background: var(--secondary); border-radius: 9px; padding: 8px; min-height: 200px; }
+.kanban .col h4 { font-size: 10.5px; font-weight: 600; text-transform: uppercase; color: var(--muted-fg); margin-bottom: 8px; letter-spacing: 0.05em; display: flex; justify-content: space-between; }
+.kanban .col h4 .ct { background: oklch(0.910 0.008 82); padding: 1px 6px; border-radius: 999px; font-size: 10px; }
+.kanban .card-mini { background: var(--card); border: 1px solid var(--border); border-radius: 6px; padding: 8px; margin-bottom: 6px; font-size: 12px; cursor: pointer; transition: box-shadow 120ms; }
+.kanban .card-mini:hover { box-shadow: 0 2px 6px rgba(0,0,0,0.06); }
+.kanban .card-mini .t { font-weight: 600; margin-bottom: 2px; font-size: 12.5px; }
+.kanban .card-mini .m { color: var(--muted-fg); font-size: 11px; line-height: 1.3; }
+.kanban .card-mini .row { display: flex; justify-content: space-between; align-items: center; margin-top: 5px; }
+
+/* ATENDIMENTO — 3 colunas */
+.atendimento { display: grid; grid-template-columns: 280px 1fr 300px; height: calc(100vh - 36px - 60px); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; background: var(--card); }
+.atendimento .col { display: flex; flex-direction: column; border-right: 1px solid var(--border); min-height: 0; }
+.atendimento .col:last-child { border-right: 0; }
+.atendimento .conv-search { padding: 8px; border-bottom: 1px solid var(--border); }
+.atendimento .conv-search .search-wrap svg { left: 16px; }
+.atendimento .conv-search .input { padding-left: 32px; }
+.atendimento .conv-tabs { display: flex; padding: 4px 8px 8px; gap: 4px; font-size: 11px; flex-wrap: wrap; }
+.atendimento .conv-tabs span { padding: 3px 8px; border-radius: 999px; background: var(--secondary); color: var(--muted-fg); cursor: pointer; font-weight: 500; }
+.atendimento .conv-tabs span.active { background: var(--primary); color: var(--primary-fg); }
+.atendimento .conv-list { overflow-y: auto; flex: 1; }
+.atendimento .conv-item { padding: 9px 12px; border-bottom: 1px solid var(--border); cursor: pointer; display: flex; gap: 9px; }
+.atendimento .conv-item:hover { background: var(--secondary); }
+.atendimento .conv-item.sel { background: var(--accent); }
+.atendimento .conv-item .avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 11px; flex-shrink: 0; }
+.atendimento .conv-item .meta { flex: 1; min-width: 0; }
+.atendimento .conv-item .meta .name { font-size: 12.5px; font-weight: 600; display: flex; justify-content: space-between; align-items: center; }
+.atendimento .conv-item .meta .name .t { font-size: 10px; color: var(--muted-fg); font-weight: 400; }
+.atendimento .conv-item .meta .preview { font-size: 11.5px; color: var(--muted-fg); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: 1px; }
+
+.atendimento .chat { display: flex; flex-direction: column; background: var(--secondary); min-height: 0; }
+.atendimento .chat-head { padding: 8px 14px; background: var(--card); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+.atendimento .chat-head .who { font-weight: 600; font-size: 13px; }
+.atendimento .chat-head .who .sub { font-weight: 400; font-size: 11px; color: var(--muted-fg); margin-top: 1px; }
+.atendimento .chat-msgs { flex: 1; overflow-y: auto; padding: 14px 18px; display: flex; flex-direction: column; gap: 8px; }
+.atendimento .bubble { max-width: 70%; padding: 7px 11px; border-radius: 11px; font-size: 12.5px; line-height: 1.4; }
+.atendimento .bubble.in { background: var(--card); border: 1px solid var(--border); align-self: flex-start; border-bottom-left-radius: 4px; }
+.atendimento .bubble.bot { background: oklch(0.96 0.02 248); align-self: flex-end; border-bottom-right-radius: 4px; }
+.atendimento .bubble.human { background: var(--primary); color: white; align-self: flex-end; border-bottom-right-radius: 4px; }
+.atendimento .bubble .meta { font-size: 10px; opacity: 0.6; margin-top: 3px; }
+.atendimento .composer { padding: 8px; background: var(--card); border-top: 1px solid var(--border); display: flex; gap: 6px; align-items: flex-end; }
+.atendimento .composer textarea { flex: 1; border: 1px solid var(--input); border-radius: 7px; padding: 7px 10px; font-family: inherit; font-size: 12.5px; resize: none; height: 56px; outline: none; }
+
+.atendimento .info { padding: 12px 14px; overflow-y: auto; }
+.atendimento .info .sec { font-size: 10.5px; text-transform: uppercase; color: var(--muted-fg); font-weight: 600; letter-spacing: 0.05em; margin: 10px 0 6px; }
+.atendimento .info .sec:first-child { margin-top: 0; }
+.atendimento .info .row-kv { display: flex; justify-content: space-between; font-size: 12px; padding: 4px 0; border-bottom: 1px dashed var(--border); }
+.atendimento .info .row-kv .k { color: var(--muted-fg); }
+
+/* MISC */
+.row { display: flex; gap: 8px; align-items: center; }
+.gap-2 { gap: 8px; }
+.muted { color: var(--muted-fg); }
+.small { font-size: 11.5px; }
+.empty { padding: 40px 20px; text-align: center; color: var(--muted-fg); border: 1px dashed var(--border); border-radius: 10px; font-size: 12.5px; }
+.empty .ic { display: inline-flex; padding: 10px; background: var(--secondary); border-radius: 50%; margin-bottom: 8px; color: var(--muted-fg); }
+.empty .ic svg { width: 22px; height: 22px; }
+
+/* CHARTS */
+.chart-card { padding: 14px; }
+.chart-card h3 { font-size: 12.5px; font-weight: 600; margin-bottom: 8px; }
+.legend { display: flex; gap: 12px; font-size: 11px; color: var(--muted-fg); margin-top: 6px; flex-wrap: wrap; }
+.dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 4px; vertical-align: middle; }
+
+/* FORMS */
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 14px; }
+.form-row { display: flex; flex-direction: column; gap: 4px; }
+.form-row label { font-size: 11px; font-weight: 500; color: var(--muted-fg); }
+
+/* CALENDÁRIO */
+.cal { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+.cal .h, .cal .d { background: var(--card); padding: 6px; font-size: 11.5px; min-height: 68px; }
+.cal .h { background: var(--secondary); text-align: center; font-weight: 600; color: var(--muted-fg); min-height: auto; text-transform: uppercase; font-size: 9.5px; letter-spacing: 0.06em; padding: 5px; }
+.cal .d .num { font-weight: 600; font-size: 12px; }
+.cal .d .ev { font-size: 9.5px; padding: 1px 5px; background: var(--accent); color: var(--accent-fg); border-radius: 3px; margin-top: 3px; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cal .d .ev.alt { background: oklch(0.94 0.06 145); color: oklch(0.30 0.13 145); }
+.cal .d.today { background: oklch(0.97 0.02 248); }
+.cal .d.today .num { color: var(--primary); }
+
+/* GRIDS DENSOS */
+.g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.g3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.g-2-1 { display: grid; grid-template-columns: 2fr 1fr; gap: 12px; }
+.g-3-1 { display: grid; grid-template-columns: 3fr 1fr; gap: 12px; }
+.g-1-3 { display: grid; grid-template-columns: 1fr 3fr; gap: 12px; }
+
+/* Side panel (filtros / aprovação) */
+.side-panel { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; }
+.side-panel h4 { font-size: 11px; text-transform: uppercase; color: var(--muted-fg); font-weight: 600; letter-spacing: 0.05em; margin-bottom: 8px; }
+
+/* PILL filtros / chips */
+.chip { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; font-size: 11px; border-radius: 999px; background: var(--secondary); color: var(--fg); border: 1px solid var(--border); }
+.chip svg { width: 11px; height: 11px; opacity: 0.6; cursor: pointer; }
+
+.hidden { display: none !important; }
+.spacer { flex: 1; }
+.text-up { font-size: 11px; color: var(--green-700); }
+.text-dn { font-size: 11px; color: var(--red-700); }
+
+/* RATING */
+.rating { display: inline-flex; align-items: center; gap: 3px; font-size: 12.5px; }
+.rating svg { width: 12px; height: 12px; color: oklch(0.78 0.15 75); }
+
+/* AVATAR PEQUENO */
+.av { width: 24px; height: 24px; border-radius: 50%; background: var(--primary); color: white; display: inline-flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 600; }
+</style>
+</head>
+<body>
+
+<!-- CHROME -->
+<div class="chrome">
+  <div class="left">
+    <div class="brand">TABGHA OS <small>Health Growth Operating System · v3 navegável</small></div>
+    <div class="modes" id="modes">
+      <button class="active" data-mode="admin">Super Admin</button>
+      <button data-mode="growth">Growth</button>
+      <button data-mode="social">Social Media</button>
+      <button data-mode="performance">Performance</button>
+      <button data-mode="atendimento">Atendimento</button>
+      <button data-mode="financeiro">Financeiro</button>
+      <button data-mode="cliente">Cliente</button>
+    </div>
+  </div>
+  <div class="hint">menus agrupados por seção · use o lateral pra trocar de tela</div>
+</div>
+
+<!-- APP -->
+<div class="app">
+  <aside class="sidebar">
+    <div class="logo">Tabgha OS <small style="opacity:.55;font-weight:500;margin-left:5px;">Health Growth OS</small></div>
+    <nav id="nav"></nav>
+    <div class="foot">
+      <div class="user">mariana@iaplicada.com.br</div>
+      <div class="logout">${'`'}<!-- replaced -->${'`'}</div>
+    </div>
+  </aside>
+  <main id="main"></main>
+</div>
+
+<script>
+/* ============================================================
+   ÍCONES — SVG inline (substituem emojis)
+   ============================================================ */
+const I = {
+  dashboard: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>',
+  users: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
+  stethoscope: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.8 2.3A.3.3 0 1 0 5 2H4a2 2 0 0 0-2 2v5a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6V4a2 2 0 0 0-2-2h-1a.2.2 0 1 0 .3.3"/><path d="M8 15v1a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6v-4"/><circle cx="20" cy="10" r="2"/></svg>',
+  message: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>',
+  bar: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg>',
+  calendar: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>',
+  zap: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>',
+  megaphone: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m3 11 18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg>',
+  trending: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>',
+  cog: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>',
+  link: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>',
+  file: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="13" y2="17"/></svg>',
+  briefcase: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>',
+  search: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>',
+  plus: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>',
+  filter: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>',
+  chevR: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>',
+  chevL: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>',
+  out: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>',
+  send: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>',
+  up: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>',
+  down: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>',
+  star: '<svg viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>',
+  check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>',
+  alert: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12" y2="16"/></svg>',
+  inbox: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>',
+};
+
+/* Inject logout icon */
+document.querySelector('.foot .logout').innerHTML = `${I.out} Sair`;
+
+/* ============================================================
+   NAV — agrupado por seção
+   ============================================================ */
+const NAV = {
+  admin: [
+    { group: 'Visão',
+      items: [
+        { to: 'dashboard',        label: 'Dashboard',         ic: I.dashboard },
+        { to: 'roi',              label: 'ROI da operação',   ic: I.trending },
+      ]},
+    { group: 'Carteira',
+      items: [
+        { to: 'clientes',         label: 'Clientes',          ic: I.users, badge: '12' },
+        { to: 'cliente-ficha',    label: 'Ficha do cliente',  ic: I.briefcase, sub: true },
+        { to: 'diagnostico-7f',   label: 'Diagnóstico 7 Fontes', ic: I.stethoscope },
+        { to: 'usuarios',         label: 'Usuários & acessos',ic: I.cog },
+      ]},
+    { group: 'Operação diária',
+      items: [
+        { to: 'atendimento',      label: 'Atendimento',       ic: I.message, badge: '3' },
+        { to: 'estrategia',       label: 'Estratégia editorial', ic: I.file },
+        { to: 'calendario',       label: 'Calendário',        ic: I.calendar },
+      ]},
+    { group: 'Estratégia de conteúdo',
+      items: [
+        { to: 'pilares-conteudo', label: 'Pilares · 4',       ic: I.file },
+        { to: 'biblioteca',       label: 'Biblioteca criativa', ic: I.file },
+      ]},
+    { group: 'Aquisição',
+      items: [
+        { to: 'automacoes-leads', label: 'Automações de leads', ic: I.zap },
+        { to: 'meta-ads',         label: 'Meta Ads',          ic: I.megaphone },
+      ]},
+    { group: 'Comercial B2B',
+      items: [
+        { to: 'pipeline-b2b',     label: 'Pipeline B2B',      ic: I.briefcase, badge: '18' },
+      ]},
+    { group: 'Financeiro',
+      items: [
+        { to: 'financeiro',       label: 'MRR & cobranças',   ic: I.trending, badge: '2' },
+      ]},
+  ],
+  growth: [
+    { group: 'Visão',
+      items: [
+        { to: 'dashboard',        label: 'Dashboard',         ic: I.dashboard },
+        { to: 'roi',              label: 'ROI da operação',   ic: I.trending },
+      ]},
+    { group: 'Aquisição',
+      items: [
+        { to: 'automacoes-leads', label: 'Automações de leads', ic: I.zap },
+        { to: 'meta-ads',         label: 'Meta Ads',          ic: I.megaphone },
+        { to: 'atendimento',      label: 'Atendimento',       ic: I.message, badge: '3' },
+      ]},
+    { group: 'Estratégia',
+      items: [
+        { to: 'diagnostico-7f',   label: 'Diagnóstico 7 Fontes', ic: I.stethoscope },
+        { to: 'pilares-conteudo', label: 'Pilares de conteúdo', ic: I.file },
+        { to: 'pipeline-b2b',     label: 'Pipeline B2B',      ic: I.briefcase },
+      ]},
+    { group: 'Carteira',
+      items: [
+        { to: 'clientes',         label: 'Clientes',          ic: I.users, badge: '12' },
+      ]},
+  ],
+  social: [
+    { group: 'Conteúdo',
+      items: [
+        { to: 'pilares-conteudo', label: 'Pilares de conteúdo', ic: I.file },
+        { to: 'estrategia',       label: 'Estratégia editorial', ic: I.file },
+        { to: 'biblioteca',       label: 'Biblioteca criativa', ic: I.file },
+        { to: 'calendario',       label: 'Calendário editorial', ic: I.calendar },
+      ]},
+    { group: 'Aprovações',
+      items: [
+        { to: 'atendimento',      label: 'Feedback do cliente', ic: I.message, badge: '2' },
+      ]},
+  ],
+  performance: [
+    { group: 'Tráfego',
+      items: [
+        { to: 'meta-ads',         label: 'Meta Ads',          ic: I.megaphone },
+        { to: 'automacoes-leads', label: 'Automações de leads', ic: I.zap },
+        { to: 'roi',              label: 'ROI da operação',   ic: I.trending },
+      ]},
+    { group: 'Analytics',
+      items: [
+        { to: 'dashboard',        label: 'Dashboard geral',   ic: I.dashboard },
+      ]},
+  ],
+  atendimento: [
+    { group: 'Fila',
+      items: [
+        { to: 'atendimento',      label: 'Atendimento',       ic: I.message, badge: '3' },
+        { to: 'clientes',         label: 'Leads',             ic: I.inbox, badge: '18' },
+      ]},
+    { group: 'Ferramentas',
+      items: [
+        { to: 'diagnostico-7f',   label: 'Diagnóstico 7 Fontes', ic: I.stethoscope },
+        { to: 'calendario',       label: 'Calendário',        ic: I.calendar },
+      ]},
+  ],
+  financeiro: [
+    { group: 'Financeiro',
+      items: [
+        { to: 'financeiro',       label: 'Dashboard MRR',     ic: I.dashboard },
+        { to: 'financeiro',       label: 'Contratos',         ic: I.file, sub: true },
+        { to: 'financeiro',       label: 'Cobranças',         ic: I.zap, sub: true, badge: '2' },
+        { to: 'financeiro',       label: 'Inadimplência',     ic: I.alert, sub: true },
+      ]},
+  ],
+  cliente: [
+    { group: 'Visão',
+      items: [
+        { to: 'c-dashboard',      label: 'Dashboard',         ic: I.dashboard },
+        { to: 'c-diagnostico-7f', label: 'Meu Diagnóstico 7F', ic: I.stethoscope },
+        { to: 'c-roi',            label: 'ROI',               ic: I.trending },
+      ]},
+    { group: 'Relacionamento',
+      items: [
+        { to: 'c-atendimento',    label: 'Atendimento',       ic: I.message, badge: '1' },
+        { to: 'c-leads',          label: 'Leads',             ic: I.inbox, badge: '8' },
+        { to: 'c-clientes',       label: 'Pacientes',         ic: I.users },
+      ]},
+    { group: 'Marketing',
+      items: [
+        { to: 'c-conteudo',       label: 'Conteúdo',          ic: I.file, badge: '2' },
+        { to: 'c-meta-ads',       label: 'Meta Ads',          ic: I.megaphone },
+        { to: 'c-calendario',     label: 'Calendário',        ic: I.calendar },
+      ]},
+    { group: 'Configurações',
+      items: [
+        { to: 'c-conexoes',       label: 'Conexões (WPP · Meta)', ic: I.link },
+      ]},
+  ],
+};
+
+let mode = 'admin';
+let page = 'dashboard';
+// Estado de expansão dos grupos. Padrão: todos expandidos.
+// Persistido em localStorage por modo.
+const STORAGE_KEY = 'tabgha.mockup.expandedGroups';
+let expanded = loadExpanded();
+
+function loadExpanded(){
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch(e){}
+  return { admin: {}, cliente: {} }; // vazio = todos expandidos por default
+}
+function saveExpanded(){
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(expanded)); } catch(e){}
+}
+function isExpanded(groupKey){
+  // default = true; armazenamos apenas o valor quando o user explicitamente recolhe
+  const v = expanded[mode]?.[groupKey];
+  return v === undefined ? true : v;
+}
+function toggleGroup(groupKey){
+  if (!expanded[mode]) expanded[mode] = {};
+  expanded[mode][groupKey] = !isExpanded(groupKey);
+  saveExpanded();
+  renderNav();
+}
+
+function setMode(m){
+  mode = m;
+  // Página inicial por perfil
+  const homeByMode = {
+    admin:       'dashboard',
+    growth:      'dashboard',
+    social:      'pilares-conteudo',
+    performance: 'meta-ads',
+    atendimento: 'atendimento',
+    financeiro:  'financeiro',
+    cliente:     'c-dashboard',
+  };
+  page = homeByMode[m] || 'dashboard';
+  document.querySelectorAll('.modes button').forEach(b => b.classList.toggle('active', b.dataset.mode === m));
+  renderNav();
+  render();
+}
+
+function slug(s){
+  return s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]+/g,'-');
+}
+
+function renderNav(){
+  const groups = NAV[mode];
+  const html = groups.map(g => {
+    const key = slug(g.group);
+    const open = isExpanded(key);
+    const hasActive = g.items.some(i => i.to === page);
+    const pendBadges = g.items.reduce((acc, i) => acc + (i.badge ? parseInt(i.badge,10) || 0 : 0), 0);
+    return `
+      <button class="group-header ${open ? 'expanded' : ''} ${hasActive ? 'has-active' : ''}" data-group="${key}">
+        <span>${g.group}${pendBadges > 0 ? `<span class="ct">${pendBadges}</span>` : ''}</span>
+        <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+      <div class="group-items ${open ? '' : 'collapsed'}" data-group-items="${key}">
+        ${g.items.map(i => `
+          <a data-page="${i.to}" class="${i.to === page ? 'active' : ''}" style="${i.sub ? 'padding-left:28px;font-size:11.5px;opacity:0.85;' : ''}">
+            ${i.ic}<span>${i.label}</span>${i.badge ? `<span class="badge-mini">${i.badge}</span>` : ''}
+          </a>
+        `).join('')}
+      </div>
+    `;
+  }).join('');
+  document.getElementById('nav').innerHTML = html;
+  document.querySelectorAll('#nav a[data-page]').forEach(a => {
+    a.onclick = () => { page = a.dataset.page; renderNav(); render(); };
+  });
+  document.querySelectorAll('#nav .group-header').forEach(h => {
+    h.onclick = () => toggleGroup(h.dataset.group);
+  });
+}
+document.querySelectorAll('.modes button').forEach(b => b.onclick = () => setMode(b.dataset.mode));
+
+/* ============================================================
+   HELPERS
+   ============================================================ */
+const sparkline = (color) => `
+<svg viewBox="0 0 320 70" width="100%" height="70" preserveAspectRatio="none" style="display:block">
+  <defs><linearGradient id="g${color.replace(/[^a-z]/gi,'')}" x1="0" x2="0" y1="0" y2="1">
+    <stop offset="0%" stop-color="${color}" stop-opacity="0.30"/>
+    <stop offset="100%" stop-color="${color}" stop-opacity="0"/>
+  </linearGradient></defs>
+  <path d="M0,55 C40,40 60,50 90,28 C130,12 160,42 200,22 C230,8 270,28 320,12 L320,70 L0,70 Z" fill="url(#g${color.replace(/[^a-z]/gi,'')})"/>
+  <path d="M0,55 C40,40 60,50 90,28 C130,12 160,42 200,22 C230,8 270,28 320,12" stroke="${color}" stroke-width="2" fill="none"/>
+</svg>`;
+const bars = (color) => `
+<svg viewBox="0 0 320 80" width="100%" height="80" style="display:block">
+  ${[40,55,30,70,50,65,80,42,58,72,38,66,52,48].map((h,i) => `
+    <rect x="${i*22+4}" y="${80-h}" width="14" height="${h}" rx="3" fill="${color}" opacity="${0.55 + (i%3)*0.15}"/>
+  `).join('')}
+</svg>`;
+const funnel = () => `
+<svg viewBox="0 0 320 80" width="100%" height="80" style="display:block" preserveAspectRatio="none">
+  <rect x="0" y="20" width="100%" height="40" fill="oklch(0.42 0.13 248 / 0.10)"/>
+  <text x="20" y="46" font-size="11" fill="oklch(0.42 0.13 248)" font-weight="600">184 leads → 107 qualif. → 42 atend. → 11 agend. → 5 conv.</text>
+</svg>`;
+
+function kpi(label, value, dir='up', delta=''){
+  const arrow = dir === 'up' ? I.up : I.down;
+  return `<div class="kpi"><div class="label">${label}</div><div class="value">${value}</div><div class="delta ${dir}">${arrow} ${delta}</div></div>`;
+}
+function row(cells){ return `<tr>${cells.map(c => `<td>${c}</td>`).join('')}</tr>`; }
+function kCol(title, count, items){
+  return `<div class="col"><h4>${title}<span class="ct">${count}</span></h4>${items.map(([t,m,d]) => `
+    <div class="card-mini"><div class="t">${t}</div><div class="m">${m}</div>${d?`<div class="row"><div class="m">${d}</div></div>`:''}</div>
+  `).join('') || '<div class="muted small" style="padding:8px;text-align:center">vazio</div>'}</div>`;
+}
+function formRow(label, value){
+  return `<div class="form-row"><label>${label}</label><input class="input plain" value="${value}" /></div>`;
+}
+function rating(n){
+  const filled = Math.round(n);
+  let html = '<span class="rating">';
+  for(let i=0;i<5;i++) html += `<span style="opacity:${i<filled?1:0.2}">${I.star}</span>`;
+  html += ` ${n.toFixed(1)}</span>`;
+  return html;
+}
+function conexaoCard(rede, handle, status, info){
+  return `<div class="card"><div class="hd"><h3>${rede}</h3><span class="badge ${status==='conectado'?'ativo':'inativo'}">${status}</span></div><div class="body">
+    <input class="input plain" value="${handle}"/>
+    <div class="muted small" style="margin-top:6px">${info||''}</div>
+    <div class="row gap-2" style="margin-top:10px"><button class="btn sm">${status==='conectado'?'Atualizar':'Conectar'}</button>${status==='conectado'?'<button class="btn sm ghost muted">Desconectar</button>':''}</div>
+  </div></div>`;
+}
+function renderCalendar(){
+  const days = ['SEG','TER','QUA','QUI','SEX','SAB','DOM'];
+  let html = '<div class="cal">';
+  days.forEach(d => html += `<div class="h">${d}</div>`);
+  const events = {3:'Reunião · Sim Medical',9:'Gravação Dr. Pedro',15:'Post IG · Vitalis',18:'Live IG · Pedro',20:'Carrossel · Sim Medical',23:'Reels · Welife',25:'Reunião · Cadu'};
+  const altDays = [15,20,23,25];
+  for(let i=1;i<=28;i++){
+    const ev = events[i];
+    const today = i === 18;
+    const alt = altDays.includes(i);
+    html += `<div class="d ${today?'today':''}"><div class="num">${i}</div>${ev?`<div class="ev ${alt?'alt':''}">${ev}</div>`:''}</div>`;
+  }
+  html += '</div>';
+  return html;
+}
+
+/* ============================================================
+   PAGE RENDERERS
+   ============================================================ */
+const PAGES = {
+
+  /* ============================ ADMIN ============================ */
+  dashboard: () => `
+    <div class="page-head">
+      <div><h1>Dashboard</h1><div class="sub">Visão executiva da operação · ${new Date().toLocaleDateString('pt-BR')}</div></div>
+      <div class="row gap-2">
+        <select class="input plain" style="width:170px;height:30px"><option>Últimos 30 dias</option><option>7 dias</option><option>90 dias</option></select>
+        <button class="btn sm">${I.filter} Filtros</button>
+      </div>
+    </div>
+    <div class="kpi-grid">
+      ${kpi('Clientes ativos', '12', 'up', '+2 vs mês ant.')}
+      ${kpi('Leads no mês', '184', 'up', '+38%')}
+      ${kpi('Entregas pendentes', '7', 'down', '−3')}
+      ${kpi('ROAS médio', '4,2×', 'up', 'meta 3,5×')}
+    </div>
+    <div class="section">
+      <div class="g-3-1">
+        <div class="card chart-card">
+          <h3>Leads × Investimento — últimos 30 dias</h3>
+          ${sparkline('oklch(0.42 0.13 248)')}
+          <div class="legend">
+            <span><span class="dot" style="background:var(--brand-blue)"></span>Leads (184)</span>
+            <span><span class="dot" style="background:var(--brand-sky)"></span>Investido (R$ 12,4k)</span>
+            <span style="margin-left:auto">CTR médio 3,4% · CPL R$ 67</span>
+          </div>
+        </div>
+        <div class="card">
+          <div class="hd"><h3>Ações prioritárias</h3><span class="badge alert">5</span></div>
+          <div class="body" style="font-size:12px;line-height:1.55">
+            <div><b>Dr. Pedro</b> – aprovação pendente há 36h</div>
+            <div class="muted small" style="margin:2px 0 8px">conteúdo: IG Reel</div>
+            <div><b>Sim Medical</b> – CPL acima da meta</div>
+            <div class="muted small" style="margin:2px 0 8px">R$ 92 (meta R$ 70)</div>
+            <div><b>Surgical Office</b> – 12 leads em standby</div>
+            <div class="muted small" style="margin-top:2px">nutrição inativa há 5d</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="section">
+      <div class="g-2-1">
+        <div class="card">
+          <div class="hd"><h3>Saúde da carteira</h3>
+            <div class="subtabs"><button class="active">Carteira</button><button>Funil global</button></div>
+          </div>
+          <div class="body flush">
+            <table>
+              <thead><tr><th>Cliente</th><th>Status</th><th>Leads/mês</th><th>CPL</th><th>% Conv.</th><th>Aprov.</th><th>Último</th></tr></thead>
+              <tbody>
+                ${row(['Dr. Pedro Artero','<span class="badge ativo">ativo</span>','42','R$ 71','24%','2','há 1h'])}
+                ${row(['Sim Medical','<span class="badge ativo">ativo</span>','51','R$ 92','22%','0','há 3h'])}
+                ${row(['Surgical Office','<span class="badge pausa">pausa</span>','12','—','—','0','há 2d'])}
+                ${row(['Welife Saúde','<span class="badge onboarding">onboarding</span>','—','—','—','—','—'])}
+                ${row(['Clínica Vitalis','<span class="badge ativo">ativo</span>','28','R$ 89','18%','1','há 5h'])}
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="card">
+          <div class="hd"><h3>Próximos do calendário</h3></div>
+          <div class="body" style="font-size:12px">
+            <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px dashed var(--border)"><span><b>18/06 14h</b> · Gravação Dr. Pedro</span></div>
+            <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px dashed var(--border)"><span><b>19/06 10h</b> · Sim Medical (call)</span></div>
+            <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px dashed var(--border)"><span><b>20/06 16h</b> · Post Vitalis</span></div>
+            <div style="display:flex;justify-content:space-between;padding:5px 0"><span><b>23/06 09h</b> · Reels Welife</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `,
+
+  clientes: () => `
+    <div class="page-head">
+      <div><h1>Clientes</h1><div class="sub">12 clínicas/médicos · carteira completa</div></div>
+      <div class="row gap-2">
+        <div class="subtabs"><button class="active">Kanban</button><button>Tabela</button></div>
+        <button class="btn primary sm">${I.plus} Novo cliente</button>
+      </div>
+    </div>
+    <div class="row" style="margin-bottom:10px">
+      <div class="search-wrap" style="flex:1;max-width:320px">${I.search}<input class="input" placeholder="Buscar por nome, e-mail ou CNPJ"/></div>
+      <span class="chip">Status: todos${I.chevR}</span>
+      <span class="chip">Especialidade: todas${I.chevR}</span>
+      <span class="chip">Período: 30 dias${I.chevR}</span>
+      <div class="spacer"></div>
+      <button class="btn sm ghost muted">${I.filter} Filtros</button>
+    </div>
+    <div class="kanban c4">
+      ${kCol('Onboarding','1', [['Welife Saúde','Clínica geral','Setup em curso']])}
+      ${kCol('Ativo','3', [
+        ['Dr. Pedro Artero','Ortopedia · R$ 4.500/mês','42 leads · 24% conv.'],
+        ['Sim Medical','OPME · R$ 5.000/mês','51 leads · 22% conv.'],
+        ['Clínica Vitalis','Endocrino · R$ 3.800/mês','28 leads · 18% conv.']
+      ])}
+      ${kCol('Pausa','1', [['Surgical Office','OPME · pausado','12 leads, sem atividade há 14d']])}
+      ${kCol('Inativo','0', [])}
+    </div>
+  `,
+
+  'cliente-ficha': () => `
+    <div class="crumb"><a>Clientes</a>${I.chevR}<span>Dr. Pedro Artero</span></div>
+    <div class="page-head">
+      <div>
+        <h1>Dr. Pedro Artero <span class="badge ativo" style="margin-left:6px">ativo</span></h1>
+        <div class="sub">Ortopedia · CNPJ 11.222.333/0001-44 · pedro@artero.med.br · entrou em 16/04/2026</div>
+      </div>
+      <div class="row gap-2">
+        <button class="btn sm">Histórico</button>
+        <button class="btn sm">Editar</button>
+        <button class="btn primary sm">${I.plus} Lead</button>
+      </div>
+    </div>
+    <div class="tabs">
+      <button class="active">Cadastro</button>
+      <button>Diagnóstico</button>
+      <button>Leads <span class="badge onboarding" style="margin-left:4px">42</span></button>
+      <button>Conteúdo <span class="badge alert" style="margin-left:4px">2</span></button>
+      <button>Conexões</button>
+      <button>Avaliações</button>
+      <button>Financeiro</button>
+      <button>Relatórios</button>
+    </div>
+    <div class="g-2-1">
+      <div class="card">
+        <div class="hd">
+          <h3>Dados cadastrais</h3>
+          <div class="subtabs"><button class="active">Empresa</button><button>Responsável</button><button>Faturamento</button></div>
+        </div>
+        <div class="body">
+          <div class="form-grid">
+            ${formRow('Razão social','Pedro Artero Serviços Médicos LTDA')}
+            ${formRow('CNPJ','11.222.333/0001-44')}
+            ${formRow('Especialidade','Ortopedia')}
+            ${formRow('Status','Ativo')}
+            ${formRow('E-mail','pedro@artero.med.br')}
+            ${formRow('Telefone','(11) 9 9999-0001')}
+          </div>
+          <div class="form-row" style="margin-top:10px">
+            <label>Endereço</label>
+            <input class="input plain" value="Av. Brasil, 1500 · Sala 1402 · São Paulo, SP" />
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="hd"><h3>Resumo</h3></div>
+        <div class="body" style="font-size:12px;line-height:1.7">
+          <div style="display:flex;justify-content:space-between"><span class="muted">MRR estimado</span><b>R$ 4.500</b></div>
+          <div style="display:flex;justify-content:space-between"><span class="muted">Leads (30d)</span><b>42</b></div>
+          <div style="display:flex;justify-content:space-between"><span class="muted">% conversão</span><b>22%</b></div>
+          <div style="display:flex;justify-content:space-between"><span class="muted">ROAS</span><b>4,4×</b></div>
+          <div style="display:flex;justify-content:space-between"><span class="muted">Entregas pendentes</span><b>2</b></div>
+          <div style="display:flex;justify-content:space-between"><span class="muted">Avaliações</span>${rating(4.8)}</div>
+          <hr style="margin:10px 0;border:0;border-top:1px solid var(--border)">
+          <div class="muted small">Última atividade: lead criado há 1h via WhatsApp</div>
+        </div>
+      </div>
+    </div>
+  `,
+
+  estrategia: () => `
+    <div class="page-head">
+      <div><h1>Estratégia editorial</h1><div class="sub">Pipeline de conteúdos · drag and drop muda o status</div></div>
+      <button class="btn primary sm">${I.plus} Novo conteúdo</button>
+    </div>
+    <div class="row" style="margin-bottom:10px">
+      <select class="input plain" style="width:200px"><option>Todos os clientes</option></select>
+      <select class="input plain" style="width:140px"><option>Todas as redes</option></select>
+      <select class="input plain" style="width:140px"><option>Todos os tipos</option></select>
+      <span class="chip">Junho 2026${I.chevR}</span>
+      <div class="spacer"></div>
+      <div class="subtabs"><button class="active">Kanban</button><button>Calendário</button><button>Lista</button></div>
+    </div>
+    <div class="kanban c6">
+      ${kCol('Briefing','3', [['Dr. Pedro · IG Reel','Artroscopia explicada','Postar 21/06'],['Vitalis · IG Post','Pé diabético','22/06']])}
+      ${kCol('Roteiro','2', [['Sim Medical · IG Post','Carrossel antes/depois','22/06']])}
+      ${kCol('Produção','2', [['Welife · TikTok','Mitos do check-up','—']])}
+      ${kCol('Aprovação','3', [['Dr. Pedro · IG Reel','Aguarda cliente','36h'],['Sim Medical · Story','Aguarda cliente','4h']])}
+      ${kCol('Agendado','5', [['Vitalis · IG Post','Pé diabético','23/06']])}
+      ${kCol('Postado','12', [['Dr. Pedro · IG Story','Bastidor consulta','19/06']])}
+    </div>
+  `,
+
+  calendario: () => `
+    <div class="page-head">
+      <div><h1>Calendário</h1><div class="sub">Agendamentos · gravações · conteúdos programados</div></div>
+      <div class="row gap-2">
+        <div class="subtabs"><button>Dia</button><button>Semana</button><button class="active">Mês</button></div>
+        <button class="btn sm">Hoje</button>
+        <button class="btn sm">${I.chevL}</button>
+        <div style="font-weight:600;font-size:13px;padding:0 4px">Junho 2026</div>
+        <button class="btn sm">${I.chevR}</button>
+        <button class="btn primary sm">${I.plus} Evento</button>
+      </div>
+    </div>
+    <div class="row" style="margin-bottom:8px">
+      <span class="chip"><span class="dot" style="background:var(--accent-fg)"></span>Conteúdo</span>
+      <span class="chip"><span class="dot" style="background:oklch(0.45 0.13 145)"></span>Gravação</span>
+      <span class="chip"><span class="dot" style="background:oklch(0.50 0.13 80)"></span>Reunião</span>
+      <div class="spacer"></div>
+      <select class="input plain" style="width:170px"><option>Todos os clientes</option></select>
+    </div>
+    ${renderCalendar()}
+  `,
+
+  'automacoes-leads': () => `
+    <div class="page-head">
+      <div><h1>Automações de leads</h1><div class="sub">CPL · CPA · jornada de captação por cliente</div></div>
+      <div class="row gap-2">
+        <select class="input plain" style="width:180px"><option>Últimos 30 dias</option></select>
+        <button class="btn sm">Exportar CSV</button>
+      </div>
+    </div>
+    <div class="tabs">
+      <button class="active">Pipeline</button>
+      <button>Jornada do lead</button>
+      <button>Evolução</button>
+      <button>Metas</button>
+    </div>
+    <div class="subtabs">
+      <button class="active">Todos canais</button>
+      <button>WhatsApp</button>
+      <button>Meta Ads</button>
+      <button>Indicação</button>
+    </div>
+    <div class="kpi-grid">
+      ${kpi('Leads (30d)','184','up','+38%')}
+      ${kpi('CPL médio','R$ 67,40','down','−R$ 12')}
+      ${kpi('% qualificação','58%','up','+6 p.p.')}
+      ${kpi('Taxa conversão','22%','up','+3 p.p.')}
+    </div>
+    <div class="section">
+      <div class="card">
+        <div class="hd"><h3>Por cliente</h3>
+          <div class="row gap-2">
+            <div class="subtabs"><button class="active">Tabela</button><button>Comparativo</button></div>
+            <button class="btn sm ghost muted">${I.filter}</button>
+          </div>
+        </div>
+        <div class="body flush">
+          <table>
+            <thead><tr><th>Cliente</th><th>Canal</th><th>Leads</th><th>Qualificados</th><th>CPL</th><th>CPA</th><th>% Conv.</th><th>ROAS</th></tr></thead>
+            <tbody>
+              ${row(['Dr. Pedro Artero','WhatsApp + Meta','42','27','R$ 71','R$ 248','24%','4,4×'])}
+              ${row(['Sim Medical','Meta','51','29','R$ 58','R$ 198','22%','3,9×'])}
+              ${row(['Clínica Vitalis','WhatsApp + Indicação','28','18','R$ 89','R$ 312','18%','3,2×'])}
+              ${row(['Surgical Office','WhatsApp','12','5','R$ 156','—','—','—'])}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  `,
+
+  atendimento: () => atendimentoView('admin'),
+  'meta-ads': () => metaAdsView('admin'),
+
+  roi: () => `
+    <div class="page-head">
+      <div><h1>ROI da operação</h1><div class="sub">Receita gerada vs. investimento em mídia + fee mensal</div></div>
+      <div class="row gap-2">
+        <div class="subtabs"><button>7d</button><button class="active">30d</button><button>90d</button><button>YTD</button></div>
+        <button class="btn sm">Exportar</button>
+      </div>
+    </div>
+    <div class="kpi-grid">
+      ${kpi('ROAS médio','4,2×','up','meta 3,5×')}
+      ${kpi('Receita estimada','R$ 184k','up','+12%')}
+      ${kpi('Investido em mídia','R$ 43,8k','up','+8%')}
+      ${kpi('Fee mensal total','R$ 18,5k','up','+R$ 1,5k')}
+    </div>
+    <div class="section">
+      <div class="g-2-1">
+        <div class="card chart-card">
+          <h3>Receita × Investimento × Fee (6 meses)</h3>
+          ${bars('oklch(0.42 0.13 248)')}
+          <div class="legend">
+            <span><span class="dot" style="background:var(--brand-blue)"></span>Receita</span>
+            <span><span class="dot" style="background:var(--brand-sky)"></span>Investido</span>
+            <span><span class="dot" style="background:oklch(0.78 0.15 75)"></span>Fee</span>
+          </div>
+        </div>
+        <div class="card">
+          <div class="hd"><h3>Top performers</h3></div>
+          <div class="body" style="font-size:12px">
+            <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dashed var(--border)"><span>Dr. Pedro</span><b>4,4×</b></div>
+            <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dashed var(--border)"><span>Sim Medical</span><b>3,9×</b></div>
+            <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dashed var(--border)"><span>Vitalis</span><b>3,2×</b></div>
+            <div style="display:flex;justify-content:space-between;padding:6px 0"><span class="muted">Surgical Office</span><span class="muted">sem dado</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="section">
+      <div class="card">
+        <div class="hd"><h3>Detalhe por cliente</h3></div>
+        <div class="body flush">
+          <table>
+            <thead><tr><th>Cliente</th><th>Receita est.</th><th>Investido</th><th>Fee</th><th>Margem</th><th>ROAS</th></tr></thead>
+            <tbody>
+              ${row(['Dr. Pedro Artero','R$ 52.000','R$ 12.000','R$ 4.500','R$ 35.500','4,4×'])}
+              ${row(['Sim Medical','R$ 78.000','R$ 20.000','R$ 5.000','R$ 53.000','3,9×'])}
+              ${row(['Clínica Vitalis','R$ 38.000','R$ 12.000','R$ 3.800','R$ 22.200','3,2×'])}
+              ${row(['Surgical Office','—','—','R$ 2.500','—','—'])}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  `,
+
+  usuarios: () => `
+    <div class="page-head">
+      <div><h1>Usuários e acessos</h1><div class="sub">Time interno · contas de clientes · permissões granulares</div></div>
+      <button class="btn primary sm">${I.plus} Adicionar membro</button>
+    </div>
+    <div class="tabs">
+      <button class="active">Time interno (4)</button>
+      <button>Contas de clientes (12)</button>
+      <button>Permissões</button>
+      <button>Auditoria</button>
+    </div>
+    <div class="row" style="margin-bottom:10px">
+      <div class="search-wrap" style="flex:1;max-width:300px">${I.search}<input class="input" placeholder="Buscar por nome ou e-mail"/></div>
+      <select class="input plain" style="width:140px"><option>Todas roles</option></select>
+      <div class="spacer"></div>
+      <span class="muted small">4 membros · 4 ativos</span>
+    </div>
+    <div class="card"><div class="body flush">
+      <table>
+        <thead><tr><th>Nome</th><th>E-mail</th><th>Role</th><th>Permissões</th><th>Último acesso</th><th></th></tr></thead>
+        <tbody>
+          ${row(['<div class="row"><span class="av">MM</span>Mariana Marques</div>','mariana@iaplicada.com.br','<span class="badge onboarding">admin</span>','<code>*</code>','hoje 14:32','<div class="row-actions"><button class="btn sm ghost">Editar</button></div>'])}
+          ${row(['<div class="row"><span class="av">CE</span>Carlos Eduardo</div>','cadu@tabghamkt.com.br','<span class="badge onboarding">admin</span>','<code>admin.*</code> (sem usuarios)','hoje 11:08','<div class="row-actions"><button class="btn sm ghost">Editar</button></div>'])}
+          ${row(['<div class="row"><span class="av">PA</span>Pietro Artero</div>','pietro@tabghamkt.com.br','<span class="badge onboarding">admin</span>','<code>*</code>','ontem 18:24','<div class="row-actions"><button class="btn sm ghost">Editar</button></div>'])}
+          ${row(['<div class="row"><span class="av">DM</span>Diana M.</div>','diana@tabghamkt.com.br','<span class="badge ativo">analista</span>','<code>admin.atendimento, admin.estrategia</code>','há 2d','<div class="row-actions"><button class="btn sm ghost">Editar</button></div>'])}
+        </tbody>
+      </table>
+    </div></div>
+  `,
+
+  diagnosticos: () => `
+    <div class="page-head">
+      <div><h1>Diagnósticos</h1><div class="sub">Diagnóstico estratégico de cada cliente · editor do template</div></div>
+      <button class="btn primary sm">${I.plus} Novo diagnóstico</button>
+    </div>
+    <div class="tabs">
+      <button class="active">Carteira</button>
+      <button>Template (jsonb)</button>
+      <button>Templates por especialidade</button>
+    </div>
+    <div class="row" style="margin-bottom:10px">
+      <div class="search-wrap" style="flex:1;max-width:280px">${I.search}<input class="input" placeholder="Buscar"/></div>
+      <select class="input plain" style="width:160px"><option>Todos status</option></select>
+      <select class="input plain" style="width:170px"><option>Todas especialidades</option></select>
+    </div>
+    <div class="card"><div class="body flush">
+      <table>
+        <thead><tr><th>Cliente</th><th>Especialidade</th><th>Status</th><th>Última atualização</th><th>Atualizado por</th><th></th></tr></thead>
+        <tbody>
+          ${row(['Dr. Pedro Artero','Ortopedia','<span class="badge ativo">completo</span>','12/06/2026','Mariana','<div class="row-actions"><button class="btn sm">Abrir</button></div>'])}
+          ${row(['Sim Medical','OPME','<span class="badge pausa">parcial</span>','08/06/2026','Diana','<div class="row-actions"><button class="btn sm">Continuar</button></div>'])}
+          ${row(['Surgical Office','OPME','<span class="badge alert">pendente</span>','—','—','<div class="row-actions"><button class="btn primary sm">Preencher c/ IA</button></div>'])}
+          ${row(['Welife Saúde','Clínica geral','<span class="badge onboarding">aguarda call</span>','—','—','<div class="row-actions"><button class="btn sm ghost muted">Agendar</button></div>'])}
+        </tbody>
+      </table>
+    </div></div>
+  `,
+
+  /* ============================ CLIENTE ============================ */
+  'c-dashboard': () => `
+    <div class="page-head">
+      <div><h1>Bem-vindo, Dr. Pedro</h1><div class="sub">Seu marketing nos últimos 30 dias</div></div>
+      <div class="row gap-2">
+        <div class="subtabs"><button>7d</button><button class="active">30d</button><button>90d</button></div>
+      </div>
+    </div>
+    <div class="kpi-grid">
+      ${kpi('Leads recebidos','42','up','+18%')}
+      ${kpi('Em atendimento','7','up','+2')}
+      ${kpi('Agendamentos','11','up','+3')}
+      ${kpi('Avaliações novas','5','up','média 4,8')}
+    </div>
+    <div class="section">
+      <div class="g-2-1">
+        <div class="card chart-card">
+          <h3>Funil dos pacientes</h3>
+          ${funnel()}
+          ${bars('oklch(0.42 0.13 248)')}
+          <div class="legend">
+            <span><span class="dot" style="background:var(--brand-blue)"></span>Leads diários</span>
+            <span style="margin-left:auto">conversão 26%</span>
+          </div>
+        </div>
+        <div class="card">
+          <div class="hd"><h3>Aprovações pendentes</h3><span class="badge alert">2</span></div>
+          <div class="body">
+            <div style="border:1px solid var(--border);border-radius:7px;padding:9px;margin-bottom:8px">
+              <div style="font-weight:600;font-size:12.5px">IG Reel · Artroscopia</div>
+              <div class="muted small">aguardando há 36h · postagem 21/06</div>
+              <div class="row gap-2" style="margin-top:8px"><button class="btn primary sm">Aprovar</button><button class="btn sm">Rejeitar</button></div>
+            </div>
+            <div style="border:1px solid var(--border);border-radius:7px;padding:9px">
+              <div style="font-weight:600;font-size:12.5px">Carrossel · Antes/depois</div>
+              <div class="muted small">aguardando há 4h · postagem 22/06</div>
+              <div class="row gap-2" style="margin-top:8px"><button class="btn primary sm">Aprovar</button><button class="btn sm">Rejeitar</button></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="section">
+      <div class="g2">
+        <div class="card">
+          <div class="hd"><h3>Próximos eventos</h3></div>
+          <div class="body" style="font-size:12px">
+            <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px dashed var(--border)"><span><b>18/06 14h</b> · Gravação reels (5 vídeos)</span></div>
+            <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px dashed var(--border)"><span><b>21/06</b> · Post IG: Artroscopia</span></div>
+            <div style="display:flex;justify-content:space-between;padding:5px 0"><span><b>23/06</b> · Reels: Mitos sobre joelho</span></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="hd"><h3>Conversas aguardando você</h3></div>
+          <div class="body" style="font-size:12px">
+            <div style="padding:5px 0;border-bottom:1px dashed var(--border)"><div><b>Ana Silva</b> · há 12 min</div><div class="muted">Quero agendar consulta</div></div>
+            <div style="padding:5px 0"><div><b>Marcos R.</b> · há 1h</div><div class="muted">Aceita convênio Bradesco?</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `,
+
+  'c-atendimento': () => atendimentoView('cliente'),
+  'c-meta-ads': () => metaAdsView('cliente'),
+
+  'c-leads': () => `
+    <div class="page-head">
+      <div><h1>Leads</h1><div class="sub">Pessoas que chegaram até você</div></div>
+      <div class="row gap-2">
+        <div class="subtabs"><button class="active">Kanban</button><button>Tabela</button><button>Mapa</button></div>
+        <select class="input plain" style="width:140px"><option>Últimos 30d</option></select>
+      </div>
+    </div>
+    <div class="row" style="margin-bottom:10px">
+      <div class="search-wrap" style="flex:1;max-width:300px">${I.search}<input class="input" placeholder="Buscar"/></div>
+      <select class="input plain" style="width:140px"><option>Todos canais</option></select>
+      <select class="input plain" style="width:140px"><option>Todas origens</option></select>
+      <span class="muted small spacer" style="text-align:right">45 leads no período</span>
+    </div>
+    <div class="kanban c6">
+      ${kCol('Novo','8', [['Ana Silva','WhatsApp · há 1h','consulta inicial'],['Marcos R.','Meta Ads · há 3h','—']])}
+      ${kCol('Qualificado','12', [['Bia Souza','WhatsApp · há 4h','particular']])}
+      ${kCol('Em atend.','7', [['Carla M.','indicação · há 1d','retorno']])}
+      ${kCol('Agendado','5', [['Diego F.','Meta · 21/06 10h','consulta']])}
+      ${kCol('Convertido','9', [['Eliana T.','—','consultou']])}
+      ${kCol('Perdido','4', [['Fábio L.','Meta','não respondeu']])}
+    </div>
+  `,
+
+  'c-clientes': () => `
+    <div class="page-head">
+      <div><h1>Pacientes</h1><div class="sub">Carteira de pacientes convertidos</div></div>
+      <button class="btn primary sm">${I.plus} Indicar paciente</button>
+    </div>
+    <div class="tabs">
+      <button class="active">Ativos (89)</button>
+      <button>Em retorno (12)</button>
+      <button>Inativos (8)</button>
+    </div>
+    <div class="row" style="margin-bottom:10px">
+      <div class="search-wrap" style="flex:1;max-width:280px">${I.search}<input class="input" placeholder="Buscar paciente"/></div>
+      <select class="input plain" style="width:160px"><option>Convênio: todos</option></select>
+    </div>
+    <div class="card"><div class="body flush">
+      <table>
+        <thead><tr><th>Nome</th><th>Convênio</th><th>1ª consulta</th><th>Última consulta</th><th>Próxima</th><th>Avaliação</th></tr></thead>
+        <tbody>
+          ${row(['Eliana T.','Particular','12/05/2026','15/06/2026','—',rating(5.0)])}
+          ${row(['Mateus P.','Bradesco','03/05/2026','10/06/2026','17/07',rating(4.5)])}
+          ${row(['Cláudia B.','SulAmerica','22/04/2026','08/06/2026','—',rating(4.8)])}
+        </tbody>
+      </table>
+    </div></div>
+  `,
+
+  'c-roi': () => `
+    <div class="page-head">
+      <div><h1>ROI</h1><div class="sub">Quanto seu investimento em mídia está rendendo</div></div>
+      <div class="subtabs"><button>7d</button><button class="active">30d</button><button>90d</button></div>
+    </div>
+    <div class="kpi-grid">
+      ${kpi('Investido','R$ 4.000','up','meta R$ 4k')}
+      ${kpi('Receita gerada','R$ 17.600','up','+22%')}
+      ${kpi('ROAS','4,4×','up','meta 3,5×')}
+      ${kpi('CPA','R$ 248','down','−R$ 32')}
+    </div>
+    <div class="section">
+      <div class="g-2-1">
+        <div class="card chart-card"><h3>Performance diária</h3>${sparkline('oklch(0.42 0.13 248)')}</div>
+        <div class="card">
+          <div class="hd"><h3>Origens da receita</h3></div>
+          <div class="body" style="font-size:12px">
+            <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px dashed var(--border)"><span>Meta Ads</span><b>R$ 9.800</b></div>
+            <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px dashed var(--border)"><span>Indicação</span><b>R$ 5.400</b></div>
+            <div style="display:flex;justify-content:space-between;padding:5px 0"><span>WhatsApp (orgânico)</span><b>R$ 2.400</b></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `,
+
+  'c-conteudo': () => `
+    <div class="page-head">
+      <div><h1>Conteúdo</h1><div class="sub">Peças da agência aguardando sua aprovação</div></div>
+      <div class="subtabs"><button class="active">Lista</button><button>Calendário</button><button>Kanban</button></div>
+    </div>
+    <div class="tabs">
+      <button class="active">Aprovação <span class="badge alert" style="margin-left:4px">2</span></button>
+      <button>Agendados (5)</button>
+      <button>Postados (18)</button>
+      <button>Performance</button>
+    </div>
+    <div class="g2">
+      <div class="card">
+        <div class="hd"><h3>IG Reel · Artroscopia</h3><span class="badge alert">36h</span></div>
+        <div class="body">
+          <div style="background:var(--secondary);border-radius:7px;padding:24px;text-align:center;color:var(--muted-fg);font-size:12px">preview do vídeo (90s)</div>
+          <div class="muted small" style="margin-top:8px"><b>Roteiro:</b> explicação prática + CTA agendamento via link na bio</div>
+          <div class="muted small" style="margin-top:4px">Postagem: 21/06 14h · IG</div>
+          <div class="row gap-2" style="margin-top:10px"><button class="btn primary sm">Aprovar</button><button class="btn sm">Rejeitar c/ feedback</button><button class="btn sm ghost muted">Ver anterior</button></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="hd"><h3>Carrossel · Antes/depois</h3><span class="badge alert">4h</span></div>
+        <div class="body">
+          <div style="background:var(--secondary);border-radius:7px;padding:24px;text-align:center;color:var(--muted-fg);font-size:12px">preview do carrossel (5 slides)</div>
+          <div class="muted small" style="margin-top:8px"><b>Roteiro:</b> sequência de 5 imagens de pacientes (consentidos)</div>
+          <div class="row gap-2" style="margin-top:10px"><button class="btn primary sm">Aprovar</button><button class="btn sm">Rejeitar c/ feedback</button></div>
+        </div>
+      </div>
+    </div>
+  `,
+
+  'c-diagnostico': () => `
+    <div class="page-head">
+      <div><h1>Seu diagnóstico estratégico</h1><div class="sub">Como vemos seu posicionamento, dores e oportunidades</div></div>
+      <button class="btn sm">Exportar PDF</button>
+    </div>
+    <div class="tabs">
+      <button class="active">Visão geral</button>
+      <button>Perfil</button>
+      <button>Jornada</button>
+      <button>Concorrentes</button>
+      <button>Plano de ação</button>
+    </div>
+    <div class="g2">
+      <div class="card">
+        <div class="hd"><h3>Perfil</h3></div>
+        <div class="body">
+          <div class="form-grid">
+            ${formRow('Especialidade','Ortopedia')}
+            ${formRow('Sub-especialidade','Joelho · Quadril')}
+            ${formRow('Ticket médio','R$ 1.800')}
+            ${formRow('Consultas/mês','60')}
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="hd"><h3>Jornada do paciente</h3></div>
+        <div class="body">
+          ${formRow('Canais atuais','Meta Ads · indicação · WhatsApp')}
+          ${formRow('Funil atual','Documentado · 4 etapas')}
+          ${formRow('CAC alvo','R$ 220')}
+        </div>
+      </div>
+      <div class="card" style="grid-column:span 2">
+        <div class="hd"><h3>Dores principais</h3></div>
+        <div class="body" style="font-size:12.5px;line-height:1.65">
+          <div style="padding:6px 0;border-bottom:1px dashed var(--border)"><b>Não consigo provar resultado do marketing.</b> <span class="muted">Hoje envio captura de tela do WhatsApp; cliente cobra dashboard.</span></div>
+          <div style="padding:6px 0;border-bottom:1px dashed var(--border)"><b>Equipe não dá conta dos leads que entram.</b> <span class="muted">Em janeiro, 30% das mensagens ficaram sem resposta.</span></div>
+          <div style="padding:6px 0"><b>Indicação é a maior fonte mas é caótica.</b> <span class="muted">Sem rastreamento de quem indicou quem.</span></div>
+        </div>
+      </div>
+    </div>
+  `,
+
+  'c-conexoes': () => `
+    <div class="page-head">
+      <div><h1>Conexões</h1><div class="sub">Suas redes e ferramentas conectadas à plataforma</div></div>
+    </div>
+    <div class="tabs">
+      <button class="active">Redes sociais (4)</button>
+      <button>Anúncios (2)</button>
+      <button>Analytics (1)</button>
+      <button>WhatsApp (1)</button>
+    </div>
+    <div class="g2">
+      ${conexaoCard('Instagram','@pedroartero.med','conectado','Última sync há 12 min · 8.2k seguidores')}
+      ${conexaoCard('Facebook','/dr.pedro.artero','conectado','Última sync há 12 min · 3.4k seguidores')}
+      ${conexaoCard('Doctoralia','/dr-pedro-artero','conectado','98 avaliações · nota 4,8')}
+      ${conexaoCard('Google Meu Negócio','Pedro Artero · Ortopedia','não conectado','Necessário para SEO local')}
+    </div>
+  `,
+
+  'c-calendario': () => `
+    <div class="page-head">
+      <div><h1>Calendário</h1><div class="sub">Gravações · reuniões · conteúdos agendados</div></div>
+      <div class="row gap-2">
+        <div class="subtabs"><button>Dia</button><button>Semana</button><button class="active">Mês</button></div>
+        <button class="btn sm">Hoje</button>
+        <div style="font-weight:600;font-size:13px;padding:0 4px">Junho 2026</div>
+      </div>
+    </div>
+    ${renderCalendar()}
+  `,
+};
+
+function atendimentoView(scope){
+  const titulo = scope === 'admin' ? 'Atendimento' : 'Atendimento';
+  const subt = scope === 'admin' ? 'Inbox unificado · WhatsApp via ZAPI · filtro por cliente' : 'Suas conversas · WhatsApp via ZAPI';
+  return `
+    <div class="page-head">
+      <div><h1>${titulo}</h1><div class="sub">${subt}</div></div>
+      <div class="row gap-2">
+        ${scope==='admin'?`<select class="input plain" style="width:170px"><option>Todos clientes</option><option>Dr. Pedro Artero</option><option>Sim Medical</option></select>`:''}
+        <button class="btn sm">${I.filter} Filtros</button>
+      </div>
+    </div>
+    <div class="atendimento">
+      <div class="col">
+        <div class="conv-search"><div class="search-wrap">${I.search}<input class="input" placeholder="Buscar conversa"/></div></div>
+        <div class="conv-tabs">
+          <span class="active">Aguardando humano (3)</span>
+          <span>Em atend. (7)</span>
+          <span>Bot ativo (14)</span>
+          <span>Fechadas</span>
+        </div>
+        <div class="conv-list">
+          ${convItem('Ana Silva', '5511999990001', 'Quero agendar consulta', '3 min', true, 'alert')}
+          ${convItem('Marcos R.', '5511999990002', 'Aceita convênio Bradesco?', '18 min', false, 'alert')}
+          ${convItem('Bia Souza', '5511999990003', 'Obrigada! Até quinta', '1 h', false, 'human')}
+          ${convItem('Carla M.', '5511999990004', 'Posso remarcar?', '4 h', false, 'human')}
+          ${convItem('Diego F.', '5511999990005', 'Agendamento confirmado', '6 h', false, 'bot')}
+          ${convItem('Eliana T.', '5511999990006', 'Avaliação enviada', '1 d', false, 'closed')}
+        </div>
+      </div>
+      <div class="chat">
+        <div class="chat-head">
+          <div class="who">Ana Silva<div class="sub">+55 11 99999-0001${scope==='admin'?' · Dr. Pedro Artero':''} · origem: meta</div></div>
+          <div class="row gap-2">
+            <button class="btn sm">Tomar conversa</button>
+            <button class="btn sm">Encerrar</button>
+          </div>
+        </div>
+        <div class="chat-msgs">
+          <div class="bubble in">Oi! Vi seu anúncio no Instagram, gostaria de saber valores e horários<div class="meta">14:18</div></div>
+          <div class="bubble bot">Olá, Ana! Sou o assistente do consultório do Dr. Pedro. Posso te ajudar com horários e valores. Você procura consulta inicial ou retorno?<div class="meta">14:18 · bot</div></div>
+          <div class="bubble in">Inicial<div class="meta">14:20</div></div>
+          <div class="bubble bot">Consulta inicial custa R$ 350 (particular). Convênios atendidos: Bradesco, SulAmerica, Amil. Posso ver disponibilidade?<div class="meta">14:20 · bot</div></div>
+          <div class="bubble in">Pode sim, prefiro tarde<div class="meta">14:22</div></div>
+          <div class="bubble human">Oi Ana, sou Diana do consultório do Dr. Pedro. Tenho 21/06 às 14h ou 23/06 às 16h. Qual fica melhor?<div class="meta">14:25 · Diana</div></div>
+        </div>
+        <div class="composer">
+          <textarea placeholder="Digite uma mensagem... (Cmd/Ctrl+Enter envia)"></textarea>
+          <button class="btn primary sm" style="height:auto">${I.send} Enviar</button>
+        </div>
+      </div>
+      <div class="col">
+        <div class="info">
+          <div class="sec">Lead</div>
+          <div style="display:flex;justify-content:space-between;align-items:center"><b>Ana Silva</b><span class="badge onboarding">novo</span></div>
+          <div class="muted small">+55 11 99999-0001</div>
+          <div class="row gap-2" style="margin-top:8px"><button class="btn sm">Editar</button><button class="btn primary sm">Agendar</button></div>
+
+          <div class="sec">Conversa</div>
+          <div class="row-kv"><span class="k">Estado</span><span>routing</span></div>
+          <div class="row-kv"><span class="k">Origem</span><span>meta</span></div>
+          <div class="row-kv"><span class="k">Bot score</span><span>72/100</span></div>
+          <div class="row-kv"><span class="k">Owner</span><span>bot</span></div>
+
+          <div class="sec">Notas do bot</div>
+          <div class="muted small" style="line-height:1.5">
+            • Particular · ticket R$ 350<br>
+            • Preferência tarde<br>
+            • Origem: anúncio IG do Dr. Pedro<br>
+            • Mencionou plano Bradesco
+          </div>
+
+          ${scope==='admin'?`
+          <div class="sec">Clínica</div>
+          <div class="row-kv"><span class="k">Nome</span><span>Dr. Pedro Artero</span></div>
+          <div class="row-kv"><span class="k">Especialidade</span><span>Ortopedia</span></div>
+          `:''}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function convItem(nome, fone, prev, t, sel, status){
+  const ini = nome.split(' ').map(s => s[0]).slice(0,2).join('');
+  const dot = {alert:'oklch(0.50 0.20 27)', bot:'oklch(0.42 0.13 248)', human:'oklch(0.45 0.13 145)', closed:'oklch(0.50 0.02 255)'}[status];
+  return `<div class="conv-item ${sel?'sel':''}">
+    <div class="avatar">${ini}</div>
+    <div class="meta">
+      <div class="name"><span>${nome}</span><span class="t">${t}</span></div>
+      <div class="preview">${prev}</div>
+    </div>
+    <span class="dot" style="background:${dot};align-self:center"></span>
+  </div>`;
+}
+
+function metaAdsView(scope){
+  const titulo = scope === 'admin' ? 'Meta Ads' : 'Meta Ads';
+  return `
+    <div class="page-head">
+      <div><h1>${titulo}</h1><div class="sub">Performance em tempo real · ${scope==='admin'?'admin escolhe o cliente':'apenas seus dados'}</div></div>
+      <div class="row gap-2">
+        ${scope==='admin'?'<select class="input plain" style="width:180px"><option>Dr. Pedro Artero</option><option>Sim Medical</option></select>':''}
+        <div class="subtabs">
+          <button>Hoje</button><button class="active">7d</button><button>14d</button><button>30d</button><button>Custom</button>
+        </div>
+      </div>
+    </div>
+    <div class="tabs">
+      <button class="active">Visão geral</button>
+      <button>Campanhas (4)</button>
+      <button>Diário</button>
+      <button>Anúncios (12)</button>
+      <button>Públicos</button>
+    </div>
+    <div class="kpi-grid">
+      ${kpi('Investimento','R$ 2.840','up','—')}
+      ${kpi('Leads','42','up','+18%')}
+      ${kpi('CTR','3,4%','up','+0,4 p.p.')}
+      ${kpi('CPM','R$ 18,40','down','−R$ 2,10')}
+    </div>
+    <div class="section">
+      <div class="g-2-1">
+        <div class="card chart-card">
+          <h3>Investimento e leads diários</h3>
+          ${sparkline('oklch(0.42 0.13 248)')}
+          <div class="legend">
+            <span><span class="dot" style="background:var(--brand-blue)"></span>Investimento</span>
+            <span><span class="dot" style="background:var(--brand-sky)"></span>Leads</span>
+          </div>
+        </div>
+        <div class="card">
+          <div class="hd"><h3>Top campanhas</h3></div>
+          <div class="body flush">
+            <table>
+              <thead><tr><th>Campanha</th><th>Leads</th><th>CPL</th></tr></thead>
+              <tbody>
+                ${row(['Captação Geral · jun','22','R$ 65'])}
+                ${row(['Retargeting · 30d','12','R$ 48'])}
+                ${row(['Indicação · piloto','8','R$ 92'])}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+/* ============================================================
+   PÁGINAS NOVAS · Sprint 13.07 (Método 7F · Pilares · B2B · Fin · Bib)
+   ============================================================ */
+
+PAGES['diagnostico-7f'] = () => `
+  <div class="page-head">
+    <div><h1>Diagnóstico 7 Fontes</h1><div class="sub">Maturidade em marketing médico por Fonte · scoring 0-100 · plano de ação por IA</div></div>
+    <div class="row gap-2">
+      <select class="input plain" style="width:200px;height:30px"><option>Dr. Pedro Artero</option><option>Sim Medical</option><option>Welife Saúde</option></select>
+      <button class="btn sm">${I.plus} Novo questionário</button>
+    </div>
+  </div>
+  <div class="kpi-grid">
+    ${kpi('Score geral','70','up','+8 vs último')}
+    ${kpi('Fonte mais fraca','40','down','Escala')}
+    ${kpi('Fonte mais forte','85','up','Posicionamento')}
+    ${kpi('Ações prioritárias','6','up','plano gerado')}
+  </div>
+  <div class="section">
+    <div class="g-2-1">
+      <div class="card">
+        <div class="hd"><h3>Radar das 7 Fontes</h3><span class="badge ativo">consolidado</span></div>
+        <div class="body">
+          <table>
+            <thead><tr><th>Fonte</th><th>Nota</th><th>Rubrica</th></tr></thead>
+            <tbody>
+              ${row(['1 · Posicionamento','<b style="color:var(--brand-blue)">85</b>','Autoridade digital consolidada. Diferencial claro.'])}
+              ${row(['2 · Presença Digital','<b style="color:var(--brand-blue)">75</b>','Website + Google Perfil bem estruturados. SEO parcial.'])}
+              ${row(['3 · Aquisição','<b style="color:var(--brand-blue)">80</b>','Meta Ads rodando. LP e CRM integrados.'])}
+              ${row(['4 · Conversão','<b style="color:oklch(0.52 0.15 75)">55</b>','WhatsApp sem CRM. Tempo de resposta alto fora do horário.'])}
+              ${row(['5 · Experiência','<b style="color:oklch(0.52 0.15 75)">60</b>','NPS não medido. Jornada pós-consulta manual.'])}
+              ${row(['6 · Inteligência','<b style="color:var(--brand-blue)">75</b>','KPIs em planilha, sem tempo real. CAC/CPL calculados.'])}
+              ${row(['7 · Escala','<b style="color:hsl(0,72%,35%)">40</b>','Pietro é o processo. Sem automação, sem RBAC.'])}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card">
+        <div class="hd"><h3>Plano de ação · gerado por IA</h3></div>
+        <div class="body" style="font-size:12px;line-height:1.55">
+          <div style="padding:8px 0;border-bottom:1px solid var(--border)"><b>Prioridade 1</b> · Ativar CRM ligado ao WhatsApp<div class="muted small">impacta Fonte 4 · Conversão · ganho +20 pontos</div></div>
+          <div style="padding:8px 0;border-bottom:1px solid var(--border)"><b>Prioridade 2</b> · Implementar Cérebro Pietro IA<div class="muted small">impacta Fonte 7 · Escala · ganho +25 pontos</div></div>
+          <div style="padding:8px 0;border-bottom:1px solid var(--border)"><b>Prioridade 3</b> · Portal cliente com KPIs<div class="muted small">impacta Fonte 6 · Inteligência · ganho +10 pontos</div></div>
+          <div style="padding:8px 0"><b>Prioridade 4</b> · Medir NPS pós-consulta<div class="muted small">impacta Fonte 5 · Experiência · ganho +15 pontos</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="section">
+    <div class="card">
+      <div class="hd"><h3>Histórico de diagnósticos deste cliente</h3></div>
+      <div class="body flush">
+        <table>
+          <thead><tr><th>Data</th><th>Score</th><th>Fontes 4</th><th>Fontes 7</th><th>Aplicado?</th></tr></thead>
+          <tbody>
+            ${row(['27/07/2026','70','55','40','<span class="badge ativo">sim · sprint 13.07</span>'])}
+            ${row(['15/06/2026','58','40','25','<span class="badge pausa">parcial</span>'])}
+            ${row(['20/04/2026','48','30','15','<span class="badge onboarding">baseline</span>'])}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+`;
+
+PAGES['pilares-conteudo'] = () => `
+  <div class="page-head">
+    <div><h1>Pilares de Conteúdo</h1><div class="sub">Autoridade · Relacionamento · Conversão · Reputação · IA de sugestão respeitando CFM</div></div>
+    <div class="row gap-2">
+      <select class="input plain" style="width:180px;height:30px"><option>Dr. Pedro Artero</option><option>Sim Medical</option></select>
+      <button class="btn sm">${I.plus} Sugerir com IA</button>
+    </div>
+  </div>
+  <div class="section">
+    <div class="g-2-2">
+      <div class="card">
+        <div class="hd"><h3>1 · Autoridade</h3><span class="badge ativo">8 conteúdos</span></div>
+        <div class="body" style="font-size:12px;line-height:1.55">
+          <div class="muted small">Conteúdos técnicos, opinião, presença em mídia. Constrói posição no nicho.</div>
+          <div style="margin-top:10px;padding:8px;background:var(--muted);border-radius:6px"><b>IG Reel · Casos raros de ortopedia</b> <span class="badge pausa">aprovação</span></div>
+          <div style="margin-top:6px;padding:8px;background:var(--muted);border-radius:6px"><b>Artigo LinkedIn · Novo protocolo</b> <span class="badge ativo">publicado</span></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="hd"><h3>2 · Relacionamento</h3><span class="badge ativo">5 conteúdos</span></div>
+        <div class="body" style="font-size:12px;line-height:1.55">
+          <div class="muted small">Bastidor, humano, aproxima o paciente do consultório.</div>
+          <div style="margin-top:10px;padding:8px;background:var(--muted);border-radius:6px"><b>Story · Dia a dia no consultório</b> <span class="badge ativo">agendado</span></div>
+          <div style="margin-top:6px;padding:8px;background:var(--muted);border-radius:6px"><b>Reel · Equipe da clínica</b> <span class="badge onboarding">briefing</span></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="hd"><h3>3 · Conversão</h3><span class="badge ativo">4 conteúdos</span></div>
+        <div class="body" style="font-size:12px;line-height:1.55">
+          <div class="muted small">CTA direta, oferta, agendamento. Fim de funil.</div>
+          <div style="margin-top:10px;padding:8px;background:var(--muted);border-radius:6px"><b>Anúncio Meta · Agenda aberta</b> <span class="badge ativo">rodando</span></div>
+          <div style="margin-top:6px;padding:8px;background:var(--muted);border-radius:6px"><b>Post · Nova modalidade particular</b> <span class="badge pausa">aprovação</span></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="hd"><h3>4 · Reputação</h3><span class="badge ativo">3 conteúdos</span></div>
+        <div class="body" style="font-size:12px;line-height:1.55">
+          <div class="muted small">Depoimento, review, prova social. Amplia via boca a boca.</div>
+          <div style="margin-top:10px;padding:8px;background:var(--muted);border-radius:6px"><b>Depoimento paciente · Dona Ana</b> <span class="badge ativo">publicado</span></div>
+          <div style="margin-top:6px;padding:8px;background:var(--muted);border-radius:6px"><b>Post Google Reviews · 4.9★</b> <span class="badge ativo">publicado</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="section">
+    <div class="card">
+      <div class="hd"><h3>Sugestão da IA · próximos 15 dias</h3><span class="badge ativo">IA</span></div>
+      <div class="body" style="font-size:12px;line-height:1.55">
+        Considerando <b>especialidade Ortopedia</b>, <b>estágio agendamento (fim de funil)</b>, <b>diretrizes CFM (sem antes/depois de cirurgia)</b>, tom <b>educativo formal</b>:
+        <div style="margin-top:10px;padding:10px;background:var(--muted);border-radius:6px"><b>Autoridade</b> · Reel sobre nova tecnologia de artroscopia (2 min)</div>
+        <div style="margin-top:6px;padding:10px;background:var(--muted);border-radius:6px"><b>Relacionamento</b> · Carrossel com equipe da fisioterapia integrada</div>
+        <div style="margin-top:6px;padding:10px;background:var(--muted);border-radius:6px"><b>Conversão</b> · Anúncio Meta · agenda de setembro aberta</div>
+        <div style="margin-top:6px;padding:10px;background:var(--muted);border-radius:6px"><b>Reputação</b> · Story com print do review no Doctoralia</div>
+      </div>
+    </div>
+  </div>
+`;
+
+PAGES['pipeline-b2b'] = () => `
+  <div class="page-head">
+    <div><h1>Pipeline B2B · Tabgha</h1><div class="sub">Venda pra novos médicos · 8 estágios (baseado no CRM Dr Pedro)</div></div>
+    <div class="row gap-2">
+      <button class="btn sm">${I.filter} Filtros</button>
+      <button class="btn sm">${I.plus} Novo lead B2B</button>
+    </div>
+  </div>
+  <div class="kpi-grid">
+    ${kpi('Leads no funil','18','up','+5 essa semana')}
+    ${kpi('Diagnósticos agendados','4','up','—')}
+    ${kpi('MRR potencial','R$ 62k','up','ticket médio R$ 3.4k')}
+    ${kpi('Taxa fechamento','28%','up','+3pp')}
+  </div>
+  <div class="section">
+    <div class="kanban" style="grid-template-columns:repeat(8,minmax(180px,1fr));overflow-x:auto;">
+      ${kCol('Novo Lead','5',[
+        ['Dra. Amanda R.','ortopedia · Campinas',null],
+        ['Dr. Fernando M.','dermato · SP',null],
+        ['Clínica Vitalis','multi · POA',null],
+      ])}
+      ${kCol('Contato iniciado','4',[
+        ['Dr. Marcelo T.','oftalmo · BH',null],
+        ['Instituto Movta','fisio · SP',null],
+      ])}
+      ${kCol('Diag. agendado','4',[
+        ['Dra. Renata L.','gineco · Recife','30/07'],
+        ['Dr. André P.','cardiologia · SP','01/08'],
+      ])}
+      ${kCol('Proposta','2',[
+        ['Clínica Norte','multi · Fortaleza','R$ 3.2k/mês'],
+      ])}
+      ${kCol('Negociação','1',[
+        ['Dr. Pedro (Rio)','urologia','R$ 4.5k/mês'],
+      ])}
+      ${kCol('Cliente ativo','1',[
+        ['Sim Medical','ativo há 2m',null],
+      ])}
+      ${kCol('Pós-venda','1',[
+        ['Dr. Pedro Artero','1º ano',null],
+      ])}
+      ${kCol('Promotor','0',[])}
+    </div>
+  </div>
+`;
+
+PAGES['biblioteca'] = () => `
+  <div class="page-head">
+    <div><h1>Biblioteca Criativa</h1><div class="sub">Assets produzidos pela Tabgha · organização por pilar · versionamento</div></div>
+    <div class="row gap-2">
+      <select class="input plain" style="width:150px;height:30px"><option>Todos os pilares</option><option>Autoridade</option><option>Relacionamento</option><option>Conversão</option><option>Reputação</option></select>
+      <button class="btn sm">${I.plus} Upload</button>
+    </div>
+  </div>
+  <div class="kpi-grid">
+    ${kpi('Assets totais','247','up','+34 mês')}
+    ${kpi('Aguardando aprovação','12','down','−3')}
+    ${kpi('Aprovados este mês','48','up','+22%')}
+    ${kpi('Tamanho total','2,8 GB','up','—')}
+  </div>
+  <div class="section">
+    <div class="card">
+      <div class="hd"><h3>Últimos uploads</h3></div>
+      <div class="body flush">
+        <table>
+          <thead><tr><th>Asset</th><th>Pilar</th><th>Cliente</th><th>Versão</th><th>Status</th></tr></thead>
+          <tbody>
+            ${row(['Reel · Nova tecnologia artroscopia.mp4','<span class="badge ativo">Autoridade</span>','Dr. Pedro','v3','<span class="badge pausa">aprovação</span>'])}
+            ${row(['Carrossel · Equipe fisio.pdf','<span class="badge ativo">Relacionamento</span>','Dr. Pedro','v1','<span class="badge onboarding">briefing</span>'])}
+            ${row(['Anúncio · Agenda setembro.png','<span class="badge ativo">Conversão</span>','Sim Medical','v2','<span class="badge ativo">aprovado</span>'])}
+            ${row(['Story · Review Doctoralia.png','<span class="badge ativo">Reputação</span>','Dr. Pedro','v1','<span class="badge ativo">publicado</span>'])}
+            ${row(['Reel · Dia a dia consultório.mp4','<span class="badge ativo">Relacionamento</span>','Welife','v2','<span class="badge pausa">aprovação</span>'])}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+`;
+
+PAGES['financeiro'] = () => `
+  <div class="page-head">
+    <div><h1>Financeiro · Tabgha</h1><div class="sub">MRR · contratos · cobranças · inadimplência</div></div>
+    <div class="row gap-2">
+      <select class="input plain" style="width:170px;height:30px"><option>Este mês</option><option>Trimestre</option><option>Ano</option></select>
+      <button class="btn sm">${I.plus} Novo contrato</button>
+    </div>
+  </div>
+  <div class="kpi-grid">
+    ${kpi('MRR ativo','R$ 84k','up','+ 2 novos clientes')}
+    ${kpi('Recebido no mês','R$ 78k','up','93% do MRR')}
+    ${kpi('Cobranças pendentes','2','down','−1 vs mês passado')}
+    ${kpi('Inadimplência','R$ 3,4k','down','−R$ 2k')}
+  </div>
+  <div class="section">
+    <div class="g-2-1">
+      <div class="card">
+        <div class="hd"><h3>Contratos ativos</h3><span class="badge ativo">12</span></div>
+        <div class="body flush">
+          <table>
+            <thead><tr><th>Cliente</th><th>Plano</th><th>MRR</th><th>Início</th><th>Status</th></tr></thead>
+            <tbody>
+              ${row(['Dr. Pedro Artero','Business Sistemas','R$ 24k · 12×','abr/26','<span class="badge ativo">em dia</span>'])}
+              ${row(['Sim Medical','Standard','R$ 3.2k','mai/26','<span class="badge ativo">em dia</span>'])}
+              ${row(['Surgical Office','Standard','R$ 3.2k','jun/26','<span class="badge pausa">1 fatura em aberto</span>'])}
+              ${row(['Welife Saúde','Onboarding','R$ 1.9k','jul/26','<span class="badge onboarding">novo</span>'])}
+              ${row(['Clínica Vitalis','Business','R$ 5.8k','abr/26','<span class="badge ativo">em dia</span>'])}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card">
+        <div class="hd"><h3>Cobranças em aberto</h3><span class="badge alert">2</span></div>
+        <div class="body" style="font-size:12px;line-height:1.55">
+          <div style="padding:10px 0;border-bottom:1px solid var(--border)"><b>Surgical Office</b> · R$ 3.200<div class="muted small">venc. 15/07 · 12 dias atraso</div></div>
+          <div style="padding:10px 0"><b>Clínica Norte</b> · R$ 200<div class="muted small">venc. 25/07 · 2 dias atraso</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+`;
+
+PAGES['c-diagnostico-7f'] = () => `
+  <div class="page-head">
+    <div><h1>Meu Diagnóstico · 7 Fontes</h1><div class="sub">Como sua clínica está posicionada nos 7 pilares do Método Tabgha</div></div>
+    <div class="row gap-2">
+      <button class="btn sm">Refazer questionário</button>
+    </div>
+  </div>
+  <div class="kpi-grid">
+    ${kpi('Sua nota geral','70','up','+8 vs último')}
+    ${kpi('Sua Fonte mais forte','85','up','Posicionamento')}
+    ${kpi('Onde crescer','40','down','Escala')}
+    ${kpi('Próximas ações','4','up','plano gerado')}
+  </div>
+  <div class="section">
+    <div class="card">
+      <div class="hd"><h3>Sua nota por Fonte · Método 7 Fontes™</h3></div>
+      <div class="body">
+        <table>
+          <thead><tr><th>Fonte</th><th>Sua nota</th><th>O que significa</th></tr></thead>
+          <tbody>
+            ${row(['1 · Posicionamento','<b style="color:var(--brand-blue)">85</b>','Sua autoridade digital está bem construída. Continue.'])}
+            ${row(['2 · Presença Digital','<b style="color:var(--brand-blue)">75</b>','Website e Google Perfil bem estruturados. Faltam SEO técnico.'])}
+            ${row(['3 · Aquisição','<b style="color:var(--brand-blue)">80</b>','Meta Ads rodando bem. LP integrada.'])}
+            ${row(['4 · Conversão','<b style="color:oklch(0.52 0.15 75)">55</b>','WhatsApp fora do CRM está fazendo você perder leads.'])}
+            ${row(['5 · Experiência','<b style="color:oklch(0.52 0.15 75)">60</b>','Precisamos medir NPS e ativar jornada pós-consulta.'])}
+            ${row(['6 · Inteligência','<b style="color:var(--brand-blue)">75</b>','Seus KPIs estão vindo, mas em planilha. Portal resolve.'])}
+            ${row(['7 · Escala','<b style="color:hsl(0,72%,35%)">40</b>','Você é o processo. IA e automação vão te liberar.'])}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="section">
+    <div class="card">
+      <div class="hd"><h3>Seu plano de ação · próximas 4 semanas</h3><span class="badge ativo">IA</span></div>
+      <div class="body" style="font-size:13px;line-height:1.6">
+        <div style="padding:12px 0;border-bottom:1px solid var(--border)"><b>Semana 1</b> · Ativar CRM ligado ao WhatsApp · impacto na Fonte Conversão</div>
+        <div style="padding:12px 0;border-bottom:1px solid var(--border)"><b>Semana 2</b> · IA responder 24/7 no WhatsApp · impacto na Escala</div>
+        <div style="padding:12px 0;border-bottom:1px solid var(--border)"><b>Semana 3</b> · Acesso ao portal com KPIs · impacto na Inteligência</div>
+        <div style="padding:12px 0"><b>Semana 4</b> · NPS automatizado pós-consulta · impacto na Experiência</div>
+      </div>
+    </div>
+  </div>
+`;
+
+function render(){
+  const fn = PAGES[page] || (() => `<div class="empty"><div class="ic">${I.alert}</div>Tela em construção (${page})</div>`);
+  document.getElementById('main').innerHTML = fn();
+}
+
+renderNav();
+render();
+</script>
+</body>
+</html>
