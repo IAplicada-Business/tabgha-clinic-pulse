@@ -71,6 +71,22 @@ const META_LOGIN_CONFIG_ID = import.meta.env.VITE_META_LOGIN_CONFIG_ID as string
 const SUPABASE_URL = (import.meta.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL) as
   string | undefined;
 
+async function invokeErrorMessage(error: unknown, fallback: string) {
+  const ctx =
+    error && typeof error === "object" && "context" in error
+      ? (error as { context?: { json?: () => Promise<unknown> } }).context
+      : undefined;
+  if (ctx && typeof ctx.json === "function") {
+    try {
+      const body = (await ctx.json()) as { error?: string };
+      if (body?.error) return body.error;
+    } catch {
+      /* ignore */
+    }
+  }
+  return error instanceof Error && error.message ? error.message : fallback;
+}
+
 function buildOAuthUrl(clienteId: string) {
   if (!META_APP_ID || !SUPABASE_URL) return null;
   const redirectUri = `${SUPABASE_URL}/functions/v1/meta-oauth-callback`;
@@ -484,7 +500,7 @@ function ConfigMetaPage() {
           cliente_id: clienteId,
         },
       });
-      if (error) throw error;
+      if (error) throw new Error(await invokeErrorMessage(error, error.message));
       const payload = data as {
         ok?: boolean;
         error?: string;
@@ -548,7 +564,7 @@ function ConfigMetaPage() {
           ad_account_id: accountId || undefined,
         },
       });
-      if (error) throw error;
+      if (error) throw new Error(await invokeErrorMessage(error, error.message));
       const payload = data as {
         ok?: boolean;
         error?: string;
